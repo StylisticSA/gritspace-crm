@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Force default text color for headers and paragraphs */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #111111;
+}
+
+body {
+    @apply font-sans;
+}
+
+.body-no-scroll {
+    overflow: hidden;
+}
