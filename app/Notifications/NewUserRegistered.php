@@ -10,8 +10,10 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class NewUserRegistered extends Notification
+class NewUserRegistered extends Notification implements ShouldQueue
 {
+    use Queueable;
+    
     public $newUser;
 
     /**
@@ -61,7 +63,7 @@ class NewUserRegistered extends Notification
         return (new MailMessage())
             ->subject('New User Registration')
             ->greeting('Hello Admin,')
-            ->line('A new user has registered:')
+            ->line('A new user has been registered:')
             ->line('Name: ' . $this->newUser->name)
             ->line('Email: ' . $this->newUser->email)
             ->action('View User', url('/admin/manage/'));

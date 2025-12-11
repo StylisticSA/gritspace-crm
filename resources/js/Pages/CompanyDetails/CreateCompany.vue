@@ -248,7 +248,7 @@ const rowFieldErrors = computed(() => {
                         <h3 class="inline-block py-2 text-xl text-black">Add Company Details</h3>
 
                         <Link
-                            :href="route('companydetail.index')"
+                            :href="route('dashboard')"
                             class="inline-block px-2 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60">
                             Back
                         </Link>

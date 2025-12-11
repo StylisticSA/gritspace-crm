@@ -121,9 +121,11 @@ watch(
                             </div>
 
                             <!-- Roles -->
-                            <div>
+                            <div class="w-full lg:w-full">
                                 <label class="block text-lg font-medium text-gray-700">Assign Roles</label>
-                                <div class="flex mt-5 space-x-2">
+
+                                <!-- Stack vertically on mobile, row on lg -->
+                                <div class="flex flex-col mt-5 space-y-2 lg:flex-row w-full lg:space-x-4 lg:space-y-0">
                                     <div
                                         v-for="role in roles"
                                         :key="role.id"
@@ -133,9 +135,10 @@ watch(
                                             :value="role.name"
                                             v-model="form.roles"
                                             class="border-gray-300 rounded shadow-sm text-primary focus:ring-bluemain/60" />
-                                        <span class="text-sm text-bluemain">{{ role.name }}</span>
+                                        <span class="block w-full text-sm text-bluemain truncate">{{ role.name }}</span>
                                     </div>
                                 </div>
+
                                 <div
                                     v-if="form.errors.roles"
                                     class="text-sm text-red-600">

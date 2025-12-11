@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import NoteTrail from '@/Components/NoteTrail.vue';
 import { ref } from 'vue';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
@@ -34,6 +34,7 @@ const props = defineProps({
     clientRatePlan: Object,
     virtualPlan: Object,
     agreement: Object,
+    clientAvail: Boolean,
     can: Object,
 });
 
@@ -54,18 +55,24 @@ const showVirtuals = ref(false);
         <template #header>
             <div class="flex items-center justify-between space-x-5">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Dashboard</h2>
-                <!-- <button
-                    @click="showAgreementModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Upload Agreement
-                </button> -->
             </div>
         </template>
 
         <div class="px-4 py-6 lg:px-8">
             <div class="mx-auto max-w-7xl">
-                <div class="overflow-hidden bg-white rounded-md shadow">
+                <div class="flex items-center justify-between overflow-hidden bg-white rounded-md shadow">
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome at Grit Space CRM</div>
+                    <div
+                        class="p-4"
+                        v-if="!clientAvail">
+                        <span>Please fill in your Company Details </span>
+
+                        <Link
+                            :href="route('companydetail.create')"
+                            class="inline-block px-3 py-2 text-lg font-medium text-primary rounded">
+                            + here
+                        </Link>
+                    </div>
                 </div>
 
                 <!-- 3-column grid -->

@@ -2,11 +2,15 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class ClientStatusNotification extends Notification
+class ClientStatusNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+    
     protected array $booking;
 
     public function __construct(array $booking, string $status, string $recipientType)

@@ -1,16 +1,33 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import NotificationDropdown from '@/Components/Modals/Nortifications/NotificationDropdown.vue';
 
 const showingNavigationDropdown = ref(false);
 
 const page = usePage();
 const can = page.props.can || {};
+
+const props = defineProps({
+    notificationsSummary: Object,
+    adminSummary: Object,
+    notificationsTotal: Number,
+    adminTotal: Number,
+    can: Object,
+});
+
+// Direct access
+const notificationsSummary = page.props.notificationsSummary || {};
+const adminSummary = page.props.adminSummary || {};
+
+// Totals
+const notificationsTotal = computed(() => page.props.notificationsTotal || 0);
+const adminTotal = computed(() => page.props.adminTotal || 0);
 </script>
 
 <template>
@@ -68,6 +85,14 @@ const can = page.props.can || {};
                         <!-- Right Section: User Avatar -->
                         <div class="items-center hidden space-x-2 sm:flex">
                             <div class="items-center hidden space-x-6 sm:flex">
+                                <NotificationDropdown
+                                    :notifications-summary="notificationsSummary"
+                                    :admin-summary="adminSummary"
+                                    :notifications-total="notificationsTotal"
+                                    :admin-total="adminTotal"
+                                    :can="can"
+                                    :officeid="page.props.officeid" />
+
                                 <!-- Calendars -->
                                 <Dropdown
                                     align="right"
@@ -409,7 +434,15 @@ const can = page.props.can || {};
                         </div>
 
                         <!-- Hamburger Menu (Mobile) -->
-                        <div class="flex items-center sm:hidden">
+                        <div class="relative w-full sm:hidden flex items-center justify-end">
+                            <NotificationDropdown
+                                :notifications-summary="notificationsSummary"
+                                :admin-summary="adminSummary"
+                                :notifications-total="notificationsTotal"
+                                :admin-total="adminTotal"
+                                :can="can"
+                                :officeid="page.props.officeid" />
+
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"
                                 class="p-2 text-gray-400 rounded-md hover:bg-gray-100 hover:text-gray-600 focus:outline-none">

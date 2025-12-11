@@ -7,8 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class BoardroomBookingNotification extends Notification
+class BoardroomBookingNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+    
     protected array $booking;
     protected string $eventType;
     protected string $recipientType;
