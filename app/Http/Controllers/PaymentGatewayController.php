@@ -17,13 +17,11 @@ class PaymentGatewayController extends Controller
 {
     public function initiateTransaction(Request $request)
     {
-        // Retrieval Reference Number: 12 characters (match exactly what you send)
+
         $reference   = str_pad((string) now()->timestamp, 12, '0', STR_PAD_RIGHT);
 
-        // Extended Reference: 13-digit milliseconds timestamp (optional, include if present)
         $referenceEx = substr((string) round(microtime(true) * 1000), 0, 13);
 
-        // Session ID: UUID, lowercased
         $sessionId   = strtolower((string) Str::uuid());
 
         // Transaction details
@@ -43,8 +41,6 @@ class PaymentGatewayController extends Controller
             "Merchant's Private Key"              => $privateKey,
         ]);
 
-
-        // Seed payment_gateways records for each cart item
         $cart = $request->cart;
 
         foreach ($cart as $item) {
@@ -69,6 +65,7 @@ class PaymentGatewayController extends Controller
 
         $method = $request->input('method', '3d');
 
+      
 
         // Build request payload
         $payload = [
@@ -79,9 +76,6 @@ class PaymentGatewayController extends Controller
             'retrievalReferenceNumberExtended' => $referenceEx,
             'sessionId'                        => $sessionId,
             'transactionAmount'                => $transactionAmount,
-            // 'transactionInfo'                  => [
-            //     'transactionCategory' => '95', // 3-D Secure
-            // ],
             'echoData'                         => '123',
             'transmissionDateTime'             => now()->utc()->format('Y-m-d\TH:i:sO'),
 

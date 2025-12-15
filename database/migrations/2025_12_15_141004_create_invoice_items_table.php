@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('boardroom_amenity', function (Blueprint $table) {
+        Schema::create('invoice_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('boardroom_id')->constrained()->onDelete('set null');                   
-            $table->foreignId('amenity_id')->constrained()->onDelete('set null');  
+            $table->foreignId('invoice_id')->constrained('invoices')->onDelete('cascade');
+            $table->string('item_name', 150);
+            $table->integer('item_quantity');
+            $table->decimal('item_rate', 10, 2);
+            $table->decimal('item_amount', 10, 2);
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('boardroom_amenity');
+        Schema::dropIfExists('invoice_items');
     }
 };

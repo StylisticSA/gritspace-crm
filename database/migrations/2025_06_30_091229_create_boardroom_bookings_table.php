@@ -24,7 +24,7 @@ return new class () extends Migration {
             $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'paid'])->default('pending');
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('boardroom_id')->references('id')->on('boardrooms')->onDelete('cascade');
+            $table->foreign('boardroom_id')->references('id')->on('boardrooms')->onDelete('set null');
 
             $table->timestamps();
 

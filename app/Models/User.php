@@ -10,6 +10,7 @@ use App\Models\HotDeskBooking;
 use App\Models\VirtualBooking;
 use App\Models\BoardroomBooking;
 use App\Models\ClosedOfficeRate;
+use App\Models\ClientInformation;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,6 +54,11 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function companyDetails()
+    {
+        return $this->hasOne(ClientInformation::class);
     }
 
     public function notes()

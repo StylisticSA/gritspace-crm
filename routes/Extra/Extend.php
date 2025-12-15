@@ -3,6 +3,7 @@
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ExtraController;
 use App\Http\Controllers\CoffeeController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\HelpDeskController;
 use App\Http\Controllers\PrintingController;
@@ -43,6 +44,15 @@ Route::middleware(['web', 'auth', 'verified'])
                         'destroy' => 'notes.destroy',
                 ]);
 
+        Route::resource('invoices', InvoiceController::class)->names([
+                'index' => 'invoices.index',
+                'create' => 'invoices.create',
+                'store' => 'invoices.store',
+                'show' => 'invoices.show',
+                'edit' => 'invoices.edit',
+                'update' => 'invoices.update',
+                'destroy' => 'invoices.destroy',
+        ]);
 
         Route::resource('coffee-admin', CoffeeController::class)->names([
                         'index' => 'coffee.index',
@@ -146,6 +156,7 @@ Route::middleware('auth')->group(function () {
     })->name('checkout.failed');
 
 
-
+    route::get('user/invoices',[InvoiceController::class, 'user_index'])->name('user.invoice');
+    route::get('user/invoices/{invoice}',[InvoiceController::class,'user_show'])->name('view.user.invoice');
 
 });
