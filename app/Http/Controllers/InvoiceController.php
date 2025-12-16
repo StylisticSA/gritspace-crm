@@ -21,8 +21,6 @@ class InvoiceController extends Controller
     {   
         $invoices = Invoice::with('invoiceItems')->get();
 
-        
-
         return Inertia::render('Invoice/Admins/IndexInvoice',[
             'invoices' => $invoices
         ]);

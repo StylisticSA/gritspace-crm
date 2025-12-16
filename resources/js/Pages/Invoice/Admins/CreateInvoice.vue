@@ -108,7 +108,7 @@ const total = computed(() => subtotal.value + tax.value);
         </template>
         <div class="py-2 px-5 lg:px-0">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="mt-5">
+                <div class="my-5">
                     <div class="flex item-center flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h3 class="inline-block py-2 text-xl font-medium text-black">Create Invoice</h3>
 
