@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Amenity extends Model
 {
-    protected $fillable = ['amenity_name', 'price', 'description'];
+    protected $guarded = [];
 
     public function offices()
     {

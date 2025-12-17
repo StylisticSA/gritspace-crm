@@ -6,21 +6,25 @@ import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
+    invoice: {
+        type: Object,
+        required: true,
+    },
     users: {
         type: Array,
         required: true,
     },
     allOptions: {
-        type: Object,
+        type: Array,
         required: true,
     },
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
-const selectedUserId = ref(null);
-const taxRate = ref(0);
-const currency = ref('ZAR');
+const selectedUserId = ref(props.invoice.user_id ?? null);
+const taxRate = ref(props.invoice.tax_rate ?? 0);
+const currency = ref(props.invoice.currency ?? 'ZAR');
 
 const currencySymbols = {
     ZAR: 'R',
@@ -29,40 +33,60 @@ const currencySymbols = {
     GBP: '£',
 };
 
-function fillUserFields() {
-    const user = props.users.find(u => u.id === selectedUserId.value);
-    if (user) {
-        form.user_id = user?.id;
-        form.user_name = user?.name;
-        form.customer_name = user?.company_details?.company_name;
-        form.customer_email = user.email;
-        form.customer_phone = user?.company_details?.cell_number;
-    }
-}
-
 const form = useForm({
-    user_id: '',
-    user_name: '',
-    customer_name: '',
-    customer_email: '',
-    customer_phone: '',
+    user_id: props.invoice.user_id,
+    user_name: props.invoice.user_name,
+    customer_name: props.invoice.customer_name,
+    customer_email: props.invoice.customer_email,
+    customer_phone: props.invoice.customer_phone,
 
-    customer_address: '',
-    customer_city: '',
+    customer_address: props.invoice.customer_address,
+    customer_city: props.invoice.customer_city,
+    customer_zip: props.invoice.customer_zip ?? '',
 
-    issued_date: '',
-    issued_due_date: '',
-    invoice_notes: '',
+    issued_date: props.invoice.issued_date,
+    issued_due_date: props.invoice.issued_due_date,
+    invoice_notes: props.invoice.invoice_notes,
 
-    subtotal: '',
-    tax_amount: '',
-    tax_rate: '',
-    total_amount: '',
+    subtotal: props.invoice.subtotal,
+    tax_amount: props.invoice.tax_amount,
+    tax_rate: props.invoice.tax_rate,
+    total_amount: props.invoice.total_amount,
 
-    currency: '',
+    currency: props.invoice.currency,
 
-    items: [],
+    items: props.invoice.invoice_items ?? [],
 });
+
+watch(selectedUserId, newId => {
+    const user = props.users.find(u => u.id === newId);
+    if (user) {
+        form.user_id = user.id;
+        form.user_name = user.name;
+        form.customer_name = user.company_details?.company_name ?? '';
+        form.customer_email = user.email ?? '';
+        form.customer_phone = user.company_details?.cell_number ?? '';
+    }
+});
+
+// ✅ Normalize items for editing: keep id if exists
+const items = ref(
+    form.items.length
+        ? form.items.map(i => ({
+              id: i.id ?? null,
+              description: i.item_name,
+              quantity: i.item_quantity,
+              rate: i.item_rate,
+              amount: i.item_amount,
+          }))
+        : [{ id: null, description: '', quantity: 1, rate: 0, amount: 0 }]
+);
+
+const subtotal = computed(() => items.value.reduce((sum, item) => sum + item.quantity * item.rate, 0));
+
+const tax = computed(() => subtotal.value * (taxRate.value / 100));
+
+const total = computed(() => subtotal.value + tax.value);
 
 const submit = () => {
     form.subtotal = subtotal.value.toFixed(2);
@@ -72,15 +96,16 @@ const submit = () => {
     form.currency = currency.value;
 
     form.items = items.value.map(i => ({
+        id: i.id,
         item_name: i.description,
         item_quantity: i.quantity,
         item_rate: i.rate,
         item_amount: (i.quantity * i.rate).toFixed(2),
     }));
 
-    form.post(route('admin.invoices.store'), {
+    form.put(route('admin.invoices.update', props.invoice.id), {
         onSuccess: () => {
-            message.value = 'Invoice has been Created Successfully.';
+            message.value = 'Invoice has been Updated Successfully.';
             status.value = 'success';
 
             setTimeout(() => {
@@ -90,17 +115,9 @@ const submit = () => {
         },
     });
 };
-
-const items = ref([{ description: '', quantity: 1, rate: 0 }]);
-
-const subtotal = computed(() => items.value.reduce((sum, item) => sum + item.quantity * item.rate, 0));
-
-const tax = computed(() => subtotal.value * (taxRate.value / 100));
-
-const total = computed(() => subtotal.value + tax.value);
 </script>
 <template>
-    <Head title="Admin Create Invoices" />
+    <Head title="Admin Edit Invoices" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -110,7 +127,7 @@ const total = computed(() => subtotal.value + tax.value);
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="my-5">
                     <div class="flex item-center flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="inline-block py-2 text-xl font-medium text-black">Create Invoice</h3>
+                        <h3 class="inline-block py-2 text-xl font-medium text-black">Edit Invoice</h3>
 
                         <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
                             <div>
@@ -214,7 +231,7 @@ const total = computed(() => subtotal.value + tax.value);
                                                     class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2"
                                                     >City, State, ZIP</label
                                                 ><input
-                                                    v-model="form.customer_zip"
+                                                    v-model="form.customer_city"
                                                     placeholder="City, State, ZIP"
                                                     class="w-full px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 text-bluemain focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
                                                     type="text" />
@@ -447,7 +464,7 @@ const total = computed(() => subtotal.value + tax.value);
                                         <button
                                             type="submit"
                                             class="block w-full px-4 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                            Create Invoice
+                                            Update Invoice
                                         </button>
 
                                         <Link

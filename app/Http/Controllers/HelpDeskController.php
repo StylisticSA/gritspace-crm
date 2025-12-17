@@ -69,7 +69,6 @@ class HelpDeskController extends Controller
             'price'           => 'required|numeric',
             'duration'        => 'required|numeric',
             'desks'           => 'nullable|numeric',
-            'discount'        => 'nullable|numeric',
             'is_available'    => ['nullable'],
             'available_dates' => ['nullable'],
 
@@ -114,7 +113,6 @@ class HelpDeskController extends Controller
     public function update(Request $request, HelpDesk $helpDesk)
     {
 
-
         $validated = $request->validate([
            'help_desk_name'    => [
                     'required',
@@ -131,7 +129,6 @@ class HelpDeskController extends Controller
            'price'             => 'required|numeric',
            'duration'          => 'required|numeric',
            'desks'             => 'nullable|numeric',
-           'discount'          => 'nullable|numeric',
            
            'is_available'    => ['nullable'],
             'available_dates' => ['nullable'],

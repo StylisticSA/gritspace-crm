@@ -54,6 +54,10 @@ Route::middleware(['web', 'auth', 'verified'])
                 'destroy' => 'invoices.destroy',
         ]);
 
+        Route::put('/invoice/{invoice}/paid', [InvoiceController::class, 'paid'])->name('invoice.paid');
+        Route::put('/invoice/{invoice}/pending', [InvoiceController::class, 'pending'])->name('invoice.pending');
+        Route::put('/invoice/{invoice}/cancel', [InvoiceController::class, 'cancelled'])->name('invoice.cancelled');
+
         Route::resource('coffee-admin', CoffeeController::class)->names([
                         'index' => 'coffee.index',
                         'create' => 'coffee.create',
@@ -156,7 +160,7 @@ Route::middleware('auth')->group(function () {
     })->name('checkout.failed');
 
 
-    route::get('user/invoices',[InvoiceController::class, 'user_index'])->name('user.invoice');
-    route::get('user/invoices/{invoice}',[InvoiceController::class,'user_show'])->name('view.user.invoice');
+    route::get('user/invoices', [InvoiceController::class, 'userIndex'])->name('user.invoice');
+    route::get('user/invoices/{invoice}', [InvoiceController::class,'userShow'])->name('userView.invoice');
 
 });

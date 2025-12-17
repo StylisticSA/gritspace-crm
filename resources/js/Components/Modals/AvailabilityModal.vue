@@ -20,7 +20,6 @@ const form = useForm({
     available_dates: null,
 });
 
-console.log('o', props.offices);
 // reactive URL holder
 const submitUrl = ref('');
 

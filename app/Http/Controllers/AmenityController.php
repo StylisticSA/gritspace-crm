@@ -43,6 +43,7 @@ class AmenityController extends Controller
      */
     public function store(Request $request)
     {
+       
 
         $validated = $request->validate([
            'amenity_name'      => 'required|string|max:255',

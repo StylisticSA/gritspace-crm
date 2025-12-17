@@ -30,9 +30,11 @@ return new class extends Migration
 
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax_amount', 10, 2)->nullable();
+            $table->decimal('tax_rate', 10, 2)->nullable();
             $table->decimal('total_amount', 10, 2);
 
             $table->string('currency', 3);
+            $table->string('status')->default('pending');
 
             $table->timestamps();
 

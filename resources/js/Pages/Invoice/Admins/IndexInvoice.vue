@@ -2,7 +2,48 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
-import { format } from 'date-fns';
+import InvoiceActionModal from '@/Components/Modals/Invoice/InvoiceActionModal.vue';
+
+const props = defineProps({
+    invoices: Object,
+    can: Object,
+});
+
+const showInvoiceModal = ref(false);
+const selectedInvoiceId = ref(null);
+
+const currencySymbols = {
+    ZAR: 'R',
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+};
+
+const invoiceData = ref(null);
+
+const setOffice = id => {
+    selectedInvoiceId.value = id;
+
+    const officeList = props.invoices || [];
+    invoiceData.value = officeList.find(o => o.id === id);
+
+    showInvoiceModal.value = true;
+};
+
+function formatAmount(invoice) {
+    const symbol = currencySymbols[invoice.currency] || invoice.currency;
+    return `${symbol} ${Number(invoice.total_amount).toFixed(2)}`;
+}
+
+const formatDate = date => {
+    if (!date) return '—';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-ZA', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+};
 </script>
 <template>
     <Head title="Admin Invoices" />
@@ -15,11 +56,16 @@ import { format } from 'date-fns';
         <div class="py-12 px-5 lg:px-0">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="flex flex-col gap-2 mb-10 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="space-x-2">
+                    <div class="space-x-2 flex">
                         <Link
                             :href="route('admin.invoices.create')"
-                            class="inline-block px-3 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
+                            class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Create Invoice
+                        </Link>
+                        <Link
+                            :href="route('admin.invoices.create')"
+                            class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                            + Banking
                         </Link>
                     </div>
 
@@ -51,78 +97,94 @@ import { format } from 'date-fns';
                                     class="bg-secondary-50 dark:bg-secondary-800/50 border-b border-secondary-200 dark:border-secondary-700">
                                     <tr>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Invoice
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Customer
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Amount
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
-                                            Date
+                                            class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            Creation Date
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Due Date
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-left text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th
-                                            class="px-6 py-4 text-right text-xs font-medium text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
+                                            class="px-6 py-4 font-semibold text-right text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700">
-                                    <tr class="hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                                    <tr
+                                        v-for="invoice in invoices"
+                                        :key="invoice.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <a
-                                                class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+                                                class="text-sm font-medium text-primary hover:text-primary/60"
                                                 href="/TailPanel/ecommerce/invoice/INV-001"
                                                 data-discover="true"
-                                                >INV-001</a
+                                                >{{ invoice.invoice_number }}</a
                                             >
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm">
-                                                <div class="font-medium text-secondary-900 text-bluemain">
-                                                    Acme Corporation
+                                                <div class="font-semibold text-secondary-900 text-bluemain">
+                                                    {{ invoice.user_name }}
                                                 </div>
                                                 <div class="text-secondary-500 dark:text-secondary-400">
-                                                    contact@acme.com
+                                                    {{ invoice.customer_email }}
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-semibold text-secondary-900 text-bluemain">
-                                                $2499.99
+                                                {{ formatAmount(invoice) }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                                                Dec 13, 2025
+                                                {{ formatDate(invoice.issued_date) }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                                                Dec 13, 2025
+                                                {{ formatDate(invoice.issued_due_date) }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="badge badge-success px-2 py-0.5 text-xs">Paid</span>
+                                            <span
+                                                :class="{
+                                                    'px-2 py-1 rounded text-xs font-semibold capitalize': true,
+                                                    'bg-yellow-100 text-yellow-800': invoice.status === 'pending',
+                                                    'bg-green-100 text-green-800': invoice.status === 'approved',
+                                                    'bg-gray-200 text-gray-700': invoice.status === 'cancelled',
+                                                    'bg-red-100 text-red-700': invoice.status === 'rejected',
+                                                    'bg-red-100 text-primary': invoice.status === 'paid',
+                                                }">
+                                                {{ invoice.status ?? 'N/A' }}
+                                            </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right">
                                             <div
                                                 class="relative inline-block"
                                                 data-headlessui-state="">
                                                 <button
+                                                    @click="
+                                                        setOffice(invoice.id);
+                                                        showInvoiceModal = true;
+                                                    "
                                                     class="p-2 hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-lg transition-colors"
                                                     type="button"
                                                     aria-expanded="false"
@@ -163,6 +225,12 @@ import { format } from 'date-fns';
                     </div>
                 </div>
             </div>
+
+            <InvoiceActionModal
+                :invoicedata="invoiceData"
+                :show="showInvoiceModal"
+                :can="can"
+                :onClose="() => (showInvoiceModal = false)" />
         </div>
     </AuthenticatedLayout>
 </template>
