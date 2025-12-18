@@ -14,6 +14,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    banking: {
+        type: Object,
+        required: true,
+    },
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
@@ -58,6 +62,7 @@ const form = useForm({
     tax_amount: '',
     tax_rate: '',
     total_amount: '',
+    banking_detail_id: '',
 
     currency: '',
 
@@ -128,7 +133,7 @@ const total = computed(() => subtotal.value + tax.value);
                             </div>
                             <select
                                 v-model="currency"
-                                class="w-[250px] px-3 py-2 font-medium text-bluemain rounded-lg border border-gray-300">
+                                class="w-full md:w-[250px] px-3 py-2 font-medium text-bluemain rounded-lg border border-gray-300">
                                 <option value="">Choose Currency</option>
                                 <option value="ZAR">South Africa Rand (ZAR)</option>
                                 <option value="USD">US Dollar (USD)</option>
@@ -369,6 +374,34 @@ const total = computed(() => subtotal.value + tax.value);
                                 </div>
                                 <div class="">
                                     <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">
+                                                Banking Details <span class="text-red-800">*</span>
+                                            </label>
+
+                                            <select
+                                                v-model="form.banking_detail_id"
+                                                required
+                                                class="w-full px-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 text-bluemain focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400">
+                                                <option
+                                                    disabled
+                                                    value="">
+                                                    Select Banking Details
+                                                </option>
+                                                <option
+                                                    v-for="bank in banking"
+                                                    :key="bank.id"
+                                                    :value="bank.id">
+                                                    {{ bank.bank_name }}
+                                                </option>
+                                            </select>
+                                            <div
+                                                v-if="form.errors['items.' + index + '.description']"
+                                                class="text-sm text-red-600">
+                                                {{ form.errors['items.' + index + '.description'] }}
+                                            </div>
+                                        </div>
+
                                         <div>
                                             <label
                                                 class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2"

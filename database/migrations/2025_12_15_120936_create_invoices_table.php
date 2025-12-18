@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('banking_detail_id')->nullable()->constrained('banking_details')->nullOnDelete();
+
             $table->string('invoice_number')->unique();
-            
             $table->string('user_name');
             $table->string('customer_name');
             $table->string('customer_email')->nullable();
@@ -35,6 +36,7 @@ return new class extends Migration
 
             $table->string('currency', 3);
             $table->string('status')->default('pending');
+
 
             $table->timestamps();
 

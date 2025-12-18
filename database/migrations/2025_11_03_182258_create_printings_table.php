@@ -13,8 +13,8 @@ return new class () extends Migration {
         Schema::create('printings', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('location_id')->constrained()->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
 
             $table->string('type');
             $table->unsignedInteger('color_amount')->nullable();

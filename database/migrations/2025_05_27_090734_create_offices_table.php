@@ -12,9 +12,11 @@ return new class () extends Migration {
     {
         Schema::create('offices', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('location_id');
+            
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
+
             $table->string('office_name');
-            $table->unsignedBigInteger('category_id');
             $table->integer('seats')->nullable();
             $table->decimal('monthly_rate', 8, 2)->nullable();
             $table->decimal('daily_rate', 8, 2)->nullable();
@@ -26,9 +28,9 @@ return new class () extends Migration {
 
             $table->timestamps();
 
-            // Foreign key relationships
-            $table->foreign('location_id')->references('id')->on('locations')->onDelete('set null');
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+     
+      
+ 
         });
     }
 

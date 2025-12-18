@@ -44,6 +44,16 @@ const formatDate = date => {
         year: 'numeric',
     });
 };
+
+function viewInvoice(Id) {
+    if (!Id) return;
+
+    if (props.can['manage settings']) {
+        router.visit(`/admin/invoices/${Id}`);
+    } else {
+        router.visit(`/user/invoices/${Id}`);
+    }
+}
 </script>
 <template>
     <Head title="Admin Invoices" />
@@ -127,12 +137,11 @@ const formatDate = date => {
                                         v-for="invoice in invoices"
                                         :key="invoice.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <a
-                                                class="text-sm font-medium text-primary hover:text-primary/60"
-                                                href="/TailPanel/ecommerce/invoice/INV-001"
-                                                data-discover="true"
-                                                >{{ invoice.invoice_number }}</a
-                                            >
+                                            <button
+                                                @click="viewInvoice(invoice.id)"
+                                                class="text-sm font-medium text-primary hover:text-primary/60">
+                                                {{ invoice.invoice_number }}
+                                            </button>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm">

@@ -13,9 +13,8 @@ return new class () extends Migration {
         Schema::create('agrement_uploads', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
-            $table->foreignId('location_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
 
             $table->string('agreement')->nullable();
 

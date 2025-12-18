@@ -9,6 +9,7 @@ use App\Http\Controllers\HelpDeskController;
 use App\Http\Controllers\PrintingController;
 use App\Http\Controllers\BoardroomController;
 use App\Http\Controllers\ClosedOfficeController;
+use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\BoardroomRateController;
 use App\Http\Controllers\DedicatedDeskController;
 use App\Http\Controllers\HotOfficeRateController;
@@ -57,6 +58,16 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::put('/invoice/{invoice}/paid', [InvoiceController::class, 'paid'])->name('invoice.paid');
         Route::put('/invoice/{invoice}/pending', [InvoiceController::class, 'pending'])->name('invoice.pending');
         Route::put('/invoice/{invoice}/cancel', [InvoiceController::class, 'cancelled'])->name('invoice.cancelled');
+
+        Route::resource('banking', BankingDetailController::class)->names([
+                'index' => 'banking.index',
+                'create' => 'banking.create',
+                'store' => 'banking.store',
+                'show' => 'banking.show',
+                'edit' => 'banking.edit',
+                'update' => 'banking.update',
+                'destroy' => 'banking.destroy',
+        ]);
 
         Route::resource('coffee-admin', CoffeeController::class)->names([
                         'index' => 'coffee.index',

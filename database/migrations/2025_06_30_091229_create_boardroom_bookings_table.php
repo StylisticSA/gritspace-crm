@@ -12,8 +12,10 @@ return new class () extends Migration {
     {
         Schema::create('boardroom_bookings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('boardroom_id');
+            
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('boardroom_id')->nullable()->constrained('boardrooms')->nullOnDelete();
+      
             $table->string('plan');
 
             $table->json('selected_dates')->nullable();
@@ -21,10 +23,8 @@ return new class () extends Migration {
             $table->integer('months')->default(1);
 
             $table->decimal('selected_price', 10, 2);
-            $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'paid'])->default('pending');
+            $table->string('status')->default('pending');
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('boardroom_id')->references('id')->on('boardrooms')->onDelete('set null');
 
             $table->timestamps();
 

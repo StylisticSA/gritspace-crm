@@ -12,7 +12,9 @@ return new class () extends Migration {
     {
         Schema::create('boardrooms', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('location_id');
+
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
+
             $table->string('boardroom_name');
             $table->integer('seats');
             $table->decimal('hourly_price', 8, 2);
@@ -25,7 +27,7 @@ return new class () extends Migration {
 
             $table->timestamps();
 
-            $table->foreign('location_id')->references('id')->on('locations')->onDelete('set null');
+
         });
     }
 

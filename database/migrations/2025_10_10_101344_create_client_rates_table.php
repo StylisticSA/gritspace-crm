@@ -15,13 +15,8 @@ return new class () extends Migration {
 
             $table->id();
 
-            $table->foreignId('user_id')
-                ->nullable()
-                ->constrained()
-                ->nullOnDelete();
-
-            $table->unsignedBigInteger('client_information_id')
-                ->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('client_information_id')->nullable()->constrained('client_information')->nullOnDelete();
 
             $table->string('type')->nullable();
             $table->string('office_name')->nullable();
@@ -31,7 +26,7 @@ return new class () extends Migration {
             $table->decimal('price', 10, 2)->nullable();
             $table->timestamps();
 
-            $table->foreign('client_information_id')->references('id')->on('client_information')->onDelete('cascade');
+        
 
         });
 

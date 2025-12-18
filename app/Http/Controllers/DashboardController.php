@@ -41,6 +41,9 @@ class DashboardController extends Controller
                         ->first();
 
         $clientEmpty = ClientInformation::where('user_id', auth()->id())->exists();
+        $agreementEmpty = AgrementUpload::where('user_id', auth()->id())->exists();
+
+
 
         // Plan User is on
         $closedOfficePlan = Booking::with(['office.location', 'category'])
@@ -154,7 +157,8 @@ class DashboardController extends Controller
             'virtualPlan'           => $virtualPlan,
             'locations'             => $locations,
             'agreement'             => $agreement,
-            'clientAvail'           => $clientEmpty
+            'clientAvail'           => $clientEmpty,
+            'agreementAvail'        => $agreementEmpty 
         ]);
 
     }

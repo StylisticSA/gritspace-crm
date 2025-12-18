@@ -12,7 +12,7 @@ return new class () extends Migration {
     {
         Schema::create('help_desks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('location_id');
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('help_desk_name');
             $table->decimal('price', 8, 2);
             $table->string('duration')->nullable();
@@ -22,7 +22,7 @@ return new class () extends Migration {
 
             $table->timestamps();
 
-            $table->foreign('location_id')->references('id')->on('locations')->onDelete('set null');
+            
         });
     }
 

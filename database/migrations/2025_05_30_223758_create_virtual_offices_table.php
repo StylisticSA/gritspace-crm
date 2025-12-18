@@ -12,12 +12,11 @@ return new class () extends Migration {
     {
         Schema::create('virtual_offices', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('location_id');
+            $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('virtualoffice_name');
             $table->decimal('price', 8, 2);
             $table->timestamps();
 
-            $table->foreign('location_id')->references('id')->on('locations')->onDelete('set null');
         });
     }
 

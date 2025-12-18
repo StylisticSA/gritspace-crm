@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\InvoiceItem;
+use App\Models\BankingDetail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -21,5 +22,10 @@ class Invoice extends Model
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function banking()
+    {
+        return $this->belongsTo(BankingDetail::class, 'banking_detail_id');
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\HelpDesk;
 use App\Models\Boardroom;
 use Illuminate\Http\Request;
+use App\Models\BankingDetail;
 use App\Models\VirtualOffice;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\InvoiceNotification;
@@ -20,8 +21,8 @@ class InvoiceController extends Controller
      */
     public function index()
     {   
-        $invoices = Invoice::with('invoiceItems')->get();
-
+        $invoices = Invoice::with('invoiceItems','banking')->get();
+      
         return Inertia::render('Invoice/Admins/IndexInvoice',[
             'invoices' => $invoices
         ]);
@@ -99,10 +100,13 @@ class InvoiceController extends Controller
             ->concat($dedicated);
 
             // dd($allOptions);
+
+        $banking = BankingDetail::select('id','bank_name')->get();
         
         return Inertia::render('Invoice/Admins/CreateInvoice',[
             'users' => $users,
-            'allOptions' => $allOptions
+            'allOptions' => $allOptions,
+            'banking' => $banking
         ]);
     }
 
@@ -111,6 +115,7 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
 
         $validated = $request->validate([
             'user_id'           => 'required',
@@ -132,6 +137,7 @@ class InvoiceController extends Controller
             'total_amount'     => 'required|numeric|min:0',
 
             'currency'         => 'required|string|in:USD,ZAR,EUR,GBP',
+            'banking_detail_id' => 'required|numeric',
 
             'items'                 => 'required|array|min:1',
             'items.*.item_name'     => 'required|string|max:255',

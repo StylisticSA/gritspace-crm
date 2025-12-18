@@ -12,9 +12,10 @@ return new class () extends Migration {
     {
         Schema::create('office_bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('office_id')->constrained()->onDelete('set null');
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('office_id')->nullable()->constrained('offices')->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
 
             $table->string('plan');
 
@@ -26,14 +27,8 @@ return new class () extends Migration {
             $table->date('end_date');
 
             $table->decimal('total_price', 10, 2)->nullable();
-
-
             $table->decimal('parking_price', 10, 2)->nullable()->default(0);
-
-
             $table->boolean('parking_availability')->default(false);
-
-
             $table->string('status')->default('pending');
 
             $table->timestamps();

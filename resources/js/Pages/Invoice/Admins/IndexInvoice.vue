@@ -44,6 +44,16 @@ const formatDate = date => {
         year: 'numeric',
     });
 };
+
+function viewInvoice(Id) {
+    if (!Id) return;
+
+    if (props.can['manage settings']) {
+        router.visit(`/admin/invoices/${Id}`);
+    } else {
+        router.visit(`/user/invoices/${Id}`);
+    }
+}
 </script>
 <template>
     <Head title="Admin Invoices" />
@@ -58,14 +68,16 @@ const formatDate = date => {
                 <div class="flex flex-col gap-2 mb-10 sm:flex-row sm:items-center sm:justify-between">
                     <div class="space-x-2 flex">
                         <Link
+                            v-if="can['manage settings']"
                             :href="route('admin.invoices.create')"
                             class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Create Invoice
                         </Link>
                         <Link
-                            :href="route('admin.invoices.create')"
+                            v-if="can['manage settings']"
+                            :href="route('admin.banking.index')"
                             class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
-                            + Banking
+                            Banking
                         </Link>
                     </div>
 
@@ -131,12 +143,11 @@ const formatDate = date => {
                                         v-for="invoice in invoices"
                                         :key="invoice.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <a
-                                                class="text-sm font-medium text-primary hover:text-primary/60"
-                                                href="/TailPanel/ecommerce/invoice/INV-001"
-                                                data-discover="true"
-                                                >{{ invoice.invoice_number }}</a
-                                            >
+                                            <button
+                                                @click="viewInvoice(invoice.id)"
+                                                class="text-sm font-medium text-primary hover:text-primary/60">
+                                                {{ invoice.invoice_number }}
+                                            </button>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="text-sm">

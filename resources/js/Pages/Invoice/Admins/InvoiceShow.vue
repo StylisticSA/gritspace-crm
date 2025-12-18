@@ -1,8 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     invoice: {
@@ -12,7 +11,6 @@ const props = defineProps({
     can: Object,
 });
 
-// console.log('i', props.invoice);
 const formatDate = date => {
     if (!date) return '—';
     const d = new Date(date);
@@ -22,6 +20,10 @@ const formatDate = date => {
         year: 'numeric',
     });
 };
+
+function editInvoice() {
+    router.visit(`/admin/invoices/${props.invoice.id}/edit`);
+}
 </script>
 <template>
     <Head title="View Invoice" />
@@ -33,7 +35,7 @@ const formatDate = date => {
         <div class="py-2 px-5 lg:px-0">
             <div class="mx-auto max-w-7xl sm:px-4 lg:px-8 mb-5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 mt-10">
-                    <div class="mb-3">
+                    <div class="mb-3 flex space-x-2">
                         <Link
                             v-if="can['manage settings']"
                             :href="route('admin.invoices.index')"
@@ -45,6 +47,12 @@ const formatDate = date => {
                             :href="route('user.invoice')"
                             class="block w-full sm:w-auto text-center px-3 py-2 text-base font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                             Back
+                        </Link>
+                        <Link
+                            v-if="can['manage settings']"
+                            @click="editInvoice()"
+                            class="block w-full sm:w-auto text-center px-3 py-2 text-base font-medium text-white rounded bg-primary hover:bg-bluemain/60">
+                            Edit Invoice
                         </Link>
                     </div>
                     <div class="flex gap-1">

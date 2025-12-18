@@ -35,6 +35,7 @@ const props = defineProps({
     virtualPlan: Object,
     agreement: Object,
     clientAvail: Boolean,
+    agreementAvail: Boolean,
     can: Object,
 });
 
@@ -64,11 +65,21 @@ const showVirtuals = ref(false);
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome at Grit Space CRM</div>
                     <div
                         class="p-4"
-                        v-if="!clientAvail">
-                        <span>Please fill in your Company Details </span>
-
+                        v-if="!clientAvail && !can['manage settings']">
+                        <span>Please fill in your Company Details</span>
                         <Link
                             :href="route('companydetail.create')"
+                            class="inline-block px-3 py-2 text-lg font-medium text-primary rounded">
+                            + here
+                        </Link>
+                    </div>
+
+                    <div
+                        class="p-4"
+                        v-else-if="!agreementAvail && !can['manage settings']">
+                        <span>Now upload your signed Agreement Form</span>
+                        <Link
+                            :href="route('companydetail.index')"
                             class="inline-block px-3 py-2 text-lg font-medium text-primary rounded">
                             + here
                         </Link>

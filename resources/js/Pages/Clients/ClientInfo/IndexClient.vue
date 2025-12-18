@@ -172,6 +172,11 @@ watchEffect(() => {
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Client
                             </Link>
+                            <Link
+                                :href="route('admin.agreement.index')"
+                                class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                Agreements
+                            </Link>
                         </div>
 
                         <input

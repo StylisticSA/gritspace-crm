@@ -118,7 +118,9 @@ const pendingInvoice = id => {
                     <div class="mb-8 font-medium text-gray-600"><strong>Email:</strong></div>
                     <div>{{ invoicedata.customer_email }}</div>
 
-                    <div class="mb-3 font-medium text-gray-600"><strong>Total:</strong></div>
+                    <div class="mb-3 font-medium text-gray-600"><strong>Bank Details:</strong></div>
+                    <div>{{ invoicedata.banking.bank_name }}</div>
+                    <div class="mb-8 font-medium text-gray-600"><strong>Total:</strong></div>
                     <div>R{{ invoicedata.total_amount }}</div>
 
                     <div class="mb-3 font-medium text-gray-600"><strong>Issued Date:</strong></div>

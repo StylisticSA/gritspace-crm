@@ -142,13 +142,19 @@ const { showWarning } = useInactivityMonitor({
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <Link
-                            v-if="can['create agreements']"
-                            :href="route('admin.agreements.create')"
-                            class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
-                            + Add Agreements Uploads
-                        </Link>
-                        <div></div>
+                        <div>
+                            <Link
+                                v-if="can['create agreements']"
+                                :href="route('admin.agreements.create')"
+                                class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
+                                + Add Agreements Uploads
+                            </Link>
+                            <Link
+                                :href="route('admin.clientinfor.index')"
+                                class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                Client Information
+                            </Link>
+                        </div>
 
                         <input
                             v-model="search"

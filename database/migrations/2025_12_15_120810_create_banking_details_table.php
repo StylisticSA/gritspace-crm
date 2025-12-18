@@ -19,17 +19,12 @@ return new class extends Migration
             $table->string('branch_code', 50)->nullable();
             $table->string('swift_code', 50)->nullable();
             $table->string('iban', 50)->nullable();
-            $table->string('currency', 10)->default('ZAR');
             $table->timestamps();
 
+
         });
 
-        Schema::table('invoices', function (Blueprint $table) {
-            $table->foreignId('banking_detail_id')
-                  ->nullable()
-                  ->constrained('banking_details')
-                  ->onDelete('set null');
-        });
+        
     
 
     }
@@ -39,14 +34,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::dropIfExists('banking_details');
-
-        Schema::table('invoices', function (Blueprint $table) {
-            $table->dropForeign(['banking_detail_id']);
-            $table->dropColumn('banking_detail_id');
-        });
-
         Schema::dropIfExists('banking_details');
+
 
     }
 };

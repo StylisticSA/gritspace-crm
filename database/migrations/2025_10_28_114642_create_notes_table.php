@@ -12,11 +12,9 @@ return new class () extends Migration {
     {
         Schema::create('notes', function (Blueprint $table) {
 
-
-
             $table->id();
 
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->string('office_name');
             $table->text('content');
