@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Amenity;
+use App\Models\Company;
 use App\Models\Location;
 use App\Models\PaymentGateway;
 use App\Models\VirtualBooking;
@@ -25,6 +26,11 @@ class VirtualOffice extends Model
     public function amenities()
     {
         return $this->belongsToMany(Amenity::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     public function notes()

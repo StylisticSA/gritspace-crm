@@ -92,7 +92,7 @@ const pendingInvoice = id => {
     <div
         v-if="show"
         class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto bg-black/60">
-        <div class="w-full max-w-2xl px-5 bg-white rounded shadow-lg sm:p-4">
+        <div class="w-full max-w-3xl px-5 bg-white rounded shadow-lg sm:p-4">
             <div class="flex items-center justify-between m-5">
                 <h2 class="text-2xl sm:text-2xl">Invoice</h2>
 
@@ -181,6 +181,14 @@ const pendingInvoice = id => {
                         class="block px-4 py-2 text-sm font-medium text-white rounded bg-gray-700 hover:bg-bluemain/60 w-full"
                         :disabled="invoicedata.status === 'cancelled'">
                         Cancel
+                    </button>
+
+                    <button
+                        v-if="can['manage settings']"
+                        @click="props.onClose"
+                        class="block mt-5 px-4 py-2 text-sm font-medium text-white rounded bg-gray-400 hover:bg-bluemain/60 w-full"
+                        :disabled="invoicedata.status === 'cancelled'">
+                        Close
                     </button>
                 </div>
             </div>

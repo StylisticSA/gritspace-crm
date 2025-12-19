@@ -3,6 +3,7 @@
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ExtraController;
 use App\Http\Controllers\CoffeeController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\HelpDeskController;
@@ -45,6 +46,15 @@ Route::middleware(['web', 'auth', 'verified'])
                         'destroy' => 'notes.destroy',
                 ]);
 
+        Route::resource('company', CompanyController::class)->names([
+                'index' => 'company.index',
+                'create' => 'company.create',
+                'store' => 'company.store',
+                'show' => 'company.show',
+                'edit' => 'company.edit',
+                'update' => 'company.update',
+                'destroy' => 'company.destroy',
+        ]);
         Route::resource('invoices', InvoiceController::class)->names([
                 'index' => 'invoices.index',
                 'create' => 'invoices.create',

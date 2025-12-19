@@ -48,11 +48,7 @@ const formatDate = date => {
 function viewInvoice(Id) {
     if (!Id) return;
 
-    if (props.can['manage settings']) {
-        router.visit(`/admin/invoices/${Id}`);
-    } else {
-        router.visit(`/user/invoices/${Id}`);
-    }
+    router.visit(`/user/invoices/${Id}`);
 }
 </script>
 <template>
@@ -126,10 +122,6 @@ function viewInvoice(Id) {
                                             class="px-6 py-4 font-semibold text-left text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th
-                                            class="px-6 py-4 font-semibold text-right text-xs text-secondary-600 dark:text-secondary-400 uppercase tracking-wider">
-                                            Actions
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700">
@@ -180,48 +172,6 @@ function viewInvoice(Id) {
                                                 }">
                                                 {{ invoice.status ?? 'N/A' }}
                                             </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                                            <div
-                                                class="relative inline-block"
-                                                data-headlessui-state="">
-                                                <button
-                                                    @click="
-                                                        setOffice(invoice.id);
-                                                        showInvoiceModal = true;
-                                                    "
-                                                    class="p-2 hover:bg-secondary-100 dark:hover:bg-secondary-700 rounded-lg transition-colors"
-                                                    type="button"
-                                                    aria-expanded="false"
-                                                    data-headlessui-state=""
-                                                    id="headlessui-popover-button-_r_3o_">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="24"
-                                                        height="24"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        stroke-width="2"
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="lucide lucide-ellipsis-vertical w-4 h-4 text-secondary-600 dark:text-secondary-400"
-                                                        aria-hidden="true">
-                                                        <circle
-                                                            cx="12"
-                                                            cy="12"
-                                                            r="1"></circle>
-                                                        <circle
-                                                            cx="12"
-                                                            cy="5"
-                                                            r="1"></circle>
-                                                        <circle
-                                                            cx="12"
-                                                            cy="19"
-                                                            r="1"></circle>
-                                                    </svg>
-                                                </button>
-                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>

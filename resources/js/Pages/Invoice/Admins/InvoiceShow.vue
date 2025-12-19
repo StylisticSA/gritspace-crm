@@ -87,10 +87,18 @@ function editInvoice() {
                                 </div>
                                 <!-- <h2 class="text-2xl font-bold text-secondary-900 text-bluemain mb-1">TailPanel Inc.</h2> -->
                                 <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                                    <p>123 Business Street</p>
-                                    <p>San Francisco, CA 94102</p>
-                                    <p class="mt-2">billing@tailpanel.com</p>
-                                    <p>+1 (555) 123-4567</p>
+                                    <p>{{ invoice.banking?.company?.company_name }}</p>
+                                    <p>{{ invoice.banking?.company?.address }}</p>
+                                    <p class="mt-2">{{ invoice.banking?.company?.email }}</p>
+                                    <p>+{{ invoice.banking?.company?.phone }}</p>
+                                    <p class="mt-2">
+                                        <span class="text-medium pr-1">Reg #:</span
+                                        >{{ invoice.banking?.company?.reg_no }}
+                                    </p>
+                                    <p>
+                                        <span class="text-medium pr-1">Vat #:</span
+                                        >{{ invoice.banking?.company?.vat_no }}
+                                    </p>
                                 </div>
                             </div>
                             <div class="text-right mt-3">
@@ -131,17 +139,47 @@ function editInvoice() {
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-8">
-                            <h4 class="text-sm font-semibold text-secondary-900 text-bluemain uppercase mb-2">
-                                Bill To
-                            </h4>
-                            <div class="text-sm text-secondary-600 dark:text-secondary-400">
-                                <p class="font-semibold text-bluemain">{{ invoice.customer_name }}</p>
-                                <p>{{ invoice.user_name }}</p>
-                                <p>{{ invoice.customer_address }}</p>
-                                <p>{{ invoice.customer_city }}</p>
-                                <p class="mt-2">{{ invoice.customer_email }}</p>
-                                <p>{{ invoice.customer_phone }}</p>
+                        <div class="flex justify-between items-start mb-12">
+                            <div class="">
+                                <h4 class="text-sm font-semibold text-secondary-900 text-bluemain uppercase mb-2">
+                                    Bill To
+                                </h4>
+                                <div class="text-sm text-secondary-600 dark:text-secondary-400">
+                                    <p class="font-semibold text-bluemain">{{ invoice.customer_name }}</p>
+
+                                    <p>{{ invoice.user?.name }}</p>
+                                    <p>{{ invoice.customer_address }}</p>
+                                    <p>{{ invoice.customer_city }}</p>
+                                    <p class="mt-2">{{ invoice.customer_email }}</p>
+                                    <p>{{ invoice.customer_phone }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right mt-3">
+                                <h4 class="text-sm font-semibold text-secondary-900 text-bluemain uppercase mb-2">
+                                    Banking Details
+                                </h4>
+                                <div class="text-sm">
+                                    <p class="text-secondary-600 dark:text-secondary-400">
+                                        <span class="pl-2font-medium text-secondary-900 text-bluemain">
+                                            {{ invoice.banking?.bank_name }}</span
+                                        >
+                                    </p>
+                                    <p class="text-secondary-600 dark:text-secondary-400 mt-1">
+                                        <span class="pl-2font-medium text-secondary-900 text-bluemain">
+                                            {{ invoice.banking?.account_holder }}
+                                        </span>
+                                    </p>
+                                    <p class="text-secondary-600 dark:text-secondary-400 mt-1">
+                                        <span class="pl-2font-medium text-secondary-900 text-bluemain">
+                                            {{ invoice.banking?.account_number }}
+                                        </span>
+                                    </p>
+                                    <p class="text-secondary-600 dark:text-secondary-400 mt-1">
+                                        <span class="pl-2font-medium text-secondary-900 text-bluemain">
+                                            {{ invoice.banking?.branch_code }}
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <div class="mb-8">

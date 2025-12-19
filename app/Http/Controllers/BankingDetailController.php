@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Inertia\Inertia;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Models\BankingDetail;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,7 @@ class BankingDetailController extends Controller
         
         $search = $request->input('search');
 
-        $banking = BankingDetail::when($search, function ($query, $search) {
+        $banking = BankingDetail::with('company')->when($search, function ($query, $search) {
             $query->where('banking_name', 'like', "%{$search}%");
         })
             ->orderByDesc('created_at')
@@ -37,7 +38,11 @@ class BankingDetailController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Banking/CreateBank');
+        $companies = Company::select('id', 'company_name')->get();
+
+        return Inertia::render('Banking/CreateBank',[
+            'companies' => $companies
+        ]);
     }
 
     /**
@@ -46,6 +51,7 @@ class BankingDetailController extends Controller
     public function store(Request $request)
     {
        $validated = $request->validate([
+                        'company_id' => 'required|numeric',
                         'account_number' => [
                             'required',
                             function ($attribute, $value, $fail) {
@@ -88,9 +94,11 @@ class BankingDetailController extends Controller
      */
     public function edit(BankingDetail $banking)
     {   
-        // dd($banking);
+        $companies = Company::select('id', 'company_name')->get();
+
         return Inertia::render('Banking/EditBank',[
-            'banking' => $banking
+            'banking' => $banking->load(['company']),
+            'companies' => $companies
         ]);
     }
 
@@ -100,6 +108,7 @@ class BankingDetailController extends Controller
     public function update(Request $request, BankingDetail $banking)
     {
         $validated = $request->validate([
+                        'company_id' => 'required|numeric',
                         'account_number' => [
                             'required',
                             function ($attribute, $value, $fail) {

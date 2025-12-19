@@ -21,7 +21,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {   
-        $invoices = Invoice::with('invoiceItems','banking')->get();
+        $invoices = Invoice::with('user','invoiceItems','banking')->get();
       
         return Inertia::render('Invoice/Admins/IndexInvoice',[
             'invoices' => $invoices
@@ -36,6 +36,7 @@ class InvoiceController extends Controller
     public function create()
     {
         $users = User::has('companyDetails')->with('companyDetails')->get();
+
 
         $virtuals = VirtualOffice::with('location')
             ->select('id', 'location_id','virtualoffice_name as name')
@@ -101,8 +102,8 @@ class InvoiceController extends Controller
 
             // dd($allOptions);
 
-        $banking = BankingDetail::select('id','bank_name')->get();
-        
+        $banking = BankingDetail::with('company')->select('id','bank_name')->get();
+
         return Inertia::render('Invoice/Admins/CreateInvoice',[
             'users' => $users,
             'allOptions' => $allOptions,
@@ -181,8 +182,10 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
+        // dd($invoice->load(['user','invoiceItems','banking', 'banking.company']));
+
         return Inertia::render('Invoice/Admins/InvoiceShow',[
-            'invoice' => $invoice->load(['invoiceItems'])
+            'invoice' => $invoice->load(['user','invoiceItems','banking', 'banking.company'])
         ]);
     }
 
@@ -458,10 +461,13 @@ class InvoiceController extends Controller
      */
     public function userShow(Invoice $invoice)
     {
-        $invoice = Invoice::where('id', $invoice->id)
+        // dd('g');
+
+        $invoice = Invoice::with(['user','invoiceItems','banking', 'banking.company'])
+                ->where('id', $invoice->id)
                 ->where('user_id', auth()->id())
-                ->with('invoiceItems')
                 ->firstOrFail();
+
 
         return Inertia::render('Invoice/Admins/InvoiceShow',[
             'invoice' => $invoice

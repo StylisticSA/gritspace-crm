@@ -4,21 +4,14 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
 
-const banks = [
-    'Standard Bank',
-    'First National Bank (FNB)',
-    'Absa',
-    'Nedbank',
-    'Capitec Bank',
-    'Investec',
-    'African Bank',
-    'TymeBank',
-    'Discovery Bank',
-];
+const props = defineProps({
+    companies: Object,
+});
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const form = useForm({
+    company_id: '',
     bank_name: '',
     account_holder: '',
     account_number: '',
@@ -78,6 +71,26 @@ function formatCardNumber(e) {
                         @submit.prevent="submit"
                         class="space-y-6">
                         <div class="grid grid-cols-2 gap-6">
+                            <!-- Companies -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Company</label>
+                                <select
+                                    v-model="form.company_id"
+                                    class="w-full px-3 py-2 border rounded">
+                                    <option value="">Select Company</option>
+                                    <option
+                                        v-for="cop in companies"
+                                        :key="cop.id"
+                                        :value="cop.id">
+                                        {{ cop.company_name }}
+                                    </option>
+                                </select>
+                                <div
+                                    v-if="form.errors.company_id"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.company_id }}
+                                </div>
+                            </div>
                             <!-- Bank Name -->
                             <div>
                                 <label class="block text-lg font-medium text-gray-700">Bank Name</label>

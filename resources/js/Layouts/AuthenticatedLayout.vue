@@ -221,7 +221,9 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                                 >
                                             </div>
 
-                                            <div class="text-sm text-gray-700 transition hover:bg-gray-50">
+                                            <div
+                                                v-if="!can['manage settings']"
+                                                class="text-sm text-gray-700 transition hover:bg-gray-50">
                                                 <ResponsiveNavLink :href="route('user.invoice')"
                                                     >Invoices</ResponsiveNavLink
                                                 >

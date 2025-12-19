@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import NoteTrail from '../../Components/NoteTrail.vue';
 import { ref } from 'vue';
 import GlobalNoteModal from '../../Components/Modals/NoteModal.vue';
@@ -9,6 +9,7 @@ import CoffeeModal from '../../Components/Modals/CoffeeModal.vue';
 import PrintingModal from '../../Components/Modals/PrintingModal.vue';
 import BoardroomModal from '../../Components/Modals/BoardroomModal.vue';
 import HotDeskModal from '../../Components/Modals/VirtualModal.vue';
+import { format } from 'date-fns';
 
 const props = defineProps({
     notes: Object,
@@ -29,6 +30,7 @@ const props = defineProps({
     printColor: Object,
     printColorTotal: Number,
     printBlackTotal: Number,
+    invoiceCounts: Array,
 });
 
 const showNoteModal = ref(false);
@@ -37,6 +39,12 @@ const showCofeModal = ref(false);
 const showPrintModal = ref(false);
 const showBoardModal = ref(false);
 const showHotDeskModal = ref(false);
+
+function viewInvoices() {
+    if (props.can['manage settings']) {
+        router.visit(`/admin/invoices`);
+    }
+}
 </script>
 
 <template>
@@ -177,9 +185,31 @@ const showHotDeskModal = ref(false);
                             Invoices
                             <span class="text-sm"></span>
                         </h3>
-                        <div class="grid items-center grid-cols-1 gap-4 pt-5 sm:grid-cols-2">
-                            <!-- Coffee -->
-                            <div></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <!-- Pending -->
+                            <div class="bg-yellow-50 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-yellow-800">Pending</h4>
+                                <p class="text-3xl font-bold text-yellow-900">{{ invoiceCounts.pending ?? 0 }}</p>
+                            </div>
+
+                            <!-- Paid -->
+                            <div class="bg-green-50 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-green-800">Paid</h4>
+                                <p class="text-3xl font-bold text-green-900">{{ invoiceCounts.paid ?? 0 }}</p>
+                            </div>
+
+                            <!-- Cancelled -->
+                            <div class="bg-gray-100 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-gray-700">Cancelled</h4>
+                                <p class="text-3xl font-bold text-gray-900">{{ invoiceCounts.cancelled ?? 0 }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <button
+                                @click="viewInvoices()"
+                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                View All Invoices
+                            </button>
                         </div>
                     </div>
 

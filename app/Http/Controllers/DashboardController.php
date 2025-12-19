@@ -7,6 +7,7 @@ use App\Models\Note;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Booking;
+use App\Models\Invoice;
 use App\Models\Location;
 use App\Models\Printing;
 use App\Models\ClientRate;
@@ -137,7 +138,14 @@ class DashboardController extends Controller
 
         $clientRatePlan = ClientRate::where('user_id', auth()->id())->get();
 
+        $invoices = Invoice::with('user:id,name')
+                    ->select('id', 'user_id', 'invoice_number','issued_due_date','status')
+                    ->where('user_id', auth()->id())
+                    ->where('status', 'pending')
+                    ->limit(6)
+                    ->get();
 
+     
         return Inertia::render('Dashboard', [
             'notes'                 => $notes,
             'users'                 => $users,
@@ -158,7 +166,8 @@ class DashboardController extends Controller
             'locations'             => $locations,
             'agreement'             => $agreement,
             'clientAvail'           => $clientEmpty,
-            'agreementAvail'        => $agreementEmpty 
+            'agreementAvail'        => $agreementEmpty,
+            'invoices'              => $invoices,
         ]);
 
     }
@@ -182,8 +191,7 @@ class DashboardController extends Controller
                 ->whereHas('office') 
                 ->get();
 
-        // dd($approvedBookings);
-
+  
 
         // Group by location → then by category name
         $groupedByLocation = $approvedBookings
@@ -201,7 +209,6 @@ class DashboardController extends Controller
             });
 
 
-        // dd($groupedByLocation);
 
         // Boardroom bookings → boardroom → location
         $boardroomCounts = BoardroomBooking::with('boardroom.location')
@@ -296,13 +303,16 @@ class DashboardController extends Controller
 
 
 
-        $notes = Note::with('user')
-            ->latest('created_at')
-            ->take(4)
-            ->get()
-            ->reverse()
-            ->values();
+        $notes = Note::with('user')->latest('created_at')->take(4)->get()->reverse()->values();
 
+
+
+        $today = Carbon::today();
+
+        $invoiceCounts = Invoice::where('issued_due_date', '>=', $today)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
 
         return Inertia::render('Admin/AdminDashboard', [
@@ -322,7 +332,8 @@ class DashboardController extends Controller
             'printBlackTotal'       => $printBlackTotal,
             'printColorTotal'       => $printColorTotal,
 
-            'locationsWithStats'    => $locationsWithStats
+            'locationsWithStats'    => $locationsWithStats,
+            'invoiceCounts'         => $invoiceCounts,
         ]);
 
     }

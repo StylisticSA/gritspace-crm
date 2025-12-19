@@ -17,15 +17,6 @@ const search = ref(props.filters.search ?? '');
 const showModal = ref(false);
 const bankingToDelete = ref(null);
 
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-        }, 3000);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-
 watch(search, value => {
     router.get(
         route('admin.banking'),
@@ -78,12 +69,6 @@ const formatLabel = label => {
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <template v-if="showMessage">
-                    <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
-                        {{ successMessage || flashMessage || '✔️ Success' }}
-                    </div>
-                </template>
-
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -109,11 +94,18 @@ const formatLabel = label => {
                             class="w-full px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
 
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
+
                     <!-- Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Company Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Banking Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">
                                         Account Holder
@@ -130,6 +122,9 @@ const formatLabel = label => {
                                 <tr
                                     v-for="banking in banking.data"
                                     :key="banking.id">
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        {{ banking.company?.company_name || 'N/A' }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ banking.bank_name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ banking.account_holder }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ banking.account_number }}</td>

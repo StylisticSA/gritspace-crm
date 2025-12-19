@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('banking_details', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('company_id')->nullable()->constrained('companies')->nullOnDelete();
+
             $table->string('bank_name', 150);
             $table->string('account_holder', 150);
             $table->string('account_number', 50);

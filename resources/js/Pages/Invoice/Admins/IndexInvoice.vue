@@ -51,6 +51,7 @@ function viewInvoice(Id) {
     if (props.can['manage settings']) {
         router.visit(`/admin/invoices/${Id}`);
     } else {
+        alert('me');
         router.visit(`/user/invoices/${Id}`);
     }
 }
@@ -66,17 +67,25 @@ function viewInvoice(Id) {
         <div class="py-12 px-5 lg:px-0">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="flex flex-col gap-2 mb-10 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="space-x-2 flex">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:space-x-2">
                         <Link
                             v-if="can['manage settings']"
                             :href="route('admin.invoices.create')"
-                            class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
+                            class="px-3 py-2 text-center text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60 w-full sm:w-auto">
                             + Create Invoice
                         </Link>
+
+                        <Link
+                            v-if="can['add permissions']"
+                            :href="route('admin.company.index')"
+                            class="px-3 py-2 text-center text-base sm:text-lg font-medium text-white rounded bg-bluemain hover:bg-gray-700 w-full sm:w-auto">
+                            Companies
+                        </Link>
+
                         <Link
                             v-if="can['manage settings']"
                             :href="route('admin.banking.index')"
-                            class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                            class="px-3 py-2 text-center text-base sm:text-lg font-medium text-white rounded bg-muted hover:bg-bluemain/60 w-full sm:w-auto">
                             Banking
                         </Link>
                     </div>
@@ -152,7 +161,7 @@ function viewInvoice(Id) {
                                         <td class="px-6 py-4">
                                             <div class="text-sm">
                                                 <div class="font-semibold text-secondary-900 text-bluemain">
-                                                    {{ invoice.user_name }}
+                                                    {{ invoice?.user?.name }}
                                                 </div>
                                                 <div class="text-secondary-500 dark:text-secondary-400">
                                                     {{ invoice.customer_email }}

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import NoteTrail from '@/Components/NoteTrail.vue';
 import { ref } from 'vue';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
@@ -11,6 +11,7 @@ import PrintingModal from '@/Components/Modals/PrintingModal.vue';
 import BoardroomModal from '@/Components/Modals/BoardroomModal.vue';
 import VirtualModal from '@/Components/Modals/VirtualModal.vue';
 import AgreementModal from '@/Components/Modals/AgreementModal.vue';
+import { format } from 'date-fns';
 
 const props = defineProps({
     notes: Object,
@@ -36,6 +37,7 @@ const props = defineProps({
     agreement: Object,
     clientAvail: Boolean,
     agreementAvail: Boolean,
+    invoices: Object,
     can: Object,
 });
 
@@ -47,6 +49,16 @@ const showCofeModal = ref(false);
 const showPrintModal = ref(false);
 const showBoardModal = ref(false);
 const showVirtuals = ref(false);
+
+function viewInvoice(Id) {
+    if (!Id) return;
+
+    router.visit(`/user/invoices/${Id}`);
+}
+
+const formatDate = dateStr => {
+    return dateStr ? format(new Date(dateStr), 'dd MMM yyyy') : '';
+};
 </script>
 
 <template>
@@ -283,9 +295,54 @@ const showVirtuals = ref(false);
                                 Invoices
                                 <span class="text-sm"></span>
                             </h3>
-                            <div class="grid items-center grid-cols-1 gap-4 pt-5 sm:grid-cols-2">
-                                <!-- Coffee -->
-                                <div></div>
+                            <div class="grid items-center grid-cols-1 gap-3 pt-1">
+                                <ul class="divide-y divide-default">
+                                    <li
+                                        v-for="invoice in invoices"
+                                        :key="invoice.id"
+                                        class="py-3">
+                                        <!-- Responsive grid: stack on mobile, equal columns on sm+ -->
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center">
+                                            <!-- invoice number -->
+                                            <div class="flex justify-between sm:block">
+                                                <span class="text-xs font-semibold text-gray-500 sm:hidden"
+                                                    >Invoice</span
+                                                >
+                                                <button
+                                                    @click="viewInvoice(invoice.id)"
+                                                    class="text-sm font-medium text-primary hover:text-primary/60 truncate">
+                                                    {{ invoice.invoice_number }}
+                                                </button>
+                                            </div>
+
+                                            <!-- status -->
+                                            <div class="flex justify-between sm:block">
+                                                <span class="text-xs font-semibold text-gray-500 sm:hidden"
+                                                    >Status</span
+                                                >
+                                                <span
+                                                    :class="{
+                                                        'px-2 py-1 rounded text-xs font-semibold capitalize': true,
+                                                        'bg-yellow-100 text-yellow-800': invoice.status === 'pending',
+                                                        'bg-green-100 text-green-800': invoice.status === 'approved',
+                                                        'bg-gray-200 text-gray-700': invoice.status === 'cancelled',
+                                                        'bg-red-100 text-red-700': invoice.status === 'rejected',
+                                                        'bg-red-100 text-primary': invoice.status === 'paid',
+                                                    }">
+                                                    {{ invoice.status ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <!-- due date -->
+                                            <div class="flex justify-between sm:block">
+                                                <span class="text-xs font-semibold text-gray-500 sm:hidden">Due</span>
+                                                <span class="text-sm font-sm">
+                                                    {{ formatDate(invoice.issued_due_date) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 

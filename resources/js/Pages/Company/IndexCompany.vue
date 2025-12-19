@@ -1,37 +1,25 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
-import FormattedDate from '@/Components/FormatDate.vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import useStatusMessage from '../../Composables/useStatusMessage';
+
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const props = defineProps({
-    users: Object,
+    companies: { type: Object, required: true },
     filters: Object,
     can: Object,
 });
 
-const page = usePage();
 const search = ref(props.filters.search ?? '');
-const successMessage = ref(null);
-const flashMessage = computed(() => page.props?.flash?.success || null);
-const showMessage = computed(() => {
-    return !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.());
-});
-const showModal = ref(false);
-const UserDelete = ref(null);
 
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-        }, 500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
+const showModal = ref(false);
+const CompanyDelete = ref(null);
 
 watch(search, value => {
     router.get(
-        route('admin.manage'),
+        route('admin.company.index'),
         { search: value },
         {
             preserveState: true,
@@ -42,20 +30,22 @@ watch(search, value => {
 
 const confirmDelete = id => {
     showModal.value = true;
-    UserDelete.value = id;
+    CompanyDelete.value = id;
 };
 
 const deleteOffice = () => {
-    if (UserDelete.value) {
-        router.delete(route('admin.manage.destroy', UserDelete.value), {
+    if (CompanyDelete.value) {
+        router.delete(route('admin.company.destroy', CompanyDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'User deleted successfully.';
+                message.value = '';
+                status.value = 'deleted';
+
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
             onFinish: () => {
                 showModal.value = false;
-                UserDelete.value = null;
+                CompanyDelete.value = null;
             },
         });
     }
@@ -66,35 +56,21 @@ const formatLabel = label => {
     if (label === 'Next &raquo;') return 'Next';
     return label;
 };
-
-const getRoleColor = role => {
-    const roleMap = {
-        Admin: 'bg-yellow-100 text-yellow-800',
-        'Super Admin': 'bg-green-100 text-green-800',
-        User: 'bg-gray-200 text-gray-700',
-        'Pending User': 'bg-red-100 text-red-700',
-        Manager: 'bg-red-100 text-brown-700',
-    };
-
-    return roleMap[role] || 'bg-gray-100 text-gray-800';
-};
 </script>
 
 <template>
-    <Head title="Manage Users Admin" />
+    <Head title="Companies Admin" />
 
     <AuthenticatedLayout>
-        <!-- Success Notification -->
-
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Manage</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Companies</h2>
         </template>
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <template v-if="showMessage">
-                    <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
-                        {{ successMessage || flashMessage || '✔️ Success' }}
+                    <div :class="messageClass">
+                        {{ messageText }}
                     </div>
                 </template>
 
@@ -103,24 +79,17 @@ const getRoleColor = role => {
                     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                             <Link
-                                v-if="can['add users']"
-                                :href="route('admin.manage.create')"
-                                class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
-                                + Add User
-                            </Link>
-
-                            <Link
-                                v-if="can['add roles']"
-                                :href="route('admin.roles')"
-                                class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-bluemain hover:bg-gray-700">
-                                Roles
+                                v-if="can['add permissions']"
+                                :href="route('admin.company.create')"
+                                class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-gray-700">
+                                + Companies
                             </Link>
 
                             <Link
                                 v-if="can['add permissions']"
-                                :href="route('admin.permissions')"
+                                :href="route('admin.invoices.index')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-muted hover:bg-gray-700">
-                                Permissions
+                                Invoices
                             </Link>
                         </div>
 
@@ -136,47 +105,37 @@ const getRoleColor = role => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Company Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Vat Number</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Reg Number</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Email</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Roles</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Created Date</th>
-
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Phone</th>
+                                    <!-- <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Address</th> -->
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr
-                                    v-for="user in users.data"
-                                    :key="user.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ user.id }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ user.name }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ user.email }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">
-                                        <span
-                                            v-for="role in user.roles"
-                                            :key="role.id"
-                                            :class="getRoleColor(role.name)"
-                                            class="inline-block text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">
-                                            {{ role.name }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-6 py-4 text-sm text-gray-800">
-                                        <FormattedDate :date="user.created_at" />
-                                    </td>
+                                    v-for="company in companies.data"
+                                    :key="company.id">
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ company.company_name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ company.vat_no }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ company.reg_no }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ company.email }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ company.phone }}</td>
+                                    <!-- <td class="px-6 py-4 text-sm text-gray-800">{{ company.address }}</td> -->
 
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
                                                 v-if="can['manage settings']"
-                                                @click="$inertia.visit(route('admin.manage.edit', user.id))"
+                                                @click="$inertia.visit(route('admin.company.edit', company.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
                                                 v-if="can['manage settings']"
-                                                @click="confirmDelete(user.id)"
+                                                @click="confirmDelete(company.id)"
                                                 class="px-2 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete
                                             </button>
@@ -191,16 +150,16 @@ const getRoleColor = role => {
                     <div class="flex items-center justify-between mt-4">
                         <div class="text-sm text-gray-600">
                             Showing
-                            <span class="font-medium">{{ users.from }}</span>
+                            <span class="font-medium">{{ companies.from }}</span>
                             to
-                            <span class="font-medium">{{ users.to }}</span>
+                            <span class="font-medium">{{ companies.to }}</span>
                             of
-                            <span class="font-medium">{{ users.total }}</span> results
+                            <span class="font-medium">{{ companies.total }}</span> results
                         </div>
 
                         <div class="flex space-x-1">
                             <template
-                                v-for="(link, index) in users.links"
+                                v-for="(link, index) in companies.links"
                                 :key="index">
                                 <Link
                                     v-if="link.url"
