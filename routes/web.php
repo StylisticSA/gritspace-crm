@@ -56,9 +56,6 @@ Route::get('/clear-cache', function () {
 
 
 // Route::get('/run-storage-link', function () {
-// if (request()->ip() !== 'YOUR.IP.ADD.RESS') {
-//     abort(403, 'Unauthorized.');
-// }
 
 //     Artisan::call('storage:link');
 

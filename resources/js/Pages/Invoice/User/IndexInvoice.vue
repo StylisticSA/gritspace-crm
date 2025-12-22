@@ -7,6 +7,7 @@ import InvoiceActionModal from '@/Components/Modals/Invoice/InvoiceActionModal.v
 const props = defineProps({
     invoices: Object,
     can: Object,
+    filters: Object,
 });
 
 const showInvoiceModal = ref(false);
@@ -19,16 +20,18 @@ const currencySymbols = {
     GBP: '£',
 };
 
-const invoiceData = ref(null);
+const searchQuery = ref(props.filters?.search || '');
 
-const setOffice = id => {
-    selectedInvoiceId.value = id;
-
-    const officeList = props.invoices || [];
-    invoiceData.value = officeList.find(o => o.id === id);
-
-    showInvoiceModal.value = true;
-};
+watch(searchQuery, value => {
+    router.get(
+        route('user.invoice'),
+        { search: value },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+});
 
 function formatAmount(invoice) {
     const symbol = currencySymbols[invoice.currency] || invoice.currency;
@@ -64,10 +67,9 @@ function viewInvoice(Id) {
                 <div class="flex flex-col gap-2 mb-10 sm:flex-row sm:items-center sm:justify-between">
                     <div class="space-x-2 flex">
                         <Link
-                            v-if="can['manage settings']"
-                            :href="route('admin.invoices.create')"
-                            class="block px-3 py-2 text-center text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
-                            + Create Invoice
+                            :href="route('dashboard')"
+                            class="inline-block w-full px-3 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                            Dashboard
                         </Link>
                     </div>
 
@@ -75,18 +77,9 @@ function viewInvoice(Id) {
                     <div class="flex justify-items-center flex-col sm:flex-row gap-4 w-full sm:w-2/4">
                         <div class="relative flex-1">
                             <input
+                                v-model="searchQuery"
                                 placeholder="Search invoices..."
-                                class="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 text-bluemain focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-                                type="text"
-                                value="" />
-                        </div>
-
-                        <div class="relative flex-1">
-                            <button
-                                class="px-4 py-2 border bg-bluemain hover:bg-bluemain/60 text-white rounded-lg w-full text-center"
-                                type="button">
-                                All Status
-                            </button>
+                                class="w-full pl-10 pr-4 py-2 border rounded" />
                         </div>
                     </div>
                 </div>
@@ -126,7 +119,7 @@ function viewInvoice(Id) {
                                 </thead>
                                 <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700">
                                     <tr
-                                        v-for="invoice in invoices"
+                                        v-for="invoice in invoices.data"
                                         :key="invoice.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <button

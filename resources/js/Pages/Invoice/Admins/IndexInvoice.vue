@@ -7,6 +7,7 @@ import InvoiceActionModal from '@/Components/Modals/Invoice/InvoiceActionModal.v
 const props = defineProps({
     invoices: Object,
     can: Object,
+    filters: Object,
 });
 
 const showInvoiceModal = ref(false);
@@ -19,12 +20,38 @@ const currencySymbols = {
     GBP: '£',
 };
 
+const searchQuery = ref(props.filters?.search || '');
+
+watch(searchQuery, value => {
+    router.get(
+        route('admin.invoices.index'),
+        { search: value },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+});
+
+const statusFilter = ref(props.filters?.status || '');
+
+function filterByStatus() {
+    router.get(
+        route('admin.invoices.index'),
+        { status: statusFilter.value },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+}
+
 const invoiceData = ref(null);
 
 const setOffice = id => {
     selectedInvoiceId.value = id;
 
-    const officeList = props.invoices || [];
+    const officeList = props.invoices.data || [];
     invoiceData.value = officeList.find(o => o.id === id);
 
     showInvoiceModal.value = true;
@@ -51,10 +78,15 @@ function viewInvoice(Id) {
     if (props.can['manage settings']) {
         router.visit(`/admin/invoices/${Id}`);
     } else {
-        alert('me');
         router.visit(`/user/invoices/${Id}`);
     }
 }
+
+const formatLabel = label => {
+    if (label === '&laquo; Previous') return 'Prev';
+    if (label === 'Next &raquo;') return 'Next';
+    return label;
+};
 </script>
 <template>
     <Head title="Admin Invoices" />
@@ -66,8 +98,8 @@ function viewInvoice(Id) {
 
         <div class="py-12 px-5 lg:px-0">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="flex flex-col gap-2 mb-10 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+                <div class="flex flex-col gap-1 mb-10 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col sm:flex-row gap-1 sm:space-x-1">
                         <Link
                             v-if="can['manage settings']"
                             :href="route('admin.invoices.create')"
@@ -91,21 +123,26 @@ function viewInvoice(Id) {
                     </div>
 
                     <!-- Second div wider on desktop, full width on mobile -->
-                    <div class="flex justify-items-center flex-col sm:flex-row gap-4 w-full sm:w-2/4">
+                    <div class="flex justify-items-center flex-col sm:flex-row gap-2 w-full sm:w-2/4">
                         <div class="relative flex-1">
                             <input
+                                v-model="searchQuery"
                                 placeholder="Search invoices..."
-                                class="w-full pl-10 pr-4 py-2 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 text-bluemain focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
-                                type="text"
-                                value="" />
+                                class="w-full pl-10 pr-4 py-2 border rounded" />
                         </div>
 
-                        <div class="relative flex-1">
-                            <button
-                                class="px-4 py-2 border bg-bluemain hover:bg-bluemain/60 text-white rounded-lg w-full text-center"
-                                type="button">
-                                All Status
-                            </button>
+                        <div class="relative w-full md:w-1/4">
+                            <div class="relative flex-1">
+                                <select
+                                    v-model="statusFilter"
+                                    @change="filterByStatus"
+                                    class="px-4 py-2 text-bluemain bg-gray-200 rounded w-full text-center">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +186,7 @@ function viewInvoice(Id) {
                                 </thead>
                                 <tbody class="divide-y divide-secondary-200 dark:divide-secondary-700">
                                     <tr
-                                        v-for="invoice in invoices"
+                                        v-for="invoice in invoices.data"
                                         :key="invoice.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <button
@@ -241,6 +278,34 @@ function viewInvoice(Id) {
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <!-- Pagination -->
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="text-sm text-gray-600">
+                                Showing
+                                <span class="font-medium">{{ invoices.from }}</span>
+                                to
+                                <span class="font-medium">{{ invoices.to }}</span>
+                                of
+                                <span class="font-medium">{{ invoices.total }}</span> results
+                            </div>
+
+                            <div class="flex space-x-1">
+                                <template
+                                    v-for="(link, index) in invoices.links"
+                                    :key="index">
+                                    <Link
+                                        v-if="link.url"
+                                        :href="link.url"
+                                        class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-bluemain/60 hover:text-white"
+                                        :class="link.active ? 'bg-bluemain text-white' : 'text-gray-700'"
+                                        v-html="formatLabel(link.label)" />
+                                    <span
+                                        v-else
+                                        class="px-3 py-1 text-sm text-gray-400 border border-gray-300 rounded-md cursor-not-allowed"
+                                        v-html="formatLabel(link.label)" />
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>

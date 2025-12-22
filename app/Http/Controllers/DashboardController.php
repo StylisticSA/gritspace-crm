@@ -131,7 +131,7 @@ class DashboardController extends Controller
         $notes = Note::where('user_id', Auth::id())
                     ->where('is_visible_to_user', 1)
                     ->latest('created_at')
-                    ->take(5)
+                    ->take(6)
                     ->get()
                     ->reverse()
                     ->values();
@@ -141,10 +141,11 @@ class DashboardController extends Controller
         $invoices = Invoice::with('user:id,name')
                     ->select('id', 'user_id', 'invoice_number','issued_due_date','status')
                     ->where('user_id', auth()->id())
-                    ->where('status', 'pending')
+                    ->whereIn('status', ['pending', 'paid'])
                     ->limit(6)
                     ->get();
 
+                    // dd($invoices);
      
         return Inertia::render('Dashboard', [
             'notes'                 => $notes,
@@ -310,9 +311,9 @@ class DashboardController extends Controller
         $today = Carbon::today();
 
         $invoiceCounts = Invoice::where('issued_due_date', '>=', $today)
-            ->select('status', DB::raw('COUNT(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status');
+                            ->select('status', DB::raw('COUNT(*) as total'))
+                            ->groupBy('status')
+                            ->pluck('total', 'status');
 
 
         return Inertia::render('Admin/AdminDashboard', [

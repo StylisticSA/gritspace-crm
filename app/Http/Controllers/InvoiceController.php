@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Models\BankingDetail;
 use App\Models\VirtualOffice;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Notifications\InvoiceNotification;
 
 class InvoiceController extends Controller
@@ -19,13 +20,32 @@ class InvoiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {   
-        $invoices = Invoice::with('user','invoiceItems','banking')->get();
+        $query = Invoice::with('user','invoiceItems','banking');
       
-        return Inertia::render('Invoice/Admins/IndexInvoice',[
-            'invoices' => $invoices
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                ->orWhere('customer_name', 'like', "%{$search}%")
+                ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->paginate(10); 
+
+        return Inertia::render('Invoice/Admins/IndexInvoice', [
+            'invoices' => $invoices,
+            'filters' => $request->only('search', 'status'),
         ]);
+        
+
+
     }
 
 
@@ -182,7 +202,6 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        // dd($invoice->load(['user','invoiceItems','banking', 'banking.company']));
 
         return Inertia::render('Invoice/Admins/InvoiceShow',[
             'invoice' => $invoice->load(['user','invoiceItems','banking', 'banking.company'])
@@ -439,20 +458,56 @@ class InvoiceController extends Controller
 
     }
 
+    /**
+     * Send email for monthly invoice
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function sendInvoice(Request $request)
+    {
+        
+        $invoice = Invoice::findOrFail($request->id);
 
-    // The following are the for the user views 
+        $invoiceData = [
+            'id' => $invoice->id,
+            'room_type' => $invoice->invoice_number,
+            'status' => 'Monthly Invoice',
+            'user_name' => $request->user,
+        ];
 
+        $invoice->user->notify(new InvoiceNotification($invoiceData, 'monthly', 'user'));
+
+        User::withRole('Super Admin')->get()
+            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'monthly', 'admin')));
+
+        User::withRole('Admin')->get()
+            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'monthly', 'admin')));
+
+        return back()->with('success', 'Invoice Sent Successfully.');
+
+    }
 
      /**
      * Display a listing of the resource.
      */
-    public function userIndex()
+    public function userIndex(Request $request)
     {
         
-        $invoices = Invoice::with('invoiceItems')->where('user_id', Auth()->id())->get();
+        $query = Invoice::with('invoiceItems')->where('user_id', Auth()->id());
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%");
+            });
+        }
+
+        $invoices = $query->paginate(10); 
 
         return Inertia::render('Invoice/User/IndexInvoice',[
-            'invoices' => $invoices
+            'invoices' => $invoices,
+            'filters' => $request->only('search', 'status'),
         ]);
     }
 
@@ -461,7 +516,6 @@ class InvoiceController extends Controller
      */
     public function userShow(Invoice $invoice)
     {
-        // dd('g');
 
         $invoice = Invoice::with(['user','invoiceItems','banking', 'banking.company'])
                 ->where('id', $invoice->id)
@@ -473,4 +527,15 @@ class InvoiceController extends Controller
             'invoice' => $invoice
         ]);
     }
+
+    public function download(Invoice $invoice)
+    {
+        // Example: using dompdf
+        $pdf = \PDF::loadView('invoices.pdf', compact('invoice'));
+
+        return $pdf->download("invoice-{$invoice->id}.pdf");
+    }
+
+   
+
 }

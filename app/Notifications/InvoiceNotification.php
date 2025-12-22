@@ -38,7 +38,7 @@ class InvoiceNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-       $type = ucfirst($this->invoice['room_type'] ?? 'Invoice');
+        $type = ucfirst($this->invoice['room_type'] ?? 'Invoice');
 
         $statusText = match ($this->eventType) {
             'paid' => $this->recipientType === 'admin'
@@ -53,15 +53,21 @@ class InvoiceNotification extends Notification implements ShouldQueue
                 ? "The invoice for $type by {$this->invoice['user_name']} has been marked as cancelled."
                 : "Your invoice for $type has been cancelled.",
 
+            'monthly' => $this->recipientType === 'admin'
+                ? "The invoice for $type by {$this->invoice['user_name']} has been sent to the user this month."
+                : "We have sent to you this month's invoice for $type.",
+
             default => "Invoice update.",
         };
+
+        $link = $this->recipientType === 'admin'
+            ? route('admin.invoices.show', $this->invoice['id'])
+            : route('userView.invoice', $this->invoice['id']);
 
         return (new MailMessage())
             ->subject(ucfirst($this->eventType) . ' Invoice')
             ->line($statusText)
-            ->action('View invoice', url("/invoice/{$this->invoice['id']}"));
-
-
+            ->action('View invoice', $link);
     }
 
     /**
@@ -83,6 +89,10 @@ class InvoiceNotification extends Notification implements ShouldQueue
             'cancelled' => $this->recipientType === 'admin'
                 ? "The $type invoice by {$this->invoice['user_name']} was marked as cancelled."
                 : "Your $type invoice was cancelled.",
+            
+            'monthly' => $this->recipientType === 'admin'
+                ? "The invoice for $type by {$this->invoice['user_name']} has been sent to the user this month."
+                : "We have sent to you this month's invoice for $type.",
 
             default => "$type invoice update.",
         };

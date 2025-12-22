@@ -55,6 +55,8 @@ Route::middleware(['web', 'auth', 'verified'])
                 'update' => 'company.update',
                 'destroy' => 'company.destroy',
         ]);
+
+
         Route::resource('invoices', InvoiceController::class)->names([
                 'index' => 'invoices.index',
                 'create' => 'invoices.create',
@@ -65,9 +67,12 @@ Route::middleware(['web', 'auth', 'verified'])
                 'destroy' => 'invoices.destroy',
         ]);
 
+        Route::post('/invoice/send-invoice', [InvoiceController::class, 'sendInvoice'])->name('invoice.send-invoice');
         Route::put('/invoice/{invoice}/paid', [InvoiceController::class, 'paid'])->name('invoice.paid');
         Route::put('/invoice/{invoice}/pending', [InvoiceController::class, 'pending'])->name('invoice.pending');
         Route::put('/invoice/{invoice}/cancel', [InvoiceController::class, 'cancelled'])->name('invoice.cancelled');
+        Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
+
 
         Route::resource('banking', BankingDetailController::class)->names([
                 'index' => 'banking.index',

@@ -2,6 +2,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import InvoiceSendModal from '../../../Components/Modals/Invoice/InvoiceSendModal.vue';
 
 const props = defineProps({
     invoice: {
@@ -10,6 +12,8 @@ const props = defineProps({
     },
     can: Object,
 });
+
+const showInvoiceUserModal = ref(false);
 
 const formatDate = date => {
     if (!date) return '—';
@@ -57,20 +61,15 @@ function editInvoice() {
                     </div>
                     <div class="flex gap-1">
                         <button
-                            class="bg-primary inline-flex items-center justify-center rounded-lg font-medium text-white hover:bg-primary-50 px-4 py-2 text-base">
-                            Print
-                        </button>
-                        <button
+                            @click="printInvoice"
                             class="bg-bluemain inline-flex items-center justify-center rounded-lg font-medium text-white hover:bg-primary-50 px-4 py-2 text-base">
                             Download
                         </button>
                         <button
+                            v-if="can['manage settings']"
+                            @click="showInvoiceUserModal = true"
                             class="bg-green-800 inline-flex items-center justify-center rounded-lg font-medium text-white hover:bg-primary-700 px-4 py-2 text-base">
                             Send Invoice
-                        </button>
-                        <button
-                            class="bg-yellow-800 inline-flex items-center justify-center rounded-lg font-medium text-white hover:bg-primary-700 px-4 py-2 text-base">
-                            Edit Invoice
                         </button>
                     </div>
                 </div>
@@ -154,7 +153,7 @@ function editInvoice() {
                                     <p>{{ invoice.customer_phone }}</p>
                                 </div>
                             </div>
-                            <div class="text-right mt-3">
+                            <div class="text-right">
                                 <h4 class="text-sm font-semibold text-secondary-900 text-bluemain uppercase mb-2">
                                     Banking Details
                                 </h4>
@@ -261,6 +260,11 @@ function editInvoice() {
                     </div>
                 </div>
             </div>
+            <InvoiceSendModal
+                :invoice="props.invoice"
+                :show="showInvoiceUserModal"
+                :can="can"
+                :onClose="() => (showInvoiceUserModal = false)" />
         </div>
     </AuthenticatedLayout>
 </template>
