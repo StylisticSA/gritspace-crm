@@ -4,6 +4,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import InvoiceSendModal from '../../../Components/Modals/Invoice/InvoiceSendModal.vue';
+import html2pdf from 'html2pdf.js';
 
 const props = defineProps({
     invoice: {
@@ -14,6 +15,33 @@ const props = defineProps({
 });
 
 const showInvoiceUserModal = ref(false);
+console.log('i', props.invoice);
+
+const exportToPDF = async () => {
+    const element = document.getElementById('invoice-template');
+
+    const imgs = element.querySelectorAll('img');
+    await Promise.all(
+        Array.from(imgs).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(res => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+            });
+        })
+    );
+
+    html2pdf()
+        .set({
+            margin: 1,
+            filename: `${props.invoice?.user_name}-invoice-${props.invoice?.invoice_number}.pdf`,
+            image: { type: 'svg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(element)
+        .save();
+};
 
 const formatDate = date => {
     if (!date) return '—';
@@ -61,7 +89,7 @@ function editInvoice() {
                     </div>
                     <div class="flex gap-1">
                         <button
-                            @click="printInvoice"
+                            @click="exportToPDF()"
                             class="bg-bluemain inline-flex items-center justify-center rounded-lg font-medium text-white hover:bg-primary-50 px-4 py-2 text-base">
                             Download
                         </button>
@@ -73,18 +101,20 @@ function editInvoice() {
                         </button>
                     </div>
                 </div>
-                <div class="card p-4 transition-all duration-200 bg-white rounded-lg">
+                <div
+                    id="invoice-template"
+                    class="card p-4 transition-all duration-200 bg-white rounded-lg"
+                    ref="invoiceRef">
                     <div class="p-2">
                         <div class="flex justify-between items-start mb-12">
                             <div>
-                                <div class="mb-5">
-                                    <Link
-                                        :href="route('dashboard')"
-                                        class="flex items-center">
-                                        <ApplicationLogo class="block w-auto h-12 text-gray-800 fill-current" />
-                                    </Link>
+                                <div class="my-5">
+                                    <img
+                                        src="/files_grits/gritspace_logo.png"
+                                        alt="Logo"
+                                        class="w-auto h-10" />
                                 </div>
-                                <!-- <h2 class="text-2xl font-bold text-secondary-900 text-bluemain mb-1">TailPanel Inc.</h2> -->
+
                                 <div class="text-sm text-secondary-600 dark:text-secondary-400">
                                     <p>{{ invoice.banking?.company?.company_name }}</p>
                                     <p>{{ invoice.banking?.company?.address }}</p>
@@ -125,12 +155,12 @@ function editInvoice() {
                                         <strong>Status: </strong>
                                         <span
                                             :class="{
-                                                'px-2 py-1 rounded text-xs font-semibold capitalize': true,
-                                                'bg-yellow-100 text-yellow-800': invoice.status === 'pending',
-                                                'bg-green-100 text-green-800': invoice.status === 'approved',
-                                                'bg-gray-200 text-gray-700': invoice.status === 'cancelled',
-                                                'bg-red-100 text-red-700': invoice.status === 'rejected',
-                                                'bg-red-100 text-primary': invoice.status === 'paid',
+                                                'px-2  rounded text-sm font-semibold capitalize': true,
+                                                ' text-yellow-800': invoice.status === 'pending',
+                                                ' text-green-800': invoice.status === 'approved',
+                                                ' text-gray-700': invoice.status === 'cancelled',
+                                                ' text-red-700': invoice.status === 'rejected',
+                                                ' text-primary': invoice.status === 'paid',
                                             }">
                                             {{ invoice.status ?? 'N/A' }}
                                         </span>

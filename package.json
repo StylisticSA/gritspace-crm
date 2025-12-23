@@ -36,6 +36,7 @@
         "@primeuix/themes": "^1.1.2",
         "@vuepic/vue-datepicker": "^11.0.2",
         "@vueup/vue-quill": "^1.2.0",
+        "html2pdf.js": "^0.12.1",
         "primeflex": "^4.0.0",
         "primeicons": "^7.0.0",
         "primevue": "^4.3.5",

@@ -2,6 +2,7 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
+import html2pdf from 'html2pdf.js';
 
 const props = defineProps({
     invoice: Object,
@@ -16,12 +17,32 @@ const form = useForm({
     id: props.invoice.id,
     user: props.invoice?.user.name,
     invoice_number: props.invoice.invoice_number,
+    file: null,
 });
 
-console.log('i', props.invoice.user);
+const submit = async () => {
+    const element = document.getElementById('invoice-template');
+    const safeUserName = props.invoice?.user.name.replace(/[-\s]/g, '-').toLowerCase();
+    const safeInvoiceNumber = props.invoice?.invoice_number.toLowerCase();
 
-const submit = () => {
+    const pdfBlob = await html2pdf()
+        .set({
+            margin: 1,
+            filename: `${safeUserName}-invoice-${safeInvoiceNumber}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(element)
+        .outputPdf('blob');
+
+    const pdfFile = new File([pdfBlob], `${safeUserName}-invoice-${safeInvoiceNumber}.pdf`, {
+        type: 'application/pdf',
+    });
+    form.file = pdfFile;
+
     form.post(route('admin.invoice.send-invoice'), {
+        forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
             message.value = '';

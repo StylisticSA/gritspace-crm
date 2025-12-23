@@ -12,7 +12,9 @@ use Illuminate\Http\Request;
 use App\Models\BankingDetail;
 use App\Models\VirtualOffice;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Notifications\InvoiceNotification;
 
 class InvoiceController extends Controller
@@ -466,7 +468,8 @@ class InvoiceController extends Controller
      */
     public function sendInvoice(Request $request)
     {
-        
+        // dd($request);
+
         $invoice = Invoice::findOrFail($request->id);
 
         $invoiceData = [
@@ -475,6 +478,25 @@ class InvoiceController extends Controller
             'status' => 'Monthly Invoice',
             'user_name' => $request->user,
         ];
+
+        if ($request->hasFile('file')) {
+            $uploadedFile = $request->file('file');
+            $originalName = $uploadedFile->getClientOriginalName();
+
+            $relativePath = 'uploads/invoices/'.$originalName;
+            if (Storage::disk('public')->exists($relativePath)) {
+                Storage::disk('public')->delete($relativePath);
+                Log::info('Pre-delete existing file: '.$relativePath);
+            }
+
+            $path = $uploadedFile->storeAs('uploads/invoices', $originalName, 'public');
+
+            $invoiceData['pdf_path'] = $path;        
+            $invoiceData['pdf_name'] = $originalName;
+        }
+
+
+        Log::info('pathme', $invoiceData);
 
         $invoice->user->notify(new InvoiceNotification($invoiceData, 'monthly', 'user'));
 

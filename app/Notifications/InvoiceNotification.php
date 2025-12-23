@@ -3,9 +3,12 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
 class InvoiceNotification extends Notification implements ShouldQueue
 {
@@ -42,32 +45,55 @@ class InvoiceNotification extends Notification implements ShouldQueue
 
         $statusText = match ($this->eventType) {
             'paid' => $this->recipientType === 'admin'
-                ? "The invoice for $type by {$this->invoice['user_name']} has been marked as paid."
-                : "Your invoice for $type has been paid successfully.",
+                ? "The invoice $type belonging to {$this->invoice['user_name']} has been marked as Paid."
+                : "Your invoice $type has been successfully marked as Paid.",
 
             'pending' => $this->recipientType === 'admin'
-                ? "The invoice for $type by {$this->invoice['user_name']} is pending."
-                : "Your invoice for $type is currently pending.",
+                ? "The invoice $type belonging to {$this->invoice['user_name']} has been updated to Pending."
+                : "Your invoice $type has been updated to Pending.",
 
             'cancelled' => $this->recipientType === 'admin'
-                ? "The invoice for $type by {$this->invoice['user_name']} has been marked as cancelled."
-                : "Your invoice for $type has been cancelled.",
+                ? "The invoice $type belonging to {$this->invoice['user_name']} has been marked as Cancelled."
+                : "Your invoice $type has been updated to Cancelled.",
 
             'monthly' => $this->recipientType === 'admin'
-                ? "The invoice for $type by {$this->invoice['user_name']} has been sent to the user this month."
-                : "We have sent to you this month's invoice for $type.",
-
+                ? "The invoice $type belonging to {$this->invoice['user_name']} has been sent. Please check the attachment."
+                : "We have sent you this month's invoice for $type. Please check the attachment.",
+                
             default => "Invoice update.",
         };
 
         $link = $this->recipientType === 'admin'
             ? route('admin.invoices.show', $this->invoice['id'])
             : route('userView.invoice', $this->invoice['id']);
+            
+     
 
-        return (new MailMessage())
-            ->subject(ucfirst($this->eventType) . ' Invoice')
+        $mail = (new MailMessage)
+            ->subject(ucfirst($this->eventType).' Invoice')
             ->line($statusText)
             ->action('View invoice', $link);
+
+        
+        
+        if ($this->eventType === 'monthly' && !empty($this->invoice['pdf_path'])) {
+            $absolutePath = Storage::disk('public')->path($this->invoice['pdf_path']);
+      
+
+            if (file_exists($absolutePath)) {
+                $mail->attach($absolutePath, [
+                    'as' => ($this->invoice['room_type'] ?? 'invoice').'.pdf',
+                    'mime' => 'application/pdf',
+                ]);
+            }
+        }
+
+
+
+        return $mail;
+
+
+    
     }
 
     /**
