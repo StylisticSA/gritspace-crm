@@ -53,6 +53,9 @@ class BoardroomBookingNotification extends Notification implements ShouldQueue
             'rejected' => $this->recipientType === 'admin'
                 ? "The booking for $type by {$this->booking['user_name']} has been marked as rejected."
                 : "Your booking for $type has been rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The booking for $type by {$this->booking['user_name']} has been marked Paid."
+                : "Your enquiry for $type has been marked Paid.",
             default => "Booking update.",
         };
 
@@ -74,14 +77,17 @@ class BoardroomBookingNotification extends Notification implements ShouldQueue
                 ? "{$this->booking['user_name']} submitted a new $type booking."
                 : "Your $type booking was created.",
             'approved' => $this->recipientType === 'admin'
-                ? "The $type booking by {$this->booking['user_name']} was marked as approved."
+                ? "The $type booking by {$this->booking['user_name']} was approved."
                 : "Your $type booking was approved.",
             'cancelled' => $this->recipientType === 'admin'
-                ? "The $type booking by {$this->booking['user_name']} was marked as cancelled."
+                ? "The $type booking by {$this->booking['user_name']} was updated to cancelled."
                 : "Your $type booking was cancelled.",
             'rejected' => $this->recipientType === 'admin'
-                ? "The $type booking by {$this->booking['user_name']} was marked as rejected."
+                ? "The $type booking by {$this->booking['user_name']} was updated to rejected."
                 : "Your $type booking was rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The booking for $type by {$this->booking['user_name']} has been marked Paid."
+                : "Your enquiry for $type has been marked Paid.",
             default => "$type booking update.",
         };
 

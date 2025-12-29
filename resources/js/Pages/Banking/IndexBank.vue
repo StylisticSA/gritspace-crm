@@ -12,10 +12,7 @@ const props = defineProps({
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
-const showModal = ref(false);
-const bankingToDelete = ref(null);
 const search = ref(props.filters.search ?? '');
-
 watch(search, value => {
     router.get(
         route('admin.banking'),
@@ -26,6 +23,9 @@ watch(search, value => {
         }
     );
 });
+
+const showModal = ref(false);
+const bankingToDelete = ref(null);
 
 const confirmDelete = id => {
     showModal.value = true;

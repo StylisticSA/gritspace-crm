@@ -2,9 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
-import { useBookingAction } from '../../../Composables/useBookingAction';
-
-const { processBooking, isProcessing, feedbackMessage, messageType: localMessageType } = useBookingAction();
+import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
     bookings: Object,
@@ -12,66 +10,14 @@ const props = defineProps({
     can: Object,
 });
 
-const page = usePage();
-
-const successMessage = ref(null);
-
-const flashMessage = computed(() => page.props?.flash?.success || null);
-
-const showMessage = computed(() => !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.()));
-const flashType = computed(() => page.props?.flash?.type || null);
-
-const activeMessageType = computed(() => flashType.value || localMessageType.value);
-
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-            page.props.flash.success = null;
-        }, 1500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-
-const approveBooking = id => {
-    processBooking({
-        id,
-        routeName: 'boardroombooking.approve',
-        successMsg: 'Booking approved successfully.',
-        type: 'approved',
-        onClose: closeViewModal,
-        setMessage: msg => (successMessage.value = msg),
-    });
-};
-
-const rejectBooking = id => {
-    processBooking({
-        id,
-        routeName: 'boardroombooking.reject',
-        successMsg: 'Booking rejected.',
-        type: 'rejected',
-        onClose: closeViewModal,
-        setMessage: msg => (successMessage.value = msg),
-    });
-};
-
-const cancelBooking = id => {
-    processBooking({
-        id,
-        routeName: 'boardroombooking.cancel',
-        successMsg: 'Booking cancelled.',
-        type: 'cancelled',
-        onClose: closeViewModal,
-        setMessage: msg => (successMessage.value = msg),
-    });
-};
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 
 watch(search, value => {
     router.get(
-        route('admin.bookings'),
+        route('bookingboardroom.show'),
         { search: value },
         {
             preserveState: true,
@@ -81,6 +27,89 @@ watch(search, value => {
         }
     );
 });
+
+const paidBooking = id => {
+    if (!id) return;
+
+    if (confirm('Are you sure you want to change to Paid?')) {
+        router.put(route('boardroombooking.paid', id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = 'Office status changed to Paid';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to mark Paid.';
+                status.value = 'deleted';
+            },
+        });
+    }
+};
+
+const approveBooking = id => {
+    if (!id) return;
+    router.put(
+        route('boardroombooking.approve', { id }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = 'Booking approved successfully.';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to approve booking.';
+                status.value = 'rejected';
+            },
+        }
+    );
+};
+
+const rejectBooking = id => {
+    router.put(
+        route('boardroombooking.reject', { id }),
+        {},
+        {
+            onSuccess: () => {
+                message.value = 'Booking rejected.';
+                status.value = 'rejected';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
+            },
+        }
+    );
+};
+
+const cancelBooking = id => {
+    router.put(
+        route('boardroombooking.cancel', { id }),
+        {},
+        {
+            onSuccess: () => {
+                message.value = 'Booking cancelled.';
+                status.value = 'cancelled';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
+            },
+        }
+    );
+};
 
 const showModal = ref(false);
 const bookingToDelete = ref(null);
@@ -119,6 +148,7 @@ const closeViewModal = () => {
     showViewModal.value = false;
     selectedBooking.value = null;
     selectedDates.value = null;
+    window.location.reload();
 };
 
 const formatDate = date => {
@@ -159,21 +189,6 @@ const getDateKey = dateStr => {
 
         <div class="py-12">
             <div class="max-w-full px-4 mx-auto sm:max-w-xl sm:px-6 lg:max-w-7xl lg:px-8">
-                <div
-                    v-if="showMessage"
-                    :class="[
-                        'p-3 mb-4 rounded text-sm font-medium',
-                        activeMessageType === 'approved'
-                            ? 'bg-green-100 text-green-800'
-                            : activeMessageType === 'rejected'
-                              ? 'bg-red-100 text-red-700'
-                              : activeMessageType === 'cancelled'
-                                ? 'bg-gray-200 text-gray-700'
-                                : 'bg-blue-100 text-blue-800',
-                    ]">
-                    {{ flashMessage || successMessage }}
-                </div>
-
                 <!-- Search -->
                 <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -195,7 +210,6 @@ const getDateKey = dateStr => {
                     <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                 <th
                                     v-if="can['manage settings']"
                                     class="px-6 py-3 text-sm font-medium text-left text-gray-700">
@@ -207,8 +221,8 @@ const getDateKey = dateStr => {
                                     Days
                                 </th>
 
-                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Status</th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Booked On</th>
+                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Status</th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                             </tr>
                         </thead>
@@ -217,8 +231,6 @@ const getDateKey = dateStr => {
                             <tr
                                 v-for="(booking, index) in bookings.data"
                                 :key="booking.id">
-                                <td class="px-6 py-4 text-sm text-gray-800">{{ index + 1 }}</td>
-
                                 <td
                                     v-if="can['manage settings']"
                                     class="px-6 py-4 text-sm text-gray-800">
@@ -250,6 +262,10 @@ const getDateKey = dateStr => {
                                     </button>
                                 </td>
 
+                                <td class="px-6 py-4 text-sm text-gray-800">
+                                    {{ formatDate(booking.created_at) ?? 'N/A' }}
+                                </td>
+
                                 <td class="px-6 py-4 text-sm">
                                     <span
                                         :class="{
@@ -258,13 +274,10 @@ const getDateKey = dateStr => {
                                             'bg-green-100 text-green-800': booking.status === 'approved',
                                             'bg-gray-200 text-gray-700': booking.status === 'cancelled',
                                             'bg-red-100 text-red-700': booking.status === 'rejected',
+                                            'bg-red-100 text-primary': booking.status === 'paid',
                                         }">
                                         {{ booking.status ?? 'N/A' }}
                                     </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-sm text-gray-800">
-                                    {{ formatDate(booking.created_at) ?? 'N/A' }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-800">
@@ -400,6 +413,12 @@ const getDateKey = dateStr => {
                                 </button>
                             </div>
 
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
+
                             <!-- Modal Content -->
                             <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-2">
                                 <!-- General Info Table Style -->
@@ -447,6 +466,7 @@ const getDateKey = dateStr => {
                                                         selectedBooking.status === 'approved',
                                                     'bg-gray-200 text-gray-700': selectedBooking.status === 'cancelled',
                                                     'bg-red-100 text-red-700': selectedBooking.status === 'rejected',
+                                                    'bg-red-100 text-primary': selectedBooking.status === 'paid',
                                                 }">
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
@@ -459,7 +479,15 @@ const getDateKey = dateStr => {
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
                                 <button
                                     v-if="can['manage settings']"
-                                    :disabled="isProcessing"
+                                    @click="paidBooking(selectedBooking.id)"
+                                    v-show="selectedBooking.status === 'approved'"
+                                    class="flex-1 px-4 py-1 text-xs text-white bg-primary rounded hover:bg-bluemain/60 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Paid
+                                </button>
+
+                                <button
+                                    v-if="can['manage settings']"
+                                    :disabled="selectedBooking.status === 'approved'"
                                     @click="approveBooking(selectedBooking.id)"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-green-600 rounded hover:bg-green-700">
                                     Approve
@@ -467,7 +495,7 @@ const getDateKey = dateStr => {
 
                                 <button
                                     v-if="can['manage settings']"
-                                    :disabled="isProcessing"
+                                    :disabled="selectedBooking.status === 'rejected'"
                                     @click="rejectBooking(selectedBooking.id)"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
                                     Reject
@@ -475,7 +503,7 @@ const getDateKey = dateStr => {
 
                                 <button
                                     @click="cancelBooking(selectedBooking.id)"
-                                    :disabled="isProcessing"
+                                    :disabled="selectedBooking.status === 'cancelled'"
                                     class="flex-1 px-2 py-1 text-xs text-white bg-gray-600 rounded hover:bg-gray-700">
                                     Cancel
                                 </button>

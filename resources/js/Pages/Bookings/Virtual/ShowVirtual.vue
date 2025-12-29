@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
+import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
     bookings: Object,
@@ -9,27 +10,49 @@ const props = defineProps({
     can: Object,
 });
 
-const page = usePage();
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
-// Flash messages
-const successMessage = ref(null);
-const messageType = ref(null);
+const search = ref(props.filters?.search ?? '');
+const isLoading = ref(false);
 
-const flashMessage = computed(() => page.props?.flash?.success || null);
-const showMessage = computed(() => !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.()));
-
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-            messageType.value = null;
-            page.props.flash.success = null;
-        }, 1500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+watch(search, value => {
+    router.get(
+        route('bookingvirtual.show'),
+        { search: value },
+        {
+            preserveState: true,
+            replace: true,
+            onBefore: () => (isLoading.value = true),
+            onFinish: () => (isLoading.value = false),
+        }
+    );
 });
 
 // Booking actions
+const paidBooking = id => {
+    if (!id) return;
+    router.put(
+        route('bookingvirtual.paid', { virtual: id }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = '';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to paid booking.';
+                status.value = 'rejected';
+            },
+        }
+    );
+};
+
 const approveBooking = id => {
     if (!id) return;
     router.put(
@@ -38,13 +61,17 @@ const approveBooking = id => {
         {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'Booking approved successfully.';
-                messageType.value = 'success';
-                closeViewModal();
+                message.value = 'Booking approved successfully.';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
             },
             onError: () => {
-                successMessage.value = 'Failed to approve booking.';
-                messageType.value = 'rejected';
+                message.value = 'Failed to approve booking.';
+                status.value = 'rejected';
             },
         }
     );
@@ -56,9 +83,13 @@ const rejectBooking = id => {
         {},
         {
             onSuccess: () => {
-                successMessage.value = 'Booking rejected.';
-                messageType.value = 'rejected';
-                closeViewModal();
+                message.value = 'Booking rejected.';
+                status.value = 'rejected';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
             },
         }
     );
@@ -70,38 +101,16 @@ const cancelBooking = id => {
         {},
         {
             onSuccess: () => {
-                successMessage.value = 'Booking cancelled.';
-                messageType.value = 'cancelled';
-                closeViewModal();
+                message.value = 'Booking cancelled.';
+                status.value = 'cancelled';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    closeViewModal();
+                }, 2000);
             },
         }
     );
-};
-
-// Search logic
-const search = ref(props.filters?.search ?? '');
-const isLoading = ref(false);
-
-watch(search, value => {
-    router.get(
-        route('admin.bookings'),
-        { search: value },
-        {
-            preserveState: true,
-            replace: true,
-            onBefore: () => (isLoading.value = true),
-            onFinish: () => (isLoading.value = false),
-        }
-    );
-});
-
-// Delete logic
-const showModal = ref(false);
-const bookingToDelete = ref(null);
-
-const confirmDelete = id => {
-    showModal.value = true;
-    bookingToDelete.value = id;
 };
 
 const deleteBooking = () => {
@@ -109,7 +118,7 @@ const deleteBooking = () => {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'Booking rejected successfully.';
+                message.value = 'Booking rejected successfully.';
             },
             onFinish: () => {
                 showModal.value = false;
@@ -139,14 +148,7 @@ const closeViewModal = () => {
     showViewModal.value = false;
     selectedBooking.value = null;
     selectedDates.value = null;
-};
-
-// Helpers
-const splitDates = dates => {
-    if (!dates || !Array.isArray(dates)) return [];
-    if (dates.length <= 7) return [dates];
-    const mid = Math.ceil(dates.length / 2);
-    return [dates.slice(0, mid), dates.slice(mid)];
+    window.location.reload();
 };
 
 const formatDate = date => {
@@ -163,11 +165,6 @@ const formatLabel = label => {
     if (label === '&laquo; Previous') return 'Prev';
     if (label === 'Next &raquo;') return 'Next';
     return label;
-};
-
-const getDateKey = date => {
-    const d = new Date(date);
-    return d.toISOString().split('T')[0]; // Ensures 'YYYY-MM-DD' format
 };
 
 // Grouped booking dates by month and year
@@ -192,21 +189,6 @@ const groupedDates = computed(() => {
 
         <div class="py-12">
             <div class="max-w-full px-4 mx-auto sm:max-w-xl sm:px-6 lg:max-w-7xl lg:px-8">
-                <div
-                    v-if="showMessage"
-                    :class="[
-                        'p-3 mb-4 rounded text-sm font-medium',
-                        messageType === 'success'
-                            ? 'bg-green-100 text-green-800'
-                            : messageType === 'rejected'
-                              ? 'bg-red-100 text-red-700'
-                              : messageType === 'cancelled'
-                                ? 'bg-gray-200 text-gray-700'
-                                : 'bg-blue-100 text-blue-800',
-                    ]">
-                    {{ flashMessage || successMessage }}
-                </div>
-
                 <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <Link
@@ -238,8 +220,8 @@ const groupedDates = computed(() => {
                                 <th
                                     class="w-1 px-1 py-3 text-sm font-medium text-center text-gray-700 whitespace-nowrap"></th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">End Date</th>
-                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Status</th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Booked At</th>
+                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Status</th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                             </tr>
                         </thead>
@@ -285,6 +267,10 @@ const groupedDates = computed(() => {
                                     {{ formatDate(booking.end_date) ?? 'N/A' }}
                                 </td>
 
+                                <td class="px-6 py-4 text-sm text-gray-800">
+                                    {{ formatDate(booking.created_at) ?? 'N/A' }}
+                                </td>
+
                                 <td class="px-6 py-4 text-sm">
                                     <span
                                         :class="{
@@ -293,13 +279,10 @@ const groupedDates = computed(() => {
                                             'bg-green-100 text-green-800': booking.status === 'approved',
                                             'bg-gray-200 text-gray-700': booking.status === 'cancelled',
                                             'bg-red-100 text-red-700': booking.status === 'rejected',
+                                            'bg-red-100 text-primary': booking.status === 'paid',
                                         }">
                                         {{ booking.status ?? 'N/A' }}
                                     </span>
-                                </td>
-
-                                <td class="px-6 py-4 text-sm text-gray-800">
-                                    {{ formatDate(booking.created_at) ?? 'N/A' }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-800">
@@ -307,10 +290,10 @@ const groupedDates = computed(() => {
                                         <button
                                             @click="openViewModal(booking)"
                                             class="px-2 py-1 text-sm text-white rounded bg-primary hover:bg-bluemain/60">
-                                            View
+                                            Action
                                         </button>
                                         <button
-                                            v-if="can['edit bookings']"
+                                            v-if="can['bookings']"
                                             @click="openEditModal(booking)"
                                             class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                             Edit
@@ -429,6 +412,12 @@ const groupedDates = computed(() => {
                                 </button>
                             </div>
 
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
+
                             <!-- Modal Content -->
                             <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 sm:grid-cols-2">
                                 <!-- General Info Table Style -->
@@ -483,6 +472,7 @@ const groupedDates = computed(() => {
                                                         selectedBooking.status === 'approved',
                                                     'bg-gray-200 text-gray-700': selectedBooking.status === 'cancelled',
                                                     'bg-red-100 text-red-700': selectedBooking.status === 'rejected',
+                                                    'bg-red-100 text-primary': selectedBooking.status === 'paid',
                                                 }">
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
@@ -495,7 +485,16 @@ const groupedDates = computed(() => {
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
                                 <button
                                     v-if="can['manage settings']"
+                                    @click="paidBooking(selectedBooking.id)"
+                                    v-show="selectedBooking.status === 'approved'"
+                                    class="flex-1 px-4 py-1 text-xs text-white bg-primary rounded hover:bg-bluemain/60 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Paid
+                                </button>
+
+                                <button
+                                    v-if="can['manage settings']"
                                     @click="approveBooking(selectedBooking.id)"
+                                    :disabled="selectedBooking.status === 'approved'"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-green-600 rounded hover:bg-green-700">
                                     Approve
                                 </button>
@@ -503,12 +502,14 @@ const groupedDates = computed(() => {
                                 <button
                                     v-if="can['manage settings']"
                                     @click="rejectBooking(selectedBooking.id)"
+                                    :disabled="selectedBooking.status === 'rejected'"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
                                     Reject
                                 </button>
 
                                 <button
                                     @click="cancelBooking(selectedBooking.id)"
+                                    :disabled="selectedBooking.status === 'cancelled'"
                                     class="flex-1 px-2 py-1 text-xs text-white bg-gray-600 rounded hover:bg-gray-700">
                                     Cancel
                                 </button>

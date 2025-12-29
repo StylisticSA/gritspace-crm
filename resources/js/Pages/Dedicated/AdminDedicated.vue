@@ -4,6 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import availabilityModal from '../../Components/Modals/AvailabilityModal.vue';
 import { computed, ref, watch } from 'vue';
 import { format } from 'date-fns';
+import useStatusMessage from '../../Composables/useStatusMessage';
 
 const props = defineProps({
     offices: Object,
@@ -11,30 +12,16 @@ const props = defineProps({
     can: Object,
 });
 
-const page = usePage();
-const search = ref(props.filters.search ?? '');
-const successMessage = ref(null);
-const flashMessage = computed(() => page.props?.flash?.success || null);
-const showMessage = computed(() => {
-    return !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.());
-});
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+
 const showModal = ref(false);
 const officeToDelete = ref(null);
-
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-        }, 1500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-
 const isLoading = ref(false);
+const search = ref(props.filters.search ?? '');
 
 watch(search, value => {
     router.get(
-        route('admin.offices'),
+        route('admin.dedicateddesk'),
         { search: value },
         {
             preserveState: true,
@@ -59,12 +46,13 @@ const deleteOffice = () => {
         router.delete(route('admin.offices.destroy', officeToDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'Office deleted successfully.';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            },
-            onFinish: () => {
-                showModal.value = false;
-                officeToDelete.value = null;
+                message.value = 'Dedicated Desks deleted successfully..';
+                status.value = 'deleted';
+
+                setTimeout(() => {
+                    router.visit(route('admin.dedicateddesk'));
+                    router.reload({ preserveScroll: true });
+                }, 2000);
             },
         });
     }
@@ -121,12 +109,6 @@ const availabilityText = office => {
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <template v-if="showMessage">
-                    <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
-                        {{ successMessage || flashMessage || '✔️ Success' }}
-                    </div>
-                </template>
-
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -247,18 +229,15 @@ const availabilityText = office => {
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
                             <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
                             <p class="mb-6">
                                 Are you sure you want to delete this office? This action cannot be undone.
                             </p>
                             <div class="flex justify-end space-x-3">
-                                <button
-                                    @click="
-                                        setOffice(office.id);
-                                        showAvailModal = true;
-                                    "
-                                    class="px-2 py-1 text-sm text-white rounded bg-primary hover:bg-primary/60">
-                                    Action
-                                </button>
                                 <button
                                     @click="showModal = false"
                                     class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200">

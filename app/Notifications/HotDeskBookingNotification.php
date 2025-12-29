@@ -53,6 +53,9 @@ class HotDeskBookingNotification extends Notification implements ShouldQueue
             'rejected' => $this->recipientType === 'admin'
                 ? "The booking for $type by {$this->booking['user_name']} has been marked as rejected."
                 : "Your booking for $type has been rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The booking for $type by {$this->booking['user_name']} has been marked as paid."
+                : "Your booking for $type has been  paid.",
             default => "Booking update.",
         };
 
@@ -82,6 +85,9 @@ class HotDeskBookingNotification extends Notification implements ShouldQueue
             'rejected' => $this->recipientType === 'admin'
                 ? "The $type booking by {$this->booking['user_name']} was marked as rejected."
                 : "Your $type booking was rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The booking for $type by {$this->booking['user_name']} has been marked as paid."
+                : "Your booking for $type has been  paid.",
             default => "$type booking update.",
         };
 

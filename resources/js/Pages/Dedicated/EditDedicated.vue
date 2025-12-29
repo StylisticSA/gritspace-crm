@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { watch, computed } from 'vue';
+import useStatusMessage from '../../Composables/useStatusMessage';
 
 const props = defineProps({
     office: Object,
@@ -11,6 +12,7 @@ const props = defineProps({
     categories: Array,
 });
 
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 const amenitiesSelected = props.office.amenities ? props.office.amenities.map(a => a.id) : [];
 
 const form = useForm({
@@ -51,7 +53,13 @@ const submit = () => {
     cleanPricingType();
     form.put(route('admin.dedicateddesk.update', props.office.id), {
         onSuccess: () => {
-            router.visit(route('admin.dedicateddesk'));
+            message.value = 'Dedicated Desk Updated Successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.reload({ preserveScroll: true });
+                router.visit(route('admin.dedicateddesk'));
+            }, 2000);
         },
     });
 };
@@ -77,7 +85,11 @@ const submit = () => {
                             Back
                         </Link>
                     </div>
-
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
                     <form
                         @submit.prevent="submit"
                         class="space-y-6">

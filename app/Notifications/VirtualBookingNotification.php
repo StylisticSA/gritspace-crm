@@ -46,13 +46,16 @@ class VirtualBookingNotification extends Notification implements ShouldQueue
                 : "Your $type booking was created.",
             'approved' => $this->recipientType === 'admin'
                 ? "The $type booking by {$this->booking['user_name']} was marked as approved."
-                : "Your $type booking was approved.",
+                : "Your enquiry $type for virtual office was approved.",
             'cancelled' => $this->recipientType === 'admin'
                 ? "The $type booking by {$this->booking['user_name']} was marked as cancelled."
-                : "Your $type booking was cancelled.",
+                : "Your enquiry $type for virtual office was cancelled.",
             'rejected' => $this->recipientType === 'admin'
                 ? "The $type booking by {$this->booking['user_name']} was marked as rejected."
-                : "Your $type booking was rejected.",
+                : "Your enquiry $type for virtual office was rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The $type booking by {$this->booking['user_name']} was marked as paid."
+                : "Your booking for $type package on virtual office status, has changed to Paid.",
             default => "$type booking update.",
         };
 
@@ -82,6 +85,9 @@ class VirtualBookingNotification extends Notification implements ShouldQueue
             'rejected' => $this->recipientType === 'admin'
                 ? "The $type booking by {$this->booking['user_name']} was marked as rejected."
                 : "Your $type booking was rejected.",
+            'paid' => $this->recipientType === 'admin'
+                ? "The $type booking by {$this->booking['user_name']} was marked as paid."
+                : "Your $type booking was paid.",
             default => "$type booking update.",
         };
 

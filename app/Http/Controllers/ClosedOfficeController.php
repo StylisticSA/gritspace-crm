@@ -39,8 +39,6 @@ class ClosedOfficeController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-
-
         return Inertia::render('Closed/AdminClosed', [
             'offices' => $offices,
             'filters' => [
@@ -121,7 +119,8 @@ class ClosedOfficeController extends Controller
             $office->amenities()->attach($validated['amenities']);
         }
 
-        return redirect()->route('admin.closedoffices')->with('success', 'Closed Offices has been created successfully.');
+        return redirect()->back()->with('success', 'Closed Offices has been created successfully.');
+        
     }
 
     /**
@@ -307,8 +306,8 @@ class ClosedOfficeController extends Controller
 
         $Office->amenities()->sync($validated['amenities'] ?? []);
 
-        return redirect()->route('admin.closedoffices')
-            ->with('success', 'Closed Office has been updated successfully.');
+
+        return redirect()->back()->with('success', 'Closed Office has been updated successfully.');
     }
 
 
@@ -321,7 +320,7 @@ class ClosedOfficeController extends Controller
 
         $Office->delete();
 
-        return redirect()->back()->with('success', 'Closed Office has been Deleted successfully.');
+        return back()->with('success', 'Closed Office has been Deleted successfully.');
     }
 
 
@@ -336,6 +335,7 @@ class ClosedOfficeController extends Controller
         $closed->update($validated);
 
         return back()->with('success', 'Availability updated successfully.');
+        
 
     }
 

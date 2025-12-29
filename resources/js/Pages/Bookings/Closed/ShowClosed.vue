@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
+import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
     bookings: Object,
@@ -9,11 +10,7 @@ const props = defineProps({
     can: Object,
 });
 
-const page = usePage();
-
-const successMessage = ref(null);
-const flashMessage = computed(() => page.props?.flash?.success || null);
-const showMessage = computed(() => !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.()));
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
@@ -45,7 +42,7 @@ const generateMonthDuration = (start, monthsCount) => {
     const months = [];
     const current = new Date(start);
 
-    current.setDate(1); // Normalize to start of month
+    current.setDate(1);
 
     for (let i = 0; i < monthsCount; i++) {
         months.push(current.toLocaleString('default', { month: 'long', year: 'numeric' }));
@@ -71,7 +68,7 @@ const groupedMonths = computed(() => {
 
 watch(search, value => {
     router.get(
-        route('admin.bookings'),
+        route('bookingclosed.show'),
         { search: value },
         {
             preserveState: true,
@@ -82,15 +79,6 @@ watch(search, value => {
     );
 });
 
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-        }, 1500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-
 const showModal = ref(false);
 const bookingToDelete = ref(null);
 
@@ -98,12 +86,15 @@ const deleteBooking = () => {
     if (bookingToDelete.value) {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
             preserveScroll: true,
+
             onSuccess: () => {
-                successMessage.value = 'Booking rejected successfully.';
-            },
-            onFinish: () => {
-                showModal.value = false;
-                bookingToDelete.value = null;
+                message.value = 'Booking rejected successfully..';
+                status.value = 'deleted';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                    router.visit(route('admin.banking.index'));
+                }, 2000);
             },
         });
     }
@@ -120,6 +111,7 @@ const openViewModal = booking => {
 const closeViewModal = () => {
     showViewModal.value = false;
     selectedBooking.value = null;
+    window.location.reload();
 };
 
 const formatDate = date => {
@@ -143,21 +135,48 @@ function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const parkingAvailability = ref(null);
-
 const approveBooking = id => {
     if (!id) return;
 
-    router.put(route('bookingclosed.approve', id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            successMessage.value = 'Booking approved successfully.';
-            closeViewModal();
-        },
-        onError: () => {
-            successMessage.value = 'Failed to approve booking.';
-        },
-    });
+    if (confirm('Are you sure you want to change to Approved?')) {
+        router.put(route('bookingclosed.approve', id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = 'Office status changed to Approved';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to change to approved.';
+                status.value = 'deleted';
+            },
+        });
+    }
+};
+
+const paidBooking = id => {
+    if (!id) return;
+
+    if (confirm('Are you sure you want to change to Paid?')) {
+        router.put(route('bookingclosed.paid', id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = 'Office status changed to Paid';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to mark Paid.';
+                status.value = 'deleted';
+            },
+        });
+    }
 };
 
 const rejectBooking = id => {
@@ -170,11 +189,17 @@ const rejectBooking = id => {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    successMessage.value = 'Booking rejected.';
-                    closeViewModal();
+                    message.value = '';
+                    status.value = 'deleted';
+
+                    setTimeout(() => {
+                        router.reload({ preserveScroll: true });
+                        closeViewModal();
+                    }, 2000);
                 },
                 onError: () => {
-                    successMessage.value = 'Failed to reject booking.';
+                    message.value = 'Failed to reject booking.';
+                    status.value = 'deleted';
                 },
             }
         );
@@ -191,8 +216,13 @@ const cancelBooking = id => {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    successMessage.value = 'Booking cancelled.';
-                    closeViewModal();
+                    message.value = '';
+                    status.value = 'cancelled';
+
+                    setTimeout(() => {
+                        router.reload({ preserveScroll: true });
+                        closeViewModal();
+                    }, 2000);
                 },
                 onError: () => {
                     successMessage.value = 'Failed to cancel booking.';
@@ -213,13 +243,6 @@ const cancelBooking = id => {
 
         <div class="py-12">
             <div class="max-w-full px-4 mx-auto sm:px-6 lg:max-w-7xl lg:px-8">
-                <!-- Success Message -->
-                <template v-if="showMessage">
-                    <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
-                        {{ successMessage || flashMessage || '✔️ Success' }}
-                    </div>
-                </template>
-
                 <!-- Search & Filters -->
                 <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                     <Link
@@ -379,7 +402,7 @@ const cancelBooking = id => {
 
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
-                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-5">
                         <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
@@ -393,6 +416,12 @@ const cancelBooking = id => {
                                     &times;
                                 </button>
                             </div>
+
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
 
                             <!-- Modal Content -->
                             <div class="grid grid-cols-1 gap-3 m-5 text-sm text-gray-700">
@@ -475,8 +504,16 @@ const cancelBooking = id => {
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
                                 <button
                                     v-if="can['manage settings']"
+                                    @click="paidBooking(selectedBooking.id)"
+                                    v-show="selectedBooking.status === 'approved'"
+                                    class="flex-1 px-4 py-1 text-xs text-white bg-primary rounded hover:bg-bluemain/60 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Paid
+                                </button>
+
+                                <button
+                                    v-if="can['manage settings']"
                                     @click="approveBooking(selectedBooking.id)"
-                                    :disabled="selectedBooking.status === 'paid'"
+                                    :disabled="selectedBooking.status === 'approved'"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Approve
                                 </button>
@@ -484,12 +521,14 @@ const cancelBooking = id => {
                                 <button
                                     v-if="can['manage settings']"
                                     @click="rejectBooking(selectedBooking.id)"
+                                    :disabled="selectedBooking.status === 'rejected'"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700">
                                     Reject
                                 </button>
 
                                 <button
                                     @click="cancelBooking(selectedBooking.id)"
+                                    :disabled="selectedBooking.status === 'cancelled'"
                                     class="flex-1 px-2 py-1 text-xs text-white bg-gray-600 rounded hover:bg-gray-700">
                                     Cancel
                                 </button>

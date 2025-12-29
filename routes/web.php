@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/view-closed/{closed}', [ClosedOfficeController::class, 'view']);
     Route::post('/booked-closed', [ClosedBookingController::class, 'store'])->name('bookingclosed.store');
 
+    Route::put('/booked-closed/{closed}/paid', [ClosedBookingController::class, 'paid'])->name('bookingclosed.paid');
     Route::put('/booked-closed/{closed}/approve', [ClosedBookingController::class, 'approve'])->name('bookingclosed.approve');
     Route::put('/booked-closed/{closed}/reject', [ClosedBookingController::class, 'reject'])->name('bookingclosed.reject');
     Route::put('/booked-closed/{closed}/cancel', [ClosedBookingController::class, 'cancel'])->name('bookingclosed.cancel');
@@ -111,10 +112,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/booking-dedicated/{dedicated}', [DedicatedBookingController::class, 'edit'])->name('bookingdedicated.view');
     Route::post('/booked-dedicated', [DedicatedBookingController::class, 'store'])->name('bookingdedicated.store');
 
+    Route::put('/booked-dedicated/{booking}/paid', [DedicatedBookingController::class, 'paid'])->name('bookingdedicated.paid');
     Route::put('/booked-dedicated/{booking}/approve', [DedicatedBookingController::class, 'approve'])->name('bookingdedicated.approve');
     Route::put('/booked-dedicated/{booking}/reject', [DedicatedBookingController::class, 'reject'])->name('bookingdedicated.reject');
     Route::put('/booked-dedicated/{booking}/cancel', [DedicatedBookingController::class, 'cancel'])->name('bookingdedicated.cancel');
-
 
     //virtual offices
     Route::get('/virtual-office', [VirtualBookingController::class, 'index'])->name('virtual.home');
@@ -123,19 +124,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/virtual-booking', [VirtualBookingController::class, 'show'])->name('bookingvirtual.show');
     Route::post('/virtual-booking', [VirtualBookingController::class, 'store'])->name('bookingvirtual.store');
 
+    Route::put('/booking-virtual/{virtual}/paid', [VirtualBookingController::class, 'paid'])->name('bookingvirtual.paid');
     Route::put('/booking-virtual/{virtual}/approve', [VirtualBookingController::class, 'approve'])->name('bookingvirtual.approve');
     Route::put('/booking-virtual/{virtual}/reject', [VirtualBookingController::class, 'reject'])->name('bookingvirtual.reject');
     Route::put('/booking-virtual/{virtual}/cancel', [VirtualBookingController::class, 'cancel'])->name('bookingvirtual.cancel');
 
     //hot desks
-    Route::get('/booking-hotdesk/{hotDesk}', [HotDeskBookingController::class, 'edit'])->name('booking.hotdesk');
     Route::get('/hotdesk-booking', [HotDeskBookingController::class, 'show'])->name('bookinghotdesk.show');
+    Route::get('/booking-hotdesk/{hotDesk}', [HotDeskBookingController::class, 'edit'])->name('booking.hotdesk');
     Route::get('/deleted-hotdesks', [HotDeskBookingController::class, 'deleted'])->name('hotdesk.deleted');
     Route::get('/view-hotdesk/{hotDesk}', [HotDeskBookingController::class, 'view']);
     Route::put('/restore-hotdesks/{id}/restore', [HotDeskBookingController::class, 'restore'])->name('hotdesk.restore');
     Route::post('/booking-hotdesk', [HotDeskBookingController::class, 'store'])->name('bookinghotdesk.store');
     Route::delete('/hotdesk/{hotdesk}', [HotDeskBookingController::class, 'destroy'])->name('hotdesk.destroy');
 
+    Route::put('/booking-hotdesk/{hotdesk}/paid', [HotDeskBookingController::class, 'paid'])->name('hotdeskbooking.paid');
     Route::put('/booking-hotdesk/{hotdesk}/approve', [HotDeskBookingController::class, 'approve'])->name('hotdeskbooking.approve');
     Route::put('/booking-hotdesk/{hotdesk}/reject', [HotDeskBookingController::class, 'reject'])->name('hotdeskbooking.reject');
     Route::put('/booking-hotdesk/{hotdesk}/cancel', [HotDeskBookingController::class, 'cancel'])->name('hotdeskbooking.cancel');
@@ -147,10 +150,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking-boardrooms', [BoardroomBookingController::class, 'store'])->name('bookingboardroom.store');
     Route::get('/boardroom-booking', [BoardroomBookingController::class, 'show'])->name('bookingboardroom.show');
 
+    Route::put('/booking-boardrooms/{booking}/paid', [BoardroomBookingController::class, 'paid'])->name('boardroombooking.paid');
     Route::put('/booking-boardrooms/{booking}/approve', [BoardroomBookingController::class, 'approve'])->name('boardroombooking.approve');
     Route::put('/booking-boardrooms/{booking}/reject', [BoardroomBookingController::class, 'reject'])->name('boardroombooking.reject');
     Route::put('/booking-boardrooms/{booking}/cancel', [BoardroomBookingController::class, 'cancel'])->name('boardroombooking.cancel');
-
 
     Route::get('/booking-extras', [BookingController::class, 'extrasIndex'])->name('booking.extras');
 

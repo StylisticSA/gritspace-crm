@@ -150,22 +150,53 @@ class HotDeskBookingController extends Controller
     {
         $user = auth()->user();
 
+        $search = $request->input('search');
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
             $bookings = HotDeskBooking::with(['user', 'helpdesk'])
-                       ->latest()
-                       ->paginate(10);
+                        ->when($search, function ($query) use ($search) {
+                            $query->where(function ($q) use ($search) {
+    
+                                $q->whereHas('user', function ($userQuery) use ($search) {
+                                    $userQuery->where('name', 'LIKE', '%' . $search . '%');
+                                });
+
+                                $q->orWhereHas('helpdesk', function ($helpdeskQuery) use ($search) {
+                                    $helpdeskQuery->where('help_desk_name', 'LIKE', '%' . $search . '%');
+                                });
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
 
         } else {
             $bookings = HotDeskBooking::with(['user', 'helpdesk'])
-                ->where('user_id', $user->id)
-                ->latest()
-                ->paginate(10);
+                        ->where('user_id', $user->id)
+                        ->when($search, function ($query) use ($search) {
+                            $query->where(function ($q) use ($search) {
+           
+                                $q->whereHas('user', function ($userQuery) use ($search) {
+                                    $userQuery->where('name', 'LIKE', '%' . $search . '%');
+                                });
+
+                                $q->orWhereHas('helpdesk', function ($helpdeskQuery) use ($search) {
+                                    $helpdeskQuery->where('help_desk_name', 'LIKE', '%' . $search . '%');
+                                });
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
         }
 
 
         return Inertia::render('Bookings/HotDesks/ShowHotDesks', [
             'bookings' => $bookings,
+            'filters' => [
+                'search' => $search,
+            ]
         ]);
     }
 
@@ -219,11 +250,48 @@ class HotDeskBookingController extends Controller
         return redirect()->to('/hotdesk-booking')->with('success', 'Booking has been restored successfully.');
     }
 
+    /**
+     * Paid function
+     *
+     * @param HotDeskBooking $virtual
+     * @return void
+     */
+    public function paid(HotDeskBooking $hotdesk)
+    {
+        // dd($hotdesk);
+
+        $hotdesk->update([
+            'status' => 'paid',
+        ]);
+
+        $office = HelpDesk::findOrFail($hotdesk->helpdesk_id);
+
+        // nortifications
+        $bookingData = [
+            'id' => $hotdesk->id,
+            'room_type' => $office->virtualoffice_name,
+            'status' => 'paid',
+            'user_name' => auth()->user()->name,
+        ];
+
+        $hotdesk->user->notify(new HotDeskBookingNotification($bookingData, 'paid', 'user'));
+
+        $admins = User::withRole('Admin')
+            ->get()
+            ->merge(User::withRole('Super Admin')->get())
+            ->unique('id');
+
+
+        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'paid', 'admin')));
+
+
+        return back()->with('success', 'Booking status changed to Paid successfully.');
+    }
 
     /**
      * Approve function
      *
-     * @param VirtualBooking $virtual
+     * @param HotDeskBooking $hotdeskBooking
      * @return void
      */
     public function approve(HotDeskBooking $hotdesk)

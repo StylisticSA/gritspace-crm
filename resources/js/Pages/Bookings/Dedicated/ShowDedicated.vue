@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { eachDayOfInterval } from 'date-fns';
+import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
     bookings: Object,
@@ -10,13 +11,8 @@ const props = defineProps({
     can: Object,
 });
 
-const page = usePage();
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
-const successMessage = ref(null);
-const flashMessage = computed(() => page.props?.flash?.success || null);
-const showMessage = computed(() => !!(flashMessage.value?.trim?.() || successMessage.value?.trim?.()));
-
-const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 
 const showDatesModal = ref(false);
@@ -33,9 +29,10 @@ const closeDateModal = () => {
     selectedDates.value = null;
 };
 
+const search = ref(props.filters?.search ?? '');
 watch(search, value => {
     router.get(
-        route('admin.bookings'),
+        route('bookingdedicated.show'),
         { search: value },
         {
             preserveState: true,
@@ -46,15 +43,6 @@ watch(search, value => {
     );
 });
 
-watch(showMessage, msg => {
-    if (msg) {
-        setTimeout(() => {
-            successMessage.value = null;
-        }, 1500);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-
 const showModal = ref(false);
 const bookingToDelete = ref(null);
 
@@ -63,7 +51,7 @@ const deleteBooking = () => {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'Booking rejected successfully.';
+                message.value = 'Booking rejected successfully.';
             },
             onFinish: () => {
                 showModal.value = false;
@@ -84,6 +72,7 @@ const openViewModal = booking => {
 const closeViewModal = () => {
     showViewModal.value = false;
     selectedBooking.value = null;
+    window.location.reload();
 };
 
 const formatDate = date => {
@@ -109,6 +98,28 @@ const splitDates = dates => {
     return [dates.slice(0, half), dates.slice(half)];
 };
 
+const paidBooking = id => {
+    if (!id) return;
+
+    if (confirm('Are you sure you want to change to Paid?')) {
+        router.put(route('bookingdedicated.paid', id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                message.value = 'Office status changed to Paid';
+                status.value = 'success';
+
+                setTimeout(() => {
+                    router.reload({ preserveScroll: true });
+                }, 2000);
+            },
+            onError: () => {
+                message.value = 'Failed to mark Paid.';
+                status.value = 'deleted';
+            },
+        });
+    }
+};
+
 const approveBooking = id => {
     if (!id) return;
     router.put(
@@ -117,11 +128,12 @@ const approveBooking = id => {
         {
             preserveScroll: true,
             onSuccess: () => {
-                successMessage.value = 'Booking approved successfully.';
-                closeViewModal();
+                message.value = 'Booking approved successfully.';
+                status.value = 'success';
             },
             onError: () => {
-                successMessage.value = 'Failed to approve booking.';
+                message.value = 'Failed to approve booking.';
+                status.value = 'deleted';
             },
         }
     );
@@ -136,11 +148,13 @@ const rejectBooking = id => {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    successMessage.value = 'Booking rejected.';
+                    message.value = 'Booking rejected.';
+                    status.value = 'deleted';
                     closeViewModal();
                 },
                 onError: () => {
-                    successMessage.value = 'Failed to reject booking.';
+                    message.value = 'Failed to reject booking.';
+                    status.value = 'deleted';
                 },
             }
         );
@@ -156,11 +170,13 @@ const cancelBooking = id => {
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    successMessage.value = 'Booking cancelled.';
+                    message.value = 'Booking cancelled.';
+                    status.value = 'cancelled';
                     closeViewModal();
                 },
                 onError: () => {
-                    successMessage.value = 'Failed to cancel booking.';
+                    message.value = 'Failed to cancel booking.';
+                    status.value = 'deleted';
                 },
             }
         );
@@ -195,13 +211,6 @@ function groupByMonth(dates) {
 
         <div class="py-12">
             <div class="max-w-full px-4 mx-auto sm:max-w-xl sm:px-6 lg:max-w-7xl lg:px-8">
-                <!-- Success Message -->
-                <template v-if="showMessage">
-                    <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
-                        {{ successMessage || flashMessage || '✔️ Success' }}
-                    </div>
-                </template>
-
                 <!-- Search & Filters -->
                 <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                     <Link
@@ -221,7 +230,6 @@ function groupByMonth(dates) {
                     <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                         <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                 <th
                                     v-if="can['manage settings']"
                                     class="px-6 py-3 text-sm font-medium text-left text-gray-700">
@@ -239,7 +247,6 @@ function groupByMonth(dates) {
                             <tr
                                 v-for="booking in bookings.data"
                                 :key="booking.id">
-                                <td class="px-6 py-4 text-sm text-gray-800">{{ booking.id }}</td>
                                 <td
                                     v-if="can['manage settings']"
                                     class="px-6 py-4 text-sm text-gray-800">
@@ -358,7 +365,7 @@ function groupByMonth(dates) {
 
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
-                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
                         <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
@@ -370,8 +377,14 @@ function groupByMonth(dates) {
                                 </button>
                             </div>
 
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
+
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 sm:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-2 text-sm text-gray-700">
                                 <!-- General Info Table Style -->
                                 <div class="space-y-2">
                                     <div class="grid items-start grid-cols-2 gap-x-1">
@@ -453,8 +466,16 @@ function groupByMonth(dates) {
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
                                 <button
                                     v-if="can['manage settings']"
+                                    @click="paidBooking(selectedBooking.id)"
+                                    v-show="selectedBooking.status === 'approved'"
+                                    class="flex-1 px-4 py-1 text-xs text-white bg-primary rounded hover:bg-bluemain/60 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Paid
+                                </button>
+
+                                <button
+                                    v-if="can['manage settings']"
                                     @click="approveBooking(selectedBooking.id)"
-                                    :disabled="selectedBooking.status === 'paid'"
+                                    :disabled="selectedBooking.status === 'approved'"
                                     class="flex-1 px-4 py-1 text-xs text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Approve
                                 </button>

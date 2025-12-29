@@ -40,15 +40,12 @@ const deletehelpdesk = () => {
             preserveScroll: true,
             onSuccess: () => {
                 message.value = 'A Help Desk has been deleted successfully.';
-                status.value = 'success';
+                status.value = 'deleted';
 
                 setTimeout(() => {
+                    router.visit(route('admin.help-desks'));
                     router.reload({ preserveScroll: true });
                 }, 2000);
-            },
-            onFinish: () => {
-                showModal.value = false;
-                helpdeskToDelete.value = null;
             },
         });
     }
@@ -106,11 +103,6 @@ const formatDate = dateStr => {
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="p-2">
-                    <template v-if="showMessage">
-                        <div :class="messageClass">
-                            {{ messageText }}
-                        </div>
-                    </template>
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
@@ -216,6 +208,11 @@ const formatDate = dateStr => {
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
                             <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
                             <p class="mb-6">
                                 Are you sure you want to delete this help desk? This action cannot be undone.
                             </p>

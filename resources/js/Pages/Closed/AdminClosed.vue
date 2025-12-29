@@ -2,9 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { format } from 'date-fns';
 import availabilityModal from '../../Components/Modals/AvailabilityModal.vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
-import { format } from 'date-fns';
 
 const props = defineProps({
     offices: Array,
@@ -23,7 +23,7 @@ const isLoading = ref(false);
 
 watch(search, value => {
     router.get(
-        route('admin.offices'),
+        route('admin.closedoffices'),
         { search: value },
         {
             preserveState: true,
@@ -49,13 +49,17 @@ const deleteOffice = () => {
             preserveScroll: true,
             onSuccess: () => {
                 message.value = 'Closed Office deleted successfully..';
-                status.value = 'success';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                status.value = 'deleted';
+
+                setTimeout(() => {
+                    router.visit(route('admin.closedoffices'));
+                    router.reload({ preserveScroll: true });
+                }, 2000);
             },
-            onFinish: () => {
-                showModal.value = false;
-                officeToDelete.value = null;
-            },
+            // onFinish: () => {
+            //     showModal.value = false;
+            //     officeToDelete.value = null;
+            // },
         });
     }
 };
@@ -233,6 +237,11 @@ const availabilityText = office => {
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
                             <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
                             <p class="mb-6">
                                 Are you sure you want to delete this office? This action cannot be undone.
                             </p>

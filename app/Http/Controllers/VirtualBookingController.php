@@ -186,24 +186,87 @@ class VirtualBookingController extends Controller
 
         $user = auth()->user();
 
+        $search = $request->input('search');
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
             $bookings = VirtualBooking::with(['user', 'virtualOffice'])
-                       ->latest()
-                       ->paginate(10);
+                        ->when($search, function ($query, $search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('virtualOffice', function ($q) use ($search) {
+                                $q->where('virtualoffice_name', 'like', "%{$search}%");
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
 
         } else {
-            $bookings = VirtualBooking::with('virtualOffice.location')
-                ->where('user_id', $user->id)
-                ->latest()
-                ->paginate(10);
+            $bookings = VirtualBooking::with(['virtualOffice', 'user'])
+                        ->where('user_id', $user->id)
+                        ->when($search, function ($query, $search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('virtualOffice', function ($q) use ($search) {
+                                $q->where('virtualoffice_name', 'like', "%{$search}%");
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
+
         }
 
 
         return Inertia::render('Bookings/Virtual/ShowVirtual', [
             'bookings' => $bookings,
+            'filters' => [
+                'search' => $search,
+            ]
         ]);
     }
 
+    /**
+     * Paid function
+     *
+     * @param VirtualBooking $virtual
+     * @return void
+     */
+    public function paid(VirtualBooking $virtual)
+    {
+
+        // dd($request);
+
+        $virtual->update([
+            'status' => 'paid',
+
+        ]);
+
+        $office = VirtualOffice::findOrFail($virtual->virtual_office_id);
+
+        // nortifications
+        $bookingData = [
+            'id' => $virtual->id,
+            'room_type' => $office->virtualoffice_name,
+            'status' => 'paid',
+            'user_name' => auth()->user()->name,
+        ];
+
+        $virtual->user->notify(new VirtualBookingNotification($bookingData, 'paid', 'user'));
+
+        $admins = User::withRole('Admin')
+            ->get()
+            ->merge(User::withRole('Super Admin')->get())
+            ->unique('id');
+
+
+        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'paid', 'admin')));
+
+
+        return back()->with('success', 'Virtual Office Marked Paid Successfully.');
+    }
     /**
      * Approve function
      *
@@ -299,4 +362,6 @@ class VirtualBookingController extends Controller
 
         return back()->with('success', 'Booking cancelled.');
     }
+
+    
 }

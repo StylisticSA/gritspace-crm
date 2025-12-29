@@ -1,7 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { watch, computed } from 'vue';
+import useStatusMessage from '../../Composables/useStatusMessage';
 
 const form = useForm({
     office_name: '',
@@ -22,6 +23,8 @@ const props = defineProps({
     categories: Array,
 });
 
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+
 // Set default category if only one exists
 if (props.categories.length === 1 && !form.category_id) {
     form.category_id = props.categories[0].id;
@@ -40,6 +43,20 @@ watch(
         }
     }
 );
+
+const submit = () => {
+    form.post(route('admin.dedicateddesk.store'), {
+        onSuccess: () => {
+            message.value = 'Dedicated Desk Saved Successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.reload({ preserveScroll: true });
+                router.visit(route('admin.dedicateddesk'));
+            }, 2000);
+        },
+    });
+};
 </script>
 
 <template>
@@ -62,9 +79,13 @@ watch(
                             Back
                         </Link>
                     </div>
-
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
                     <form
-                        @submit.prevent="form.post(route('admin.dedicateddesk.store'))"
+                        @submit.prevent="submit"
                         class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>

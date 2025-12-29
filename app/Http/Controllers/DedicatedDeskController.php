@@ -210,7 +210,7 @@ class DedicatedDeskController extends Controller
             $office->amenities()->attach($validated['amenities']);
         }
 
-        return redirect()->route('admin.dedicateddesk')->with('success', 'Dedicated Desk has been created successfully.');
+        return redirect()->back()->with('success', 'Dedicated Desk has been created successfully.');
     }
 
 
@@ -298,7 +298,7 @@ class DedicatedDeskController extends Controller
 
         $Office->amenities()->sync($validated['amenities'] ?? []);
 
-        return redirect()->route('admin.dedicateddesk')->with('success', 'Dedicated Desk has been updated successfully.');
+        return redirect()->back()->with('success', 'Dedicated Desk has been updated successfully.');
     }
 
 

@@ -22,20 +22,36 @@ class ClosedBookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Office $Office)
+    public function show(Office $Office, Request $request)
     {
         $user = auth()->user();
 
+        $search = $request->input('search');
+
+        
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
-            $bookings = Booking::with(['user', 'office.location', 'category'])
-                ->whereHas('category', function ($query) {
-                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
-                })
-                ->latest()
-                ->paginate(10);
+           $bookings = Booking::with(['user', 'office.location', 'category'])
+                        ->whereHas('category', function ($query) {
+                            $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                        })
+                        ->when($search, function ($query) use ($search) {
+                            $query->where(function ($q) use ($search) {
+                              
+                                $q->whereHas('office', function ($officeQuery) use ($search) {
+                                    $officeQuery->where('office_name', 'LIKE', '%' . $search . '%');
+                                });
+                      
+                                $q->orWhereHas('user', function ($userQuery) use ($search) {
+                                    $userQuery->where('name', 'LIKE', '%' . $search . '%');
+                                });
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
 
-
+                        // dd(!empty($search));
 
         } else {
 
@@ -47,13 +63,13 @@ class ClosedBookingController extends Controller
                 ->latest()
                 ->paginate(10);
 
-
-
-
         }
 
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings' => $bookings,
+            'filters' => [
+                'search' => $search,
+            ]
         ]);
     }
 
@@ -220,12 +236,51 @@ class ClosedBookingController extends Controller
     /**
      * Approve a closed office.
      */
+    public function paid(Request $request, Booking $closed)
+    {
+        // dd($request, $closed);
+
+        $closed->update([
+            'status'                => 'paid',
+        ]);
+
+
+        $office = Office::findOrFail($closed->office_id);
+
+        $categorySlug = Str::slug($office->category->name);
+
+        $bookingData = [
+            'id' => $closed->id,
+            'room_type' => $office->office_name,
+            'status' => 'paid',
+            'user_name' => auth()->user()->name,
+            'category' => $categorySlug,
+        ];
+
+        $closed->user->notify(new BookingNotification($bookingData, 'paid', 'user'));
+
+        $admins = User::withRole('Super Admin')
+            ->get()
+            ->merge(User::withRole('Admin')->get())
+            ->unique('id');
+
+        $admins->each(
+            fn ($user) =>
+            $user->notify(new BookingNotification($bookingData, 'paid', 'admin'))
+        );
+
+        return back()->with('success', 'Office Marked Paid Successfully.');
+    }
+
+    /**
+     * Approve a closed office.
+     */
     public function approve(Request $request, Booking $closed)
     {
         // dd($request, $closed);
 
         $closed->update([
-            'status'                => 'approved',
+            'status' => 'approved',
         ]);
 
 

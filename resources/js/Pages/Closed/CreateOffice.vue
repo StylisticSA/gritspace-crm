@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { watch, computed } from 'vue';
+import useStatusMessage from '../../Composables/useStatusMessage';
 
 const form = useForm({
     office_name: '',
@@ -14,6 +15,8 @@ const form = useForm({
     amenities: [],
     pricing_type: [],
 });
+
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const props = defineProps({
     locations: Array,
@@ -35,6 +38,20 @@ watch(
         }
     }
 );
+
+const submit = () => {
+    form.post(route('admin.closedoffices.store'), {
+        onSuccess: () => {
+            message.value = 'Closed Office Saved Successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.visit(route('admin.closedoffices'));
+                router.reload({ preserveScroll: true });
+            }, 2000);
+        },
+    });
+};
 </script>
 
 <template>
@@ -58,8 +75,14 @@ watch(
                         </Link>
                     </div>
 
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
+
                     <form
-                        @submit.prevent="form.post(route('admin.closedoffices.store'))"
+                        @submit.prevent="submit"
                         class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>

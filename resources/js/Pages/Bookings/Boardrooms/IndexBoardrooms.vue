@@ -79,6 +79,10 @@ function canShowButton(entity) {
     const today = new Date();
     const startDate = new Date(entity.available_dates);
 
+    // normalize both to midnight local time
+    today.setHours(0, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+
     return entity.is_available && today >= startDate;
 }
 

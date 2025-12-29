@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import useStatusMessage from '../../Composables/useStatusMessage';
 
 const props = defineProps({
     office: Object,
@@ -11,6 +12,7 @@ const props = defineProps({
     categories: Array,
 });
 
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 const amenitiesSelected = props.office.amenities ? props.office.amenities.map(a => a.id) : [];
 
 const form = useForm({
@@ -37,7 +39,13 @@ const submit = () => {
     cleanPricingType();
     form.put(route('admin.closedoffices.update', props.office.id), {
         onSuccess: () => {
-            router.visit(route('admin.closedoffices'));
+            message.value = 'Closed Office Updated Successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.visit(route('admin.closedoffices'));
+                router.reload({ preserveScroll: true });
+            }, 2000);
         },
     });
 };
@@ -63,6 +71,12 @@ const submit = () => {
                             Back
                         </Link>
                     </div>
+
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
 
                     <form
                         @submit.prevent="submit"

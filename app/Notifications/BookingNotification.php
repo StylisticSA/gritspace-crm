@@ -81,6 +81,30 @@ class BookingNotification extends Notification implements ShouldQueue
 
         }
 
+        // Paid: Admin
+        if ($this->eventType === 'paid' && in_array($this->recipientType, ['admin', 'super_admin'])) {
+            return (new MailMessage())
+                ->subject("paid {$room} Enquiry")
+                ->greeting("Enquiry paid!")
+                ->line("The {$location} Booking Enquiry from {$user} for {$room} was marked as Paid.")
+                ->line("Please follow the link below to view the Paid booking.")
+                ->action('View Booking', $url);
+               
+
+        }
+
+        // Paid: User
+        if ($this->eventType === 'paid' && $this->recipientType === 'user') {
+            return (new MailMessage())
+                ->subject("Your Grit Space is available")
+                ->greeting("You’re in luck!")
+                ->line("Dear {$user}, {$room} at {$location} has been marked Paid.")
+                ->line("Please follow the link below to view the Paid booking.")
+                ->action('View Booking', $url);
+                
+
+        }
+
         // APPROVED: Admin
         if ($this->eventType === 'approved' && in_array($this->recipientType, ['admin', 'super_admin'])) {
             return (new MailMessage())
@@ -101,7 +125,7 @@ class BookingNotification extends Notification implements ShouldQueue
                 ->line("Dear {$user}, {$room} at {$location} is available on your selected dates.")
                 ->line("Please follow the link below to view your approved enquiry and proceed to secure checkout to complete your booking.")
                 ->action('View Booking', $url)
-                ->line("We look forward to welcoming you!");
+                ->line("Let’s seal the deal!");
 
         }
 

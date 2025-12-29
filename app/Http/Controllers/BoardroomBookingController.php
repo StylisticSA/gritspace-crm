@@ -174,26 +174,76 @@ class BoardroomBookingController extends Controller
     public function show(Request $request)
     {
 
-
         $user = auth()->user();
+        $search = $request->input('search');
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
             $bookings = BoardroomBooking::with(['user', 'boardroom'])
-                       ->latest()
-                       ->paginate(10);
+                        ->when($search, function ($query, $search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('boardroom', function ($q) use ($search) {
+                                $q->where('boardroom_name', 'like', "%{$search}%");
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
 
         } else {
-            $bookings = BoardroomBooking::with('boardroom.location')
-                ->where('user_id', $user->id)
-                ->latest()
-                ->paginate(10);
+            $bookings = BoardroomBooking::with(['boardroom.location', 'user'])
+                        ->where('user_id', $user->id)
+                        ->when($search, function ($query, $search) {
+                            $query->whereHas('user', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('boardroom', function ($q) use ($search) {
+                                $q->where('boardroom_name', 'like', "%{$search}%");
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
+
         }
 
 
         return Inertia::render('Bookings/Boardrooms/ShowBoardrooms', [
             'bookings' => $bookings,
+             'filters' => [
+                'search' => $search,
+            ]
         ]);
+    }
+
+    public function paid(BoardroomBooking $booking)
+    {
+        $office = Boardroom::findOrFail($booking->boardroom_id);
+
+        $booking->update([
+            'status' => 'paid',
+        ]);
+
+        $bookingData = [
+            'id' => $booking->id,
+            'room_type' => $office->boardroom_name,
+            'status' => 'paid',
+            'user_name' => $booking->user->name,
+        ];
+
+        $booking->user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'user'));
+
+        User::withRole('Super Admin')->get()
+            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
+
+        User::withRole('Admin')->get()
+            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
+
+        return back()->with('success', 'Boardroom Status Marked Paid.');
+
+       
+
     }
 
     public function approve(BoardroomBooking $booking)

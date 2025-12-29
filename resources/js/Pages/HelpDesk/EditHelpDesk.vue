@@ -25,7 +25,7 @@ const form = useForm({
 const submit = () => {
     form.put(route('admin.help-desk.update', props.helpDesks.id), {
         onSuccess: () => {
-            message.value = 'Hot Desk Edited Successfully.';
+            message.value = 'Hot Desk Updated Successfully.';
             status.value = 'success';
 
             setTimeout(() => {

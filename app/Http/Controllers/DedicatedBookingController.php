@@ -20,19 +20,33 @@ class DedicatedBookingController extends Controller
     /**
      * Dedicated Desks the specified resource.
      */
-    public function show(Office $Office)
+    public function show(Office $Office, Request $request)
     {
+        $search = $request->input('search');
 
         $user = auth()->user();
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
             $bookings = Booking::with(['user', 'office.location', 'category'])
-                ->whereHas('category', function ($query) {
-                    $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
-                })
-                ->latest()
-                ->paginate(10);
+                        ->whereHas('category', function ($query) {
+                            $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
+                        })
+                        ->when($search, function ($query) use ($search) {
+                            $query->where(function ($q) use ($search) {
+                              
+                                $q->whereHas('office', function ($officeQuery) use ($search) {
+                                    $officeQuery->where('office_name', 'LIKE', '%' . $search . '%');
+                                });
+                      
+                                $q->orWhereHas('user', function ($userQuery) use ($search) {
+                                    $userQuery->where('name', 'LIKE', '%' . $search . '%');
+                                });
+                            });
+                        })
+                        ->latest()
+                        ->paginate(10);
 
+                  
 
         } else {
             $bookings = Booking::with(['office.location', 'category'])
@@ -47,6 +61,9 @@ class DedicatedBookingController extends Controller
 
         return Inertia::render('Bookings/Dedicated/ShowDedicated', [
             'bookings' => $bookings,
+            'filters' => [
+                'search' => $search,
+            ]
         ]);
     }
 
@@ -243,6 +260,43 @@ class DedicatedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
         ]);
+    }
+
+    /**
+     * Paid a dedicated desk.
+     */
+    public function paid(Booking $booking)
+    {
+        $booking->update([
+            'status' => 'paid',
+        ]);
+
+        $office = Office::findOrFail($booking->office_id);
+
+        $categorySlug = Str::slug($office->category->name);
+
+        $bookingData = [
+            'id' => $booking->id,
+            'room_type' => $office->office_name,
+            'status' => 'paid',
+            'user_name' => auth()->user()->name,
+            'category' => $categorySlug,
+        ];
+
+        // Notify the booking owner
+        $booking->user->notify(new BookingNotification($bookingData, 'paid', 'user'));
+
+        $admins = User::withRole('Super Admin')
+            ->get()
+            ->merge(User::withRole('Admin')->get())
+            ->unique('id');
+
+        $admins->each(
+            fn ($user) =>
+            $user->notify(new BookingNotification($bookingData, 'paid', 'admin'))
+        );
+
+        return back()->with('success', 'Booking paid successfully.');
     }
 
     /**
