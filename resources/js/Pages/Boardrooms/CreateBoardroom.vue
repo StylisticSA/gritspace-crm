@@ -25,18 +25,18 @@ const minDate = `${currentYear}-${currentMonth}-01`;
 </script>
 
 <template>
-    <Head title="Create an Boardroom" />
+    <Head title="Add Boardroom" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardroom</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardrooms</h2>
         </template>
 
         <div class="py-2">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="max-w-4xl p-6 mx-auto space-y-6">
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Create Boardroom</h3>
+                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Add Boardroom</h3>
 
                         <Link
                             :href="route('admin.boardrooms')"

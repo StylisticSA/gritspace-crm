@@ -166,7 +166,7 @@ watch(
                         type="submit"
                         class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                         :disabled="form.processing">
-                        Availability Update
+                        Update Availability
                     </button>
                 </div>
             </form>

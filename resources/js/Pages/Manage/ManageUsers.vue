@@ -87,7 +87,7 @@ const getRoleColor = role => {
         <!-- Success Notification -->
 
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Manage</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Manage Users</h2>
         </template>
 
         <div class="py-12">

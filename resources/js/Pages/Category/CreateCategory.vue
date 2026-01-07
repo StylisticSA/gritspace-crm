@@ -54,7 +54,7 @@ const form = useForm({
                                     v-model="form.offers_level"
                                     class="w-5 h-5 text-primary form-checkbox" />
                                 <span class="text-lg text-gray-700"
-                                    >Offers different service levels (Standard/Premium)</span
+                                    >Offers different Service Levels (Standard/Premium)</span
                                 >
                             </label>
                             <div

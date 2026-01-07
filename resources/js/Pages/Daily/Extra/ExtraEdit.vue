@@ -30,7 +30,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Edit Extra Settings" />
+    <Head title="Edit Extras Settings" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -117,7 +117,7 @@ const submit = () => {
                                 type="submit"
                                 class="block w-full px-3 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60"
                                 :disabled="form.processing">
-                                Update Extra Settings
+                                Update Extras Settings
                             </button>
                         </div>
                     </form>

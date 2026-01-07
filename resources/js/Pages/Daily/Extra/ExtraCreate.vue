@@ -14,25 +14,25 @@ const form = useForm({
 });
 
 const names = ref([
-    { id: 2, name: 'Black' },
-    { id: 3, name: 'Coffee' },
-    { id: 1, name: 'Color' },
+    { id: 2, name: 'Black & White A4 Printing' },
+    { id: 3, name: 'Brean-to-Cup coffee' },
+    { id: 1, name: 'Color A4 Printing' },
 ]);
 </script>
 
 <template>
-    <Head title="Create a Settings" />
+    <Head title="Create Extras Settings" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Create a Setting</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Extras Settings</h2>
         </template>
 
         <div class="py-2">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="max-w-4xl p-6 mx-auto space-y-6">
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Add a Setting</h3>
+                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Add Extras Setting</h3>
 
                         <Link
                             :href="route('admin.extra.index')"

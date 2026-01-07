@@ -344,7 +344,7 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                                             >Amenities</DropdownLink
                                                         >
                                                         <DropdownLink :href="route('admin.extra.index')"
-                                                            >Extra's</DropdownLink
+                                                            >Extras Settings</DropdownLink
                                                         >
                                                         <DropdownLink :href="route('admin.parking.index')"
                                                             >Parking</DropdownLink
@@ -409,7 +409,7 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                                     </template>
                                                     <template #content>
                                                         <DropdownLink :href="route('admin.coffee.index')"
-                                                            >Coffee's</DropdownLink
+                                                            >Coffee</DropdownLink
                                                         >
                                                         <DropdownLink :href="route('admin.printing.index')"
                                                             >Printing</DropdownLink
@@ -620,7 +620,7 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                 </template>
                             </Dropdown>
 
-                            <!-- Product Settings -->
+                            <!-- admins Settings -->
                             <template v-if="can['manage settings']">
                                 <!-- product settings -->
                                 <Dropdown
@@ -729,6 +729,33 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                             >Clients Rates</DropdownLink
                                         >
                                         <DropdownLink :href="route('admin.agreement.index')">Agreements</DropdownLink>
+                                    </template>
+                                </Dropdown>
+
+                                <!-- Extras -->
+                                <Dropdown
+                                    nested
+                                    align="right"
+                                    width="48">
+                                    <template #trigger>
+                                        <div
+                                            v-if="can['view book extras']"
+                                            class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 transition cursor-pointer hover:bg-gray-50">
+                                            Extras
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path
+                                                    fill-rule="evenodd"
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('admin.coffee.index')">Coffee</DropdownLink>
+                                        <DropdownLink :href="route('admin.printing.index')">Printing</DropdownLink>
                                     </template>
                                 </Dropdown>
 

@@ -93,7 +93,7 @@ watch(
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between space-x-5">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">Client Information</h2>
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Clients Information</h2>
                 <button
                     @click="showNoteModal = true"
                     class="px-2 py-2 text-lg text-white rounded bg-primary">
@@ -274,7 +274,7 @@ watch(
                             </div>
 
                             <div>
-                                <label class="block text-lg text-gray-700">Client Proof of Residency</label>
+                                <label class="block text-lg text-gray-700">Upload Client Proof of Residence</label>
                                 <input
                                     type="file"
                                     @change="handleFileUpload($event, 'residency')"

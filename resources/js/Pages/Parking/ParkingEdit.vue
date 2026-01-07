@@ -90,11 +90,11 @@ const submit = () => {
                             </div>
                             <!-- Office Name -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Name</label>
+                                <label class="block text-lg font-medium text-gray-700">Type</label>
                                 <select
                                     v-model="form.name"
                                     class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Name</option>
+                                    <option value="">Select Type</option>
                                     <option
                                         v-for="name in names"
                                         :key="name.id"
@@ -110,7 +110,7 @@ const submit = () => {
                             </div>
 
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Price</label>
+                                <label class="block text-lg font-medium text-gray-700">Monthly Rate</label>
                                 <input
                                     v-model.number="form.price"
                                     type="number"

@@ -508,13 +508,13 @@ const allBookings = computed(() => {
                                         {{
                                             closedAvail.is_available
                                                 ? 'Yes (Based on the below Date.)'
-                                                : 'Not Available'
+                                                : 'Unavailable until'
                                         }}
                                     </div>
                                 </div>
 
                                 <div class="flex">
-                                    <div class="w-[120px] font-medium text-gray-600">Available on:</div>
+                                    <div class="w-[120px] font-medium text-gray-600">Availability:</div>
                                     <div>{{ formatDate(closedAvail.available_dates) }}</div>
                                 </div>
                             </div>

@@ -84,7 +84,7 @@ const setOffice = id => {
 };
 
 const availabilityText = parking => {
-    const label = parking.is_available ? 'Available From' : 'Not Available Up';
+    const label = parking.is_available ? 'Available' : 'Unavailable until';
     const date = parking.available_dates ? formatDate(parking.available_dates) : '—';
     return `${label}<br>${date}`;
 };
@@ -131,7 +131,7 @@ const availabilityText = parking => {
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Price</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Available On</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Availability</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
                             </thead>

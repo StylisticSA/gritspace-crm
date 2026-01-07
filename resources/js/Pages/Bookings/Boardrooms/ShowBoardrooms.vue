@@ -216,6 +216,7 @@ const getDateKey = dateStr => {
                                     Booked By
                                 </th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Boardroom Name</th>
+                                <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
                                 <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Plan</th>
                                 <th class="px-1 py-3 text-sm font-medium text-center text-gray-700 whitespace-nowrap">
                                     Days
@@ -236,9 +237,11 @@ const getDateKey = dateStr => {
                                     class="px-6 py-4 text-sm text-gray-800">
                                     {{ booking.user?.name ?? '—' }}
                                 </td>
-
-                                <td class="px-6 py-4 text-xs text-gray-800 sm:text-sm">
+                                <td class="px-6 py-4 text-sm text-gray-800">
                                     {{ booking.boardroom?.boardroom_name ?? '—' }}
+                                </td>
+                                <td class="px-6 py-4 text-xs text-gray-800 sm:text-sm">
+                                    {{ booking.boardroom.location?.name ?? '—' }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-800">

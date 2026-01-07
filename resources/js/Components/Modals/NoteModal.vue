@@ -20,7 +20,7 @@ const form = useForm({
 const successMessage = ref(null);
 
 const offices = [
-    { id: 1, name: 'Closed Office' },
+    { id: 1, name: 'Closed Offices' },
     { id: 2, name: 'Dedicated Desk' },
     { id: 3, name: 'Virtual Office' },
     { id: 4, name: 'Boardroom' },

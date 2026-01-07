@@ -71,7 +71,7 @@ const submit = () => {
                         class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">User (optional)</label>
+                                <label class="block text-lg font-medium text-gray-700">User</label>
                                 <select
                                     v-model="form.user_id"
                                     class="w-full px-3 py-2 border rounded">

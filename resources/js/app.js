@@ -8,19 +8,19 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { Inertia } from '@inertiajs/inertia';
 import { InertiaProgress } from '@inertiajs/progress';
 
-// ✅ PrimeVue & Theme
+// PrimeVue & Theme
 import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Gritspace';
 
-// ✅ Handle Auth State
+// Handle Auth State
 Inertia.on('success', event => {
     const isAuthenticated = event.detail.page.props.auth.user != null;
     window.localStorage.setItem('isAuthenticated', isAuthenticated);
 });
 
-// ✅ Prevent navigation if unauthenticated
+// Prevent navigation if unauthenticated
 window.addEventListener('popstate', event => {
     if (window.localStorage.getItem('isAuthenticated') === 'false') {
         event.stopImmediatePropagation();
@@ -28,7 +28,7 @@ window.addEventListener('popstate', event => {
     }
 });
 
-// ✅ Handle 403 errors
+// Handle 403 errors
 Inertia.on('error', errors => {
     if (errors.status === 403) {
         alert('You are not authorized to view this page.');
@@ -36,7 +36,7 @@ Inertia.on('error', errors => {
     }
 });
 
-// ✅ Inertia app setup
+// Inertia app setup
 createInertiaApp({
     title: title => `${title} - ${appName}`,
     resolve: name => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
@@ -54,9 +54,7 @@ createInertiaApp({
             })
             .mount(el);
     },
-    // progress: {
-    //     color: '#F2676A',
-    // },
+
     progress: false,
 });
 InertiaProgress.init({

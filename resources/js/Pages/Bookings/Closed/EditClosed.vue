@@ -82,11 +82,11 @@ if (flashMessage) {
 </script>
 
 <template>
-    <Head title="View Booking" />
+    <Head title="Booking/Enquiry" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">View Booking</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Booking/Enquiry</h2>
         </template>
 
         <div class="py-12">

@@ -20,7 +20,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <Head title="Create an Virtual Office" />
+    <Head title="Add an Virtual Office" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -31,7 +31,7 @@ const props = defineProps({
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="max-w-4xl p-6 mx-auto space-y-6">
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Create Virtual Office</h3>
+                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Add Virtual Office</h3>
 
                         <Link
                             :href="route('admin.virtual-offices')"
@@ -46,7 +46,9 @@ const props = defineProps({
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Name -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Virtual Office Type</label>
+                                <label class="block text-lg font-medium text-gray-700"
+                                    >Virtual Office Service Level</label
+                                >
                                 <select
                                     v-model="form.virtualoffice_name"
                                     class="w-full px-3 py-2 border rounded">

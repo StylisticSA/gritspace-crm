@@ -154,7 +154,7 @@ const allBookings = computed(() => {
                                 <p
                                     v-if="vo.virtualoffice_name?.toLowerCase().includes('premium')"
                                     class="mt-6">
-                                    <span class="text-3xl font-bold text-yellow-700">R {{ vo.price }}</span>
+                                    <span class="text-3xl font-bold text-gray-800">R {{ vo.price }}</span>
                                 </p>
 
                                 <button

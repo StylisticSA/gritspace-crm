@@ -61,7 +61,7 @@ const uniqueLocations = computed(() => {
 const activeFilters = ref([]);
 const activeLocationFilters = ref([]);
 
-// ✅ Ensure filters are populated once events are loaded
+// Ensure filters are populated once events are loaded
 watchEffect(() => {
     activeFilters.value = uniqueOffices.value.map(o => o.id);
     activeLocationFilters.value = uniqueLocations.value.map(l => l.id);
@@ -98,12 +98,12 @@ const calendarOptions = ref({
 
         const wrapper = document.createElement('div');
         wrapper.classList.add('fc-custom-event');
-        wrapper.style.padding = '6px';
-        wrapper.style.borderRadius = '4px';
+        wrapper.style.padding = '2px';
+        wrapper.style.borderRadius = '2px';
         wrapper.style.overflow = 'hidden';
         wrapper.style.whiteSpace = 'nowrap';
         wrapper.style.textOverflow = 'ellipsis';
-        wrapper.style.maxWidth = '100%';
+        wrapper.style.maxWidth = '90%';
 
         const titleEl = document.createElement('div');
         titleEl.textContent = userOrBooked;

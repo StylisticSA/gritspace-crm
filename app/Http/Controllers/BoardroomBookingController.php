@@ -179,7 +179,7 @@ class BoardroomBookingController extends Controller
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
-            $bookings = BoardroomBooking::with(['user', 'boardroom'])
+            $bookings = BoardroomBooking::with(['user', 'boardroom.location'])
                         ->when($search, function ($query, $search) {
                             $query->whereHas('user', function ($q) use ($search) {
                                 $q->where('name', 'like', "%{$search}%");

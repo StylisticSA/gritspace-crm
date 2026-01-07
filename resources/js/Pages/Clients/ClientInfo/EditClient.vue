@@ -51,7 +51,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Client Information</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Clients Information</h2>
         </template>
 
         <div class="p-2">

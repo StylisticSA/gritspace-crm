@@ -106,7 +106,7 @@ const allBookings = computed(() => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardroom</h2>
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardrooms</h2>
 
                 <div
                     class="flex gap-3"
@@ -249,13 +249,13 @@ const allBookings = computed(() => {
                                             {{
                                                 boardroomAvail.is_available
                                                     ? 'Yes (Based on the below Date.)'
-                                                    : 'Not Available'
+                                                    : 'Unavailable until'
                                             }}
                                         </div>
                                     </div>
 
                                     <div class="flex">
-                                        <div class="w-[120px] font-medium text-gray-600">Available on:</div>
+                                        <div class="w-[120px] font-medium text-gray-600">Availability:</div>
                                         <div>{{ formatDate(boardroomAvail.available_dates) }}</div>
                                     </div>
                                 </div>

@@ -30,7 +30,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Edit boardroom" />
+    <Head title="Edit Boardroom" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -42,7 +42,7 @@ const submit = () => {
                 <div class="max-w-4xl p-6 mx-auto space-y-6">
                     <!-- Header -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Edit boardroom</h3>
+                        <h3 class="inline-block py-2 text-2xl font-medium text-black">Edit Boardroom</h3>
                         <Link
                             :href="route('admin.boardrooms')"
                             class="inline-block px-3 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain">

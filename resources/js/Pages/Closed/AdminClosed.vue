@@ -97,7 +97,7 @@ const setOffice = id => {
 };
 
 const availabilityText = office => {
-    const label = office.is_available ? 'Available From' : 'Not Available Up';
+    const label = office.is_available ? 'Available From' : 'Unavailable until';
     const date = office.available_dates ? formatDate(office.available_dates) : '—';
     return `${label}<br>${date}`;
 };
@@ -142,7 +142,7 @@ const availabilityText = office => {
 
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Monthly Rate</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Daily Rate</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Available On</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Availability</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700"></th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>

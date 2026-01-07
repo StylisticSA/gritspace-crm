@@ -92,8 +92,8 @@ const calendarOptions = ref({
 
         const wrapper = document.createElement('div');
         wrapper.classList.add('fc-custom-event');
-        wrapper.style.padding = '6px';
-        wrapper.style.borderRadius = '4px';
+        wrapper.style.padding = '2px';
+        wrapper.style.borderRadius = '2px';
         wrapper.style.overflow = 'hidden';
         wrapper.style.whiteSpace = 'nowrap';
         wrapper.style.textOverflow = 'ellipsis';

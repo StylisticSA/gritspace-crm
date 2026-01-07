@@ -79,7 +79,7 @@ const setOffice = id => {
     showBoardroomModal.value = true;
 };
 const availabilityText = boardroom => {
-    const label = boardroom.is_available ? 'Available From' : 'Not Available Up';
+    const label = boardroom.is_available ? 'Available' : 'Un available until';
     const date = boardroom.available_dates ? formatDate(boardroom.available_dates) : 'None';
     return `${label}<br>${date}`;
 };
@@ -135,7 +135,7 @@ const formatDate = dateStr => {
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Seats</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Hourly Price</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Daily Price</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Available On</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Availability</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700"></th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
