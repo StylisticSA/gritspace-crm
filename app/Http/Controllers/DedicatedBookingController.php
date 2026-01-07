@@ -13,6 +13,7 @@ use App\Models\Location;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\OfficePricing;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\BookingNotification;
 
 class DedicatedBookingController extends Controller
@@ -46,7 +47,11 @@ class DedicatedBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
-                  
+            $users = User::with('roles')
+                    ->whereHas('roles', function ($query) {
+                        $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                    })->select('id', 'name')
+                    ->get();
 
         } else {
             $bookings = Booking::with(['office.location', 'category'])
@@ -61,6 +66,7 @@ class DedicatedBookingController extends Controller
 
         return Inertia::render('Bookings/Dedicated/ShowDedicated', [
             'bookings' => $bookings,
+            'users' => $users,
             'filters' => [
                 'search' => $search,
             ]

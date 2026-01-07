@@ -9,6 +9,7 @@ use App\Models\HelpDesk;
 use App\Models\Location;
 use Illuminate\Http\Request;
 use App\Models\HotDeskBooking;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\HotDeskBookingNotification;
 
 class HotDeskBookingController extends Controller
@@ -152,7 +153,15 @@ class HotDeskBookingController extends Controller
 
         $search = $request->input('search');
 
+              
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
+
+            $users = User::with('roles')
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                })->select('id', 'name')
+                ->get();
 
             $bookings = HotDeskBooking::with(['user', 'helpdesk'])
                         ->when($search, function ($query) use ($search) {
@@ -194,6 +203,7 @@ class HotDeskBookingController extends Controller
 
         return Inertia::render('Bookings/HotDesks/ShowHotDesks', [
             'bookings' => $bookings,
+            'users' => $users,
             'filters' => [
                 'search' => $search,
             ]

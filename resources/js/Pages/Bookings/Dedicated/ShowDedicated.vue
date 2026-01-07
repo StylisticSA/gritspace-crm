@@ -4,16 +4,19 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { eachDayOfInterval } from 'date-fns';
 import useStatusMessage from '../../../Composables/useStatusMessage';
+import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
+    users: Object,
     can: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const isLoading = ref(false);
+const showNoteModal = ref(false);
 
 const showDatesModal = ref(false);
 const selectedDates = ref(null);
@@ -206,7 +209,15 @@ function groupByMonth(dates) {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Dedicated Desks</h2>
+            <div class="flex items-center justify-between space-x-5">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Dedicated Desks</h2>
+
+                <button
+                    @click="showNoteModal = true"
+                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                    Add Note
+                </button>
+            </div>
         </template>
 
         <div class="py-12">
@@ -546,6 +557,11 @@ function groupByMonth(dates) {
                         </div>
                     </div>
                 </template>
+
+                <GlobalNoteModal
+                    :users="users"
+                    :show="showNoteModal"
+                    :onClose="() => (showNoteModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

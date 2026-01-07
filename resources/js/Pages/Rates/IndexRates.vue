@@ -115,7 +115,7 @@ const formatLabel = label => {
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Category Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Service Level</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Price</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Created Date</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Date Created</th>
 
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>

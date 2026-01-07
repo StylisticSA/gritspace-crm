@@ -139,7 +139,7 @@ const truncateHtml = html => {
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">
                                         Visible to User
                                     </th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Created Date</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Date Created</th>
 
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>

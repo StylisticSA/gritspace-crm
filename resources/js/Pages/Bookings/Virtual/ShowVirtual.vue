@@ -3,10 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
+import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
+    users: Object,
     can: Object,
 });
 
@@ -14,6 +16,7 @@ const { message, status, showMessage, messageText, messageClass } = useStatusMes
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
+const showNoteModal = ref(false);
 
 watch(search, value => {
     router.get(
@@ -184,7 +187,15 @@ const groupedDates = computed(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Virtual Offices</h2>
+            <div class="flex items-center justify-between space-x-5">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Virtual Offices</h2>
+
+                <button
+                    @click="showNoteModal = true"
+                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                    Add Note
+                </button>
+            </div>
         </template>
 
         <div class="py-12">
@@ -523,6 +534,10 @@ const groupedDates = computed(() => {
                         </div>
                     </div>
                 </template>
+                <GlobalNoteModal
+                    :users="users"
+                    :show="showNoteModal"
+                    :onClose="() => (showNoteModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

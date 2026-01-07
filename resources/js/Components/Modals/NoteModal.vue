@@ -148,7 +148,7 @@ const submit = () => {
                     </button>
                     <div class="flex flex-col items-center space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                         <Link
-                            :href="route('dashboard')"
+                            :href="route('admin.dashboard')"
                             class="w-full px-4 py-2 text-sm text-center text-white rounded sm:w-auto bg-slate hover:bg-bluemain/60">
                             Dashboard
                         </Link>

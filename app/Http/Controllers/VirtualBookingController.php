@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\OfficePricing;
 use App\Models\VirtualOffice;
 use App\Models\VirtualBooking;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\VirtualBookingNotification;
 
 class VirtualBookingController extends Controller
@@ -201,8 +202,15 @@ class VirtualBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
+            $users = User::with('roles')
+                    ->whereHas('roles', function ($query) {
+                        $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                    })->select('id', 'name')
+                    ->get();
 
-        } else {
+                    // dd($users);
+
+            } else {
             $bookings = VirtualBooking::with(['virtualOffice', 'user'])
                         ->where('user_id', $user->id)
                         ->when($search, function ($query, $search) {
@@ -222,6 +230,7 @@ class VirtualBookingController extends Controller
 
         return Inertia::render('Bookings/Virtual/ShowVirtual', [
             'bookings' => $bookings,
+            'users' => $users,
             'filters' => [
                 'search' => $search,
             ]

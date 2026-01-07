@@ -174,7 +174,7 @@ Route::middleware(['web', 'auth', 'verified'])
     ->group(function () {
 
 
-        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+        Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
         Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 

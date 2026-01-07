@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Boardroom;
 use Illuminate\Http\Request;
 use App\Models\BoardroomBooking;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\BoardroomBookingNotification;
 
 class BoardroomBookingController extends Controller
@@ -177,6 +178,13 @@ class BoardroomBookingController extends Controller
         $user = auth()->user();
         $search = $request->input('search');
 
+        $users = User::with('roles')
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                })->select('id', 'name')
+                ->get();
+
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
             $bookings = BoardroomBooking::with(['user', 'boardroom.location'])
@@ -211,6 +219,7 @@ class BoardroomBookingController extends Controller
 
         return Inertia::render('Bookings/Boardrooms/ShowBoardrooms', [
             'bookings' => $bookings,
+            'users' => $users,
              'filters' => [
                 'search' => $search,
             ]

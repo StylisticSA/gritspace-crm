@@ -15,6 +15,7 @@ use App\Models\Location;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\OfficePricing;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\BookingNotification;
 
 class ClosedBookingController extends Controller
@@ -28,7 +29,11 @@ class ClosedBookingController extends Controller
 
         $search = $request->input('search');
 
-        
+        $users = User::with('roles')
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                })->select('id', 'name')
+                ->get();
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
@@ -67,6 +72,7 @@ class ClosedBookingController extends Controller
 
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings' => $bookings,
+            'users' => $users,
             'filters' => [
                 'search' => $search,
             ]
