@@ -234,3 +234,4 @@ class AgrementUploadController extends Controller
         return redirect()->back()->with('pending', 'Agreement file is on Pending');
     }
 }
+

@@ -2,7 +2,7 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { Inertia } from '@inertiajs/inertia';
 import { ref, watch, computed } from 'vue';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import { addMonths, addYears, eachDayOfInterval } from 'date-fns';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 
@@ -132,7 +132,7 @@ const submit = () => {
             class="space-y-4">
             <div>
                 <label class="block font-semibold">Select Dates</label>
-                <Calendar
+                <DatePicker
                     v-model="form.selected_dates"
                     selectionMode="multiple"
                     :minDate="today"
@@ -140,7 +140,7 @@ const submit = () => {
                     :manualInput="false"
                     dateFormat="yy-mm-dd"
                     showIcon
-                    class="w-full" />
+                    class="w-full [&>input]:w-full" />
             </div>
             <div>
                 <label class="block font-semibold">Weekdays Selected</label>
@@ -156,13 +156,13 @@ const submit = () => {
             class="space-y-4">
             <div>
                 <label class="block font-semibold">Start Date</label>
-                <Calendar
+                <DatePicker
                     v-model="form.start_date"
                     :minDate="today"
                     dateFormat="yy-mm-dd"
                     showIcon
                     :manualInput="false"
-                    class="w-full" />
+                    class="w-full [&>input]:w-full" />
                 <span
                     v-if="form.errors.start_date"
                     class="text-sm text-red-600">

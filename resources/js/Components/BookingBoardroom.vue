@@ -2,7 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { Inertia } from '@inertiajs/inertia';
 import { watch, computed, ref } from 'vue';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import { differenceInCalendarMonths, isBefore } from 'date-fns';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 
@@ -154,14 +154,14 @@ const currencyFormatter = new Intl.NumberFormat('en-ZA', {
         <!-- Selected Dates -->
         <div>
             <label class="block font-semibold">Select Dates</label>
-            <Calendar
+            <DatePicker
                 v-model="form.selected_dates"
                 selectionMode="multiple"
                 :minDate="today"
                 :disabledDays="[0, 6]"
                 dateFormat="dd-mm-yy"
                 showIcon
-                class="w-full" />
+                class="w-full [&>input]:w-full" />
             <span
                 v-if="form.errors.selected_dates"
                 class="text-sm text-red-600">

@@ -2,7 +2,7 @@
 import { Inertia } from '@inertiajs/inertia';
 import { useForm } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import { format } from 'date-fns';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 
@@ -130,7 +130,7 @@ const submit = () => {
         <div class="space-y-4">
             <div>
                 <label class="block font-semibold">Start Date</label>
-                <Calendar
+                <DatePicker
                     :modelValue="form.start_date ? new Date(form.start_date) : null"
                     @update:modelValue="val => (form.start_date = format(val, 'yyyy-MM-dd'))"
                     :disabledDates="disabledDates"
@@ -139,7 +139,7 @@ const submit = () => {
                     :disabledDays="[0, 6]"
                     dateFormat="yy-mm-dd"
                     showIcon
-                    class="w-full" />
+                    class="w-full [&>input]:w-full" />
                 <div
                     v-if="form.errors.start_date"
                     class="mt-1 text-sm text-red-600">

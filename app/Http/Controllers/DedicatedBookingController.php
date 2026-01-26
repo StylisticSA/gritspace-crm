@@ -63,10 +63,11 @@ class DedicatedBookingController extends Controller
                 ->paginate(10);
         }
 
+   
 
         return Inertia::render('Bookings/Dedicated/ShowDedicated', [
             'bookings' => $bookings,
-            'users' => $users,
+            'users' => $users ?? null,
             'filters' => [
                 'search' => $search,
             ]

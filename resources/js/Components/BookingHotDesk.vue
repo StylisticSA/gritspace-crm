@@ -2,7 +2,7 @@
 import { Inertia } from '@inertiajs/inertia';
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch, nextTick } from 'vue';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 
 const props = defineProps({
@@ -146,7 +146,7 @@ const submit = () => {
             <label class="block font-semibold">
                 {{ isHalfDay ? 'Select Half-Day Date(s)' : 'Select Booking Date(s)' }}
             </label>
-            <Calendar
+            <DatePicker
                 v-model="form.selected_dates"
                 selectionMode="multiple"
                 :minDate="today"
@@ -154,7 +154,7 @@ const submit = () => {
                 :manualInput="false"
                 dateFormat="yy-mm-dd"
                 showIcon
-                class="w-full" />
+                class="w-full [&>input]:w-full" />
             <div
                 v-if="form.errors.selected_dates"
                 class="mt-1 text-sm text-red-600">
