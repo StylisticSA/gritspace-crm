@@ -32,7 +32,9 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        
         $request->validate([
+            'user_type' => 'required|string|in:new,existing',
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -42,9 +44,9 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'user_type' => $request->user_type,
         ]);
-
-
+        
         $defaultRole = Role::firstOrCreate(['name' => 'Pending User']);
 
         $user->roles()->syncWithoutDetaching([$defaultRole->id]);
@@ -61,10 +63,6 @@ class RegisteredUserController extends Controller
 
         return redirect()->route('verification.notice')
                ->with('status', 'verify-prompt');
-
-
-
-
 
     }
 }

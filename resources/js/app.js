@@ -7,6 +7,7 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { Inertia } from '@inertiajs/inertia';
 import { InertiaProgress } from '@inertiajs/progress';
+import VueTheMask from 'vue-the-mask';
 
 // PrimeVue & Theme
 import PrimeVue from 'primevue/config';
@@ -44,6 +45,7 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(VueTheMask)
             .use(PrimeVue, {
                 theme: {
                     preset: Aura,

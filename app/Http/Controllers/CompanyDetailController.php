@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Office;
 use App\Models\Category;
@@ -110,12 +111,16 @@ class CompanyDetailController extends Controller
 
         $boardrooms = Boardroom::select('id', 'boardroom_name')->get();
 
+        $userType = auth()->user()->user_type;
+        // dd($userType);
+
         return Inertia::render('CompanyDetails/CreateCompany', [
             'locations'     => $locations,
             'closedoffices' => $closed,
             'dedicated'     => $dedicated,
             'hotdesks'      => $hotdesks,
             'virtuals'      => $virtuals,
+            'user_type'     => $userType,
 
         ]);
 
@@ -142,8 +147,6 @@ class CompanyDetailController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request);
-
         $validated = $request->validate([
             'location_id'                   => 'nullable|exists:locations,id',
             'name'                          => 'required|string|max:255',
@@ -176,13 +179,11 @@ class CompanyDetailController extends Controller
             ]);
         }
 
-
         if ($existing?->company_reg_path && $request->hasFile('company_reg_path')) {
             return back()->withErrors([
                 'company registration' => 'A company registration document already exists for this user.',
             ]);
         }
-
 
         DB::beginTransaction();
 
@@ -217,7 +218,6 @@ class CompanyDetailController extends Controller
                 $client->residency_path = $residencyPath;
             }
 
-
             if ($request->hasFile('company_reg_path') && empty($existing?->company_reg_path)) {
                 $companyRegFile = $request->file('company_reg_path');
                 $companyRegName = 'company_reg_path_' . Str::slug($user->name) . '_' . Str::uuid() . '.' . $companyRegFile->getClientOriginalExtension();
@@ -230,9 +230,7 @@ class CompanyDetailController extends Controller
                 $client->company_reg_path = $companyRegPath;
             }
 
-
             $client->save();
-
 
             $rows = collect([
                 'closed'     => $request->closed_rows,

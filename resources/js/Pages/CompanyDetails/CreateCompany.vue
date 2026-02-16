@@ -12,9 +12,8 @@ const props = defineProps({
     hotdesks: Array,
     virtuals: Array,
     errors: Object,
+    user_type: String,
 });
-
-console.log('p', props.virtuals);
 
 const step = ref(1);
 const successMessage = ref(null);
@@ -56,6 +55,8 @@ const validateStepOne = () => {
         form.errors.email_address = 'Email address is required.';
     }
 
+    validateEmail();
+
     if (!form.company_name) {
         form.errors.company_name = 'Company name is required.';
     }
@@ -90,21 +91,48 @@ const validateStep = () => {
 };
 
 const validateCellNumber = () => {
-    const pattern = /^\+\d{1,3}\d{7,12}$/;
+    const pattern = /^\d{3}\s\d{3}\s\d{4}$/;
+
     if (!form.cell_number) {
-        form.errors.cell_number = 'Cell number is required, it should be without spaces.';
+        form.errors.cell_number = 'Cell number is required.';
     } else if (!pattern.test(form.cell_number)) {
-        form.errors.cell_number = 'Enter a valid South African cell number (e.g. +27-).';
+        form.errors.cell_number = 'Enter a valid South African cell number (e.g. 089 897 1234).';
     } else {
         delete form.errors.cell_number;
     }
 };
 
+const validateEmail = () => {
+    const pattern = /^[^@]+@[^@]+\.[a-zA-Z]{2,6}$/;
+
+    if (!form.email_address) {
+        form.errors.email_address = 'Email address is required.';
+    } else if (!pattern.test(form.email_address)) {
+        form.errors.email_address = 'Enter a valid email address (e.g. simple@domain.com).';
+    } else {
+        delete form.errors.email_address;
+    }
+};
+
+// const nextStep = () => {
+//     const valid = validateStep();
+
+//     if (valid) step.value++;
+// };
+
 const nextStep = () => {
     const valid = validateStep();
-    // console.log('Validation result:', valid);
-    // console.log('Errors:', form.errors);
-    if (valid) step.value++;
+    if (!valid) return;
+
+    if (step.value === 1) {
+        if (props.user_type === 'existing') {
+            step.value = 2;
+        } else {
+            submit();
+        }
+    } else if (step.value === 2) {
+        submit();
+    }
 };
 
 const prevStep = () => {
@@ -113,8 +141,33 @@ const prevStep = () => {
     }
 };
 
+// const handleFileUpload = (event, field) => {
+//     form[field] = event.target.files[0];
+// };
+
 const handleFileUpload = (event, field) => {
-    form[field] = event.target.files[0];
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Allowed types
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+
+    if (!allowedTypes.includes(file.type)) {
+        form.errors[field] = 'Only PDF, JPEG, JPG, or PNG files are allowed.';
+        form[field] = null;
+        return;
+    }
+
+    if (file.size > maxSize) {
+        form.errors[field] = 'File size must not exceed 5 MB.';
+        form[field] = null;
+        return;
+    }
+
+    // Valid file
+    form.errors[field] = null;
+    form[field] = file;
 };
 
 const submit = () => {
@@ -140,7 +193,7 @@ const submit = () => {
             bookingConflict.value = errors.booking_conflict ?? null;
         },
         onSuccess: () => {
-            successMessage.value = 'Closed Office booked successfully!';
+            successMessage.value = 'Client information saved successfully.';
             bookingConflict.value = null;
         },
     });
@@ -338,6 +391,8 @@ const rowFieldErrors = computed(() => {
                                         type="text"
                                         v-model="form.cell_number"
                                         @blur="validateCellNumber"
+                                        v-mask="'### ### ####'"
+                                        placeholder="### ### ####"
                                         class="w-full px-3 py-2 border rounded" />
                                     <div
                                         v-if="form.errors.cell_number"
@@ -351,7 +406,9 @@ const rowFieldErrors = computed(() => {
                                     <input
                                         type="email"
                                         v-model="form.email_address"
+                                        @blur="validateEmail"
                                         v-on:focus="form.clearErrors('email_address')"
+                                        placeholder="example@domain.com"
                                         class="w-full px-3 py-2 border rounded" />
                                     <div
                                         v-if="form.errors.email_address"
@@ -380,6 +437,8 @@ const rowFieldErrors = computed(() => {
                                         type="text"
                                         v-model="form.company_registration_number"
                                         v-on:focus="form.clearErrors('company_registration_number')"
+                                        v-mask="'####/######/##'"
+                                        placeholder="YYYY / NNNNNN / NN"
                                         class="w-full px-3 py-2 border rounded" />
                                     <div
                                         v-if="form.errors.company_registration_number"
@@ -452,8 +511,7 @@ const rowFieldErrors = computed(() => {
                         </div>
 
                         <!-- Step 2: Confirmation -->
-
-                        <div v-show="step === 2">
+                        <div v-show="step === 2 && props.user_type === 'existing'">
                             <div>
                                 <!-- Tab Buttons -->
                                 <div class="flex gap-4 mb-4 border-b">
@@ -829,16 +887,21 @@ const rowFieldErrors = computed(() => {
                                 Back
                             </button>
 
+                            <!-- Next button -->
                             <button
-                                v-if="step < 2"
+                                v-if="step === 1 && props.user_type === 'existing'"
                                 type="button"
                                 @click="nextStep"
                                 class="px-4 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Next
                             </button>
 
+                            <!-- Submit button -->
                             <button
-                                v-if="step === 2"
+                                v-if="
+                                    (step === 2 && props.user_type === 'existing') ||
+                                    (step === 1 && props.user_type === 'new')
+                                "
                                 type="submit"
                                 :disabled="form.processing"
                                 class="px-4 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60">

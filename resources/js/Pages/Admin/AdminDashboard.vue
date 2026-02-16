@@ -128,7 +128,9 @@ function viewInvoices() {
                     </div>
                 </div>
                 <div v-else>
-                    <p class="flex items-center my-5">There is no locations</p>
+                    <div class="bg-white">
+                        <p class="flex items-center my-5">There is no locations</p>
+                    </div>
                 </div>
 
                 <!-- 2-column grid -->

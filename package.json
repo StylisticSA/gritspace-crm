@@ -40,6 +40,7 @@
         "primeflex": "^4.0.0",
         "primeicons": "^7.0.0",
         "primevue": "^4.3.5",
-        "vue-cal": "^4.10.2"
+        "vue-cal": "^4.10.2",
+        "vue-the-mask": "^0.11.1"
     }
 }
