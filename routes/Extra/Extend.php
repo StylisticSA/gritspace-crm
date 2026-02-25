@@ -11,14 +11,11 @@ use App\Http\Controllers\PrintingController;
 use App\Http\Controllers\BoardroomController;
 use App\Http\Controllers\ClosedOfficeController;
 use App\Http\Controllers\BankingDetailController;
-use App\Http\Controllers\BoardroomRateController;
 use App\Http\Controllers\DedicatedDeskController;
-use App\Http\Controllers\HotOfficeRateController;
 use App\Http\Controllers\AgrementUploadController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\ClosedOfficeRateController;
-use App\Http\Controllers\VirtualOfficeRateController;
-use App\Http\Controllers\DedicatedOfficeRateController;
+
 
 Route::middleware(['web', 'auth', 'verified'])
     ->prefix('admin')

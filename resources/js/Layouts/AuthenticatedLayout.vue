@@ -419,28 +419,23 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                             </template>
 
                                             <!-- Notes -->
-                                            <div class="text-sm text-gray-700 transition hover:bg-gray-50">
-                                                <DropdownLink
-                                                    v-if="can['manage settings']"
-                                                    :href="route('admin.notes.index')"
-                                                    >Notes</DropdownLink
-                                                >
-                                            </div>
 
-                                            <ResponsiveNavLink
+                                            <DropdownLink
                                                 v-if="can['manage settings']"
-                                                :href="route('admin.invoices.index')"
-                                                >Invoices</ResponsiveNavLink
+                                                :href="route('admin.notes.index')"
+                                                >Notes</DropdownLink
                                             >
 
-                                            <!-- Flat Links -->
-                                            <div class="text-sm text-gray-700 transition hover:bg-gray-50">
-                                                <DropdownLink
-                                                    v-if="can['manage settings']"
-                                                    :href="route('admin.manage.user')"
-                                                    >Manage</DropdownLink
-                                                >
-                                            </div>
+                                            <DropdownLink
+                                                v-if="can['manage settings']"
+                                                :href="route('admin.invoices.index')"
+                                                >Invoices</DropdownLink
+                                            >
+                                            <DropdownLink
+                                                v-if="can['manage settings']"
+                                                :href="route('admin.manage.user')"
+                                                >Manage</DropdownLink
+                                            >
                                         </div>
                                     </template>
                                 </Dropdown>

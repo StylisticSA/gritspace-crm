@@ -149,15 +149,15 @@ const availabilityText = office => {
 
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         {{
-                                            office.price_premium
-                                                ? `R ${Number(office.price_premium).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                            office.monthly_rate
+                                                ? `R ${Number(office.monthly_rate).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                 : 'None'
                                         }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         {{
-                                            office.price_standard
-                                                ? `R ${Number(office.price_standard).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                            office.daily_rate
+                                                ? `R ${Number(office.daily_rate).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                 : 'None'
                                         }}
                                     </td>

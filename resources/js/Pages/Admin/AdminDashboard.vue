@@ -66,7 +66,9 @@ function viewInvoices() {
         <div class="px-4 py-6 lg:px-8">
             <div class="mx-auto max-w-7xl">
                 <div class="overflow-hidden bg-white rounded-md shadow">
-                    <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome Admins</div>
+                    <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
+                        Welcome to the Administration Portal
+                    </div>
                 </div>
 
                 <!-- 3-column grid src="../../../../public/files_grits/planning.png"-->
@@ -129,7 +131,7 @@ function viewInvoices() {
                 </div>
                 <div v-else>
                     <div class="bg-white">
-                        <p class="flex items-center my-5">There is no locations</p>
+                        <p class="flex items-center my-5 p-5 text-red-500">There is no locations, Please add..</p>
                     </div>
                 </div>
 

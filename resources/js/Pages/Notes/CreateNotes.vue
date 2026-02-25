@@ -116,12 +116,11 @@ const submit = () => {
 
                         <div>
                             <label class="block text-lg font-medium text-gray-700">Note</label>
-                            <QuillEditor
-                                v-model:content="form.content"
-                                content-type="html"
+                            <textarea
+                                v-model="form.content"
                                 @focus="form.clearErrors('content')"
-                                class="bg-white border rounded"
-                                style="min-height: 150px" />
+                                class="bg-white border rounded w-full p-2"
+                                style="min-height: 150px"></textarea>
                             <div
                                 v-if="form.errors.content"
                                 class="text-sm text-red-600">

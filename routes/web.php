@@ -1,17 +1,12 @@
 <?php
 
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\AboutController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ManagerController;
-use App\Http\Controllers\PricingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\HelpDeskController;
@@ -21,7 +16,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ClientRateController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\UserAccessController;
 use App\Http\Controllers\ClosedOfficeController;
 use App\Http\Controllers\ClosedBookingController;
 use App\Http\Controllers\CompanyDetailController;

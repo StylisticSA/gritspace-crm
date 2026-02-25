@@ -259,6 +259,8 @@ class DedicatedBookingController extends Controller
             ->unique()
             ->values();
 
+            // dd($dedicated);
+
         return Inertia::render('Bookings/Dedicated/EditDedicated', [
             'office' => $dedicated->load(['location', 'pricing', 'amenities']),
             'locations' => $locations,

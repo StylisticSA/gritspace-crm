@@ -147,35 +147,35 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div v-if="isDedicatedDesk">
-                                <label class="block text-lg font-medium text-gray-700">Available Service Levels</label>
-                                <div class="flex flex-col space-y-2">
-                                    <div
-                                        v-for="pricing in pricings"
-                                        :key="pricing.id"
-                                        class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            v-model="form.pricing_type"
-                                            :value="pricing.rate"
-                                            :id="pricing.id"
-                                            class="border-gray-300 rounded shadow-sm text-primary focus:ring-bluemain/60 form-checkbox" />
-                                        <label
-                                            :for="pricing.id"
-                                            class="ml-2 text-sm">
-                                            {{ pricing.category_name }} - {{ pricing.pricing_type }} -
-                                            {{
-                                                pricing.rate
-                                                    ? `R ${Number(pricing.rate).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                    : 'None'
-                                            }}
-                                        </label>
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Premium Monthly Rate</label>
+                                <input
+                                    v-model="form.monthly_rate"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="e.g. 2000.00" />
                                 <div
-                                    v-if="form.errors.pricing_type"
+                                    v-if="form.errors.monthly_rate"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.pricing_type }}
+                                    {{ form.errors.monthly_rate }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Standard Monthly Rate</label>
+                                <input
+                                    v-model="form.daily_rate"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="e.g. 250.00" />
+                                <div
+                                    v-if="form.errors.daily_rate"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.daily_rate }}
                                 </div>
                             </div>
                         </div>

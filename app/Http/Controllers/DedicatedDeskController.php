@@ -162,6 +162,8 @@ class DedicatedDeskController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
+
         $this->authorize('create', Office::class);
 
         $validated = $request->validate([
@@ -180,28 +182,21 @@ class DedicatedDeskController extends Controller
             ],
             'category_id'     => ['required', 'exists:categories,id'],
             'location_id'     => ['required', 'exists:locations,id'],
-            'pricing_type'    => ['required', 'array', 'min:2'],
-            'pricing_type.*'  => ['required', 'numeric',],
-            'pricing_type'    => function ($attribute, $value, $fail) {
-                if ($value && (count($value) < 2 || !isset($value[0]) || !isset($value[1]))) {
-                    return $fail('Both price fields must be filled for Dedicated Desk.');
-                }
-            },
+            'monthly_rate'    => ['required', 'numeric', 'min:0'],
+            'daily_rate'      => ['required', 'numeric', 'min:0'],
             'amenities'       => ['array'],
             'amenities.*'     => ['exists:amenities,id'],
             'is_available'    => ['nullable'],
             'available_dates' => ['nullable'],
         ]);
 
-        $price_premium = isset($validated['pricing_type'][0]) ? $validated['pricing_type'][0] : null;
-        $price_standard = isset($validated['pricing_type'][1]) ? $validated['pricing_type'][1] : null;
-
+   
         $office = Office::create([
             'office_name'       => $validated['office_name'],
             'category_id'       => $validated['category_id'],
             'location_id'       => $validated['location_id'],
-            'price_premium'     => $price_premium,
-            'price_standard'    => $price_standard,
+            'monthly_rate'      => $validated['monthly_rate'],
+            'daily_rate'        => $validated['daily_rate'],
             'is_available'      => false,
             'available_dates'   => null,
         ]);
@@ -274,26 +269,19 @@ class DedicatedDeskController extends Controller
             ],
             'category_id'     => ['required', 'exists:categories,id'],
             'location_id'     => ['required', 'exists:locations,id'],
-            'pricing_type'    => ['required', 'array', 'min:2'],
-            'pricing_type.*'  => ['required', 'numeric'],
-            'pricing_type'    => function ($attribute, $value, $fail) {
-                if ($value && (count($value) < 2 || !isset($value[0]) || !isset($value[1]))) {
-                    return $fail('Both price fields must be filled for Dedicated Desk.');
-                }
-            },
+            'monthly_rate'    => ['required', 'numeric', 'min:0'],
+            'daily_rate'      => ['required', 'numeric', 'min:0'],
             'amenities'       => ['array'],
             'amenities.*'     => ['exists:amenities,id'],
         ]);
 
-        $price_premium  = $validated['pricing_type'][0] ?? null;
-        $price_standard = $validated['pricing_type'][1] ?? null;
 
         $Office->update([
             'office_name'     => $validated['office_name'],
             'category_id'     => $validated['category_id'],
             'location_id'     => $validated['location_id'],
-            'price_premium'   => $price_premium,
-            'price_standard'  => $price_standard,
+            'monthly_rate'      => $validated['monthly_rate'],
+            'daily_rate'        => $validated['daily_rate'],
         ]);
 
         $Office->amenities()->sync($validated['amenities'] ?? []);

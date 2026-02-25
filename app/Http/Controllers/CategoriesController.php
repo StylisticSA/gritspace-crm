@@ -46,12 +46,12 @@ class CategoriesController extends Controller
         // dd($request);
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'offers_level' => "nullable|boolean",
+            // 'offers_level' => "nullable|boolean",
         ]);
 
         $category = Category::create([
             'name' => $validated['name'],
-            'offers_level' => $validated['offers_level'] ? $request->boolean('offers_level') : false,
+            // 'offers_level' => $validated['offers_level'] ? $request->boolean('offers_level') : false,
         ]);
 
 

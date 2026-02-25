@@ -48,8 +48,8 @@ const normalizedCategory = categoryName?.toLowerCase().trim();
 const pricingOptions = {
     ...(normalizedCategory === 'dedicated desk' || normalizedCategory === 'dedicated desks'
         ? {
-              premium: props.office.price_premium,
-              standard: props.office.price_standard,
+              premium: props.office.monthly_rate,
+              standard: props.office.daily_rate,
           }
         : {}),
 };
@@ -132,10 +132,10 @@ if (flashMessage) {
                                 <h4 class="font-semibold text-gray-800">Pricing Options</h4>
                                 <ul class="mt-2 space-y-1 text-sm text-gray-700">
                                     <li v-if="office.monthly_rate">
-                                        Monthly: <strong>R{{ office.monthly_rate }}</strong>
+                                        Premium Monthly Rate: <strong>R{{ office.monthly_rate }}</strong>
                                     </li>
                                     <li v-if="office.daily_rate">
-                                        Daily: <strong>R{{ office.daily_rate }}</strong>
+                                        Standard Monthly Rate: <strong>R{{ office.daily_rate }}</strong>
                                     </li>
                                     <li v-if="office.price_premium">
                                         Premium: <strong>R{{ office.price_premium }}</strong>
