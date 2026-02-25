@@ -1,20 +1,21 @@
 <?php
 
-use App\Http\Controllers\NoteController;
-use App\Http\Controllers\ExtraController;
-use App\Http\Controllers\CoffeeController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\ParkingController;
-use App\Http\Controllers\HelpDeskController;
-use App\Http\Controllers\PrintingController;
+use App\Http\Controllers\AgrementUploadController;
+use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\BoardroomController;
 use App\Http\Controllers\ClosedOfficeController;
-use App\Http\Controllers\BankingDetailController;
-use App\Http\Controllers\DedicatedDeskController;
-use App\Http\Controllers\AgrementUploadController;
-use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\ClosedOfficeRateController;
+use App\Http\Controllers\CoffeeController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\DedicatedDeskController;
+use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\ExtraController;
+use App\Http\Controllers\HelpDeskController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\ParkingController;
+use App\Http\Controllers\PaymentGatewayController;
+use App\Http\Controllers\PrintingController;
 
 
 Route::middleware(['web', 'auth', 'verified'])
@@ -62,6 +63,16 @@ Route::middleware(['web', 'auth', 'verified'])
                 'edit' => 'invoices.edit',
                 'update' => 'invoices.update',
                 'destroy' => 'invoices.destroy',
+        ]);
+
+        Route::resource('discounts', DiscountController::class)->names([
+                'index' => 'discounts.index',
+                'create' => 'discount.create',
+                'store' => 'discounts.store',
+                'show' => 'discount.show',
+                'edit' => 'discount.edit',
+                'update' => 'discount.update',
+                'destroy' => 'discount.destroy',
         ]);
 
         Route::post('/invoice/send-invoice', [InvoiceController::class, 'sendInvoice'])->name('invoice.send-invoice');

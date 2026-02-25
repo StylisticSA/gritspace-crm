@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Extra;
-use App\Models\Office;
 use App\Models\Amenity;
 use App\Models\Booking;
-use App\Models\Parking;
 use App\Models\Category;
+use App\Models\Discount;
+use App\Models\Extra;
 use App\Models\Location;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Office;
 use App\Models\OfficePricing;
-use Illuminate\Support\Facades\DB;
+use App\Models\Parking;
+use App\Models\User;
 use App\Notifications\BookingNotification;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class ClosedBookingController extends Controller
 {
@@ -171,6 +172,7 @@ class ClosedBookingController extends Controller
      */
     public function edit(Office $closed)
     {
+       
         $locations = Location::select('id', 'name')->get();
 
         $pricings = OfficePricing::select('id', 'category_name', 'pricing_type', 'rate')
@@ -227,6 +229,8 @@ class ClosedBookingController extends Controller
                     ->where('is_available', 1)->get();
 
 
+        $discount = Discount::where('office_id',$closed->id)
+                    ->where('office_type', 'closed')->first(['name','discount']);
 
         return Inertia::render('Bookings/Closed/EditClosed', [
             'office' => $closed->load(['location', 'pricing', 'amenities']),
@@ -236,6 +240,7 @@ class ClosedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
             'parking' => $parking,
+            'discount' => $discount,
         ]);
     }
 

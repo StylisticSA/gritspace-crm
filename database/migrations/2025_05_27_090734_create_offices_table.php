@@ -16,12 +16,11 @@ return new class () extends Migration {
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
 
-            $table->string('office_name');
+            $table->string('office_name')->index();
             $table->integer('seats')->nullable();
             $table->decimal('monthly_rate', 8, 2)->nullable();
             $table->decimal('daily_rate', 8, 2)->nullable();
-            $table->decimal('price_premium', 8, 2)->nullable();
-            $table->decimal('price_standard', 8, 2)->nullable();
+            $table->unsignedInteger('free_boardroom_hours')->nullable();
 
             $table->boolean('is_available')->nullable(false);
             $table->date('available_dates')->nullable();

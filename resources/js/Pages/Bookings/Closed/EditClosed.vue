@@ -25,6 +25,11 @@ interface Parking {
     code: string;
 }
 
+interface Discount {
+    name: string;
+    discount: number;
+}
+
 interface Office {
     id?: number;
     office_name?: string;
@@ -35,6 +40,7 @@ interface Office {
     daily_rate?: number;
     price_premium?: number;
     price_standard?: number;
+    free_boardroom_hours?: number;
     amenities?: Amenity[];
 }
 
@@ -43,7 +49,10 @@ const props = defineProps<{
     categories: Category[];
     bookedDates: string[];
     parking: Parking;
+    discount: Discount;
 }>();
+
+console.log('d', props.discount);
 
 const { props: pageProps } = usePage();
 const category = props.categories.find(cat => cat.id === props.office.category_id);
@@ -137,21 +146,35 @@ if (flashMessage) {
 
                             <!-- Pricing Summary -->
                             <div class="pt-4 border-t border-gray-200">
-                                <h4 class="font-semibold text-gray-800">Pricing Options</h4>
-                                <ul class="mt-2 space-y-1 text-sm text-gray-700">
-                                    <li v-if="office.monthly_rate">
-                                        Monthly: <strong>R{{ office.monthly_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.daily_rate">
-                                        Daily: <strong>R{{ office.daily_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.price_premium">
-                                        Premium: <strong>R{{ office.price_premium }}</strong>
-                                    </li>
-                                    <li v-if="office.price_standard">
-                                        Standard: <strong>R{{ office.price_standard }}</strong>
-                                    </li>
-                                </ul>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                    <!-- First column: Pricing Options -->
+                                    <div class="md:col-span-1">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
+                                        <ul class="space-y-1 text-sm text-gray-700">
+                                            <li v-if="office.monthly_rate">
+                                                Monthly: <strong>R{{ office.monthly_rate }}</strong>
+                                            </li>
+                                            <li v-if="office.daily_rate">
+                                                Daily: <strong>R{{ office.daily_rate }}</strong>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Second column: Discounts -->
+                                    <div class="md:col-span-2">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li v-if="office.free_boardroom_hours">
+                                                Includes <strong>{{ office.free_boardroom_hours }}</strong> free
+                                                boardroom hours per month (For monthly bookings, not daily.)
+                                            </li>
+                                            <li v-if="props.discount && props.discount.discount">
+                                                It has <strong>{{ props.discount.discount }}%</strong> discount on
+                                                boardrooms, after free has expired.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -22,6 +22,7 @@ class Office extends Model
         'category_id',
         'price_premium',
         'price_standard',
+        'free_boardroom_hours',
         'is_available',
         'available_dates',
     ];

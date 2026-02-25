@@ -31,10 +31,16 @@ interface Office {
     amenities?: Amenity[];
 }
 
+interface Discount {
+    name: string;
+    discount: number;
+}
+
 const props = defineProps<{
     office: Office;
     categories: Category[];
     bookedDates: string[];
+    discount: Discount;
 }>();
 
 const { props: pageProps } = usePage();
@@ -129,21 +135,31 @@ if (flashMessage) {
 
                             <!-- Pricing Summary -->
                             <div class="pt-4 border-t border-gray-200">
-                                <h4 class="font-semibold text-gray-800">Pricing Options</h4>
-                                <ul class="mt-2 space-y-1 text-sm text-gray-700">
-                                    <li v-if="office.monthly_rate">
-                                        Premium Monthly Rate: <strong>R{{ office.monthly_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.daily_rate">
-                                        Standard Monthly Rate: <strong>R{{ office.daily_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.price_premium">
-                                        Premium: <strong>R{{ office.price_premium }}</strong>
-                                    </li>
-                                    <li v-if="office.price_standard">
-                                        Standard: <strong>R{{ office.price_standard }}</strong>
-                                    </li>
-                                </ul>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                    <!-- First column: Pricing Options -->
+                                    <div class="md:col-span-1">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
+                                        <ul class="mt-2 space-y-1 text-sm text-gray-700">
+                                            <li v-if="office.monthly_rate">
+                                                Premium Monthly Rate: <strong>R{{ office.monthly_rate }}</strong>
+                                            </li>
+                                            <li v-if="office.daily_rate">
+                                                Standard Monthly Rate: <strong>R{{ office.daily_rate }}</strong>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Second column: Discounts -->
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li v-if="props.discount && props.discount.discount">
+                                                It has <strong>{{ props.discount.discount }}%</strong> discount on
+                                                boardrooms.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

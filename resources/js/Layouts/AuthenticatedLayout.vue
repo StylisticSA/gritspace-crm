@@ -349,6 +349,9 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                                         <DropdownLink :href="route('admin.parking.index')"
                                                             >Parking</DropdownLink
                                                         >
+                                                        <DropdownLink :href="route('admin.discounts.index')"
+                                                            >Discounts</DropdownLink
+                                                        >
                                                     </template>
                                                 </Dropdown>
 

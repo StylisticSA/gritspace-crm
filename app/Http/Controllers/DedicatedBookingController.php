@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Office;
 use App\Models\Amenity;
 use App\Models\Booking;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Location;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Office;
 use App\Models\OfficePricing;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 use App\Notifications\BookingNotification;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class DedicatedBookingController extends Controller
 {
@@ -260,6 +261,8 @@ class DedicatedBookingController extends Controller
             ->values();
 
             // dd($dedicated);
+        $discount = Discount::where('office_id',$dedicated->id)
+                    ->where('office_type', 'dedicated')->first(['name','discount']);
 
         return Inertia::render('Bookings/Dedicated/EditDedicated', [
             'office' => $dedicated->load(['location', 'pricing', 'amenities']),
@@ -268,6 +271,7 @@ class DedicatedBookingController extends Controller
             'amenities' => $amenities,
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
+            'discount' => $discount,
         ]);
     }
 
