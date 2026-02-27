@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Note;
 use App\Models\Amenity;
-use App\Models\Booking;
-use App\Models\Location;
-use App\Models\PaymentGateway;
 use App\Models\BoardroomBooking;
+use App\Models\FreeHours;
+use App\Models\Location;
+use App\Models\Note;
+use App\Models\PaymentGateway;
 use Illuminate\Database\Eloquent\Model;
 
 class Boardroom extends Model
@@ -27,6 +27,11 @@ class Boardroom extends Model
     public function boardroombookings()
     {
         return $this->hasMany(BoardroomBooking::class);
+    }
+
+    public function hours()
+    {
+        return $this->hasMany(FreeHours::class);
     }
 
     public function notes()

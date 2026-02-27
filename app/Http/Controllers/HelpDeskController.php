@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Amenity;
+use App\Models\Discount;
 use App\Models\HelpDesk;
 use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class HelpDeskController extends Controller
 {
@@ -100,10 +101,12 @@ class HelpDeskController extends Controller
 
         $helpDesks = $helpDesk->load(['amenities']);
 
+     
         return Inertia::render('HelpDesk/EditHelpDesk', [
             'helpDesks' => $helpDesks,
             'locations' => $locations,
             'amenities' => $amenities,
+           
         ]);
     }
 

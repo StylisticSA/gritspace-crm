@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\User;
-use Inertia\Inertia;
+use App\Models\Discount;
 use App\Models\Location;
-use Illuminate\Http\Request;
 use App\Models\OfficePricing;
-use App\Models\VirtualOffice;
+use App\Models\User;
 use App\Models\VirtualBooking;
-use Illuminate\Support\Facades\DB;
+use App\Models\VirtualOffice;
 use App\Notifications\VirtualBookingNotification;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class VirtualBookingController extends Controller
 {
@@ -64,13 +65,15 @@ class VirtualBookingController extends Controller
 
         $virtuals = $virtual->load(['location','amenities']);
 
-       
+        $discount = Discount::where('virtual_office_id',$virtual->id)
+                   ->where('office_type', 'virtuals')->first(['name','discount']);
 
         return Inertia::render('Bookings/Virtual/EditVirtual', [
             'virtual'       => $virtuals,
             'locations'     => $locations,
             'pricings'      => $pricings,
-            'bookedRange'   => $bookedRanges,
+            'bookedRange'   => $bookedRanges,  
+            'discount'      => $discount,
         ]);
 
 

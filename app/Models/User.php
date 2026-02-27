@@ -2,19 +2,20 @@
 
 namespace App\Models;
 
-use App\Models\Role;
-use App\Models\Printing;
-use App\Models\Permission;
 use App\Models\AgrementUpload;
-use App\Models\HotDeskBooking;
-use App\Models\VirtualBooking;
 use App\Models\BoardroomBooking;
-use App\Models\ClosedOfficeRate;
 use App\Models\ClientInformation;
-use Illuminate\Notifications\Notifiable;
+use App\Models\ClosedOfficeRate;
+use App\Models\FreeHours;
+use App\Models\HotDeskBooking;
+use App\Models\Permission;
+use App\Models\Printing;
+use App\Models\Role;
+use App\Models\VirtualBooking;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -85,6 +86,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function closedRates()
     {
         return $this->hasMany(ClosedOfficeRate::class);
+    }
+
+    public function hours()
+    {
+        return $this->hasMany(FreeHours::class);
     }
 
     public function roles()

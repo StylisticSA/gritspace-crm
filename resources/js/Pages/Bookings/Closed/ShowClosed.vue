@@ -147,6 +147,7 @@ const approveBooking = id => {
             onSuccess: () => {
                 message.value = 'Office status changed to Approved';
                 status.value = 'success';
+                refreshNotifications();
 
                 setTimeout(() => {
                     router.reload({ preserveScroll: true });
@@ -169,6 +170,7 @@ const paidBooking = id => {
             onSuccess: () => {
                 message.value = 'Office status changed to Paid';
                 status.value = 'success';
+                refreshNotifications();
 
                 setTimeout(() => {
                     router.reload({ preserveScroll: true });
@@ -194,6 +196,7 @@ const rejectBooking = id => {
                 onSuccess: () => {
                     message.value = '';
                     status.value = 'deleted';
+                    refreshNotifications();
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });
@@ -221,6 +224,7 @@ const cancelBooking = id => {
                 onSuccess: () => {
                     message.value = '';
                     status.value = 'cancelled';
+                    refreshNotifications();
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });

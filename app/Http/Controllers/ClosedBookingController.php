@@ -57,9 +57,6 @@ class ClosedBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
-                        // dd(!empty($search));
-
-        } else {
 
             $bookings = Booking::with(['office','office.location', 'category'])
                 ->whereHas('category', function ($query) {
@@ -288,12 +285,10 @@ class ClosedBookingController extends Controller
      */
     public function approve(Request $request, Booking $closed)
     {
-        // dd($request, $closed);
 
         $closed->update([
             'status' => 'approved',
         ]);
-
 
         $office = Office::findOrFail($closed->office_id);
 

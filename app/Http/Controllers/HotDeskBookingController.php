@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Office;
+use App\Models\Discount;
 use App\Models\HelpDesk;
-use App\Models\Location;
-use Illuminate\Http\Request;
 use App\Models\HotDeskBooking;
-use Illuminate\Support\Facades\DB;
+use App\Models\Location;
+use App\Models\User;
 use App\Notifications\HotDeskBookingNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class HotDeskBookingController extends Controller
 {
@@ -23,11 +23,13 @@ class HotDeskBookingController extends Controller
 
         $hotdesks = $hotDesk->load(['location', 'amenities']);
 
-        // dd($hotdesks);
+        $discount = Discount::where('help_desk_id',$hotDesk->id)
+                   ->where('office_type', 'hotdesk')->first(['name','discount']);
 
         return Inertia::render('Bookings/HotDesks/EditHotDesk', [
-             'helpDesks' => $hotdesks,
-             'locations' => $locations,
+            'helpDesks' => $hotdesks,
+            'locations' => $locations,
+            'discount' => $discount,
         ]);
 
     }

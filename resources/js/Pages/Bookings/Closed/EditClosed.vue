@@ -52,8 +52,6 @@ const props = defineProps<{
     discount: Discount;
 }>();
 
-console.log('d', props.discount);
-
 const { props: pageProps } = usePage();
 const category = props.categories.find(cat => cat.id === props.office.category_id);
 const categoryName = category?.name ?? '';

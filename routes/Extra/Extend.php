@@ -10,12 +10,15 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DedicatedDeskController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\ExtraController;
+use App\Http\Controllers\FreeHoursController;
 use App\Http\Controllers\HelpDeskController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\NotifyController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PrintingController;
+use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['web', 'auth', 'verified'])
@@ -23,6 +26,8 @@ Route::middleware(['web', 'auth', 'verified'])
     ->name('admin.')
     ->group(function () {
 
+        Route::get('notify', [NotifyController::class, 'index'])->name('notify');
+        
         Route::resource('closed-office-rates', ClosedOfficeRateController::class)->names([
                         'index' => 'closedrate.index',
                         'create' => 'closedrate.create',
@@ -100,6 +105,13 @@ Route::middleware(['web', 'auth', 'verified'])
                         'destroy' => 'coffee.destroy',
                 ]);
 
+        Route::resource('hours', FreeHoursController::class)->names([
+                        'index' => 'hours.index',
+                        'create' => 'hours.create',
+                        'edit' => 'hours.edit',
+                        'update' => 'hours.update',
+                        'destroy' => 'hours.destroy',
+                ]);
 
         Route::resource('printing-admin', PrintingController::class)->names([
                         'index' => 'printing.index',

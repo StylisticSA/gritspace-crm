@@ -8,6 +8,7 @@ use App\Models\Office;
 use App\Models\VirtualOffice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class DiscountController extends Controller
@@ -73,14 +74,15 @@ class DiscountController extends Controller
      */
     public function store(Request $request)
     {
-     
+        // dd($request);
+
         $validated = $request->validate([
             'office_id'             => 'nullable|required_without_all:help_desk_id,virtual_office_id',
             'help_desk_id'          => 'nullable|required_without_all:office_id,virtual_office_id',
             'virtual_office_id'     => 'nullable|required_without_all:office_id,help_desk_id',
-            'discount'          => 'required|numeric|min:0|max:100',
-            'name'              => 'nullable',
-            'selectedCategory'  => 'nullable',
+            'discount'              => 'required|numeric|min:0|max:100',
+            'name'                  => 'nullable',
+            'selectedCategory'      => 'nullable',
         ], [
             'office_id.required_without_all'   => 'Please select at least one office type.',
             'help_desk_id.required_without_all' => 'Please select at least one office type.',
@@ -90,6 +92,27 @@ class DiscountController extends Controller
      
         $validated['office_type'] = $validated['selectedCategory'];
         unset($validated['selectedCategory']);
+
+        $exists = Discount::where('office_id', $validated['office_id'] ?? null)
+            ->where('help_desk_id', $validated['help_desk_id'] ?? null)
+            ->where('virtual_office_id', $validated['virtual_office_id'] ?? null)
+            ->exists();
+
+        if ($exists) {
+            $errors = [];
+
+            if (!empty($validated['office_id'])) {
+                $errors['office_id'] = 'A discount for this office already exists.';
+            }
+            if (!empty($validated['help_desk_id'])) {
+                $errors['help_desk_id'] = 'A discount for this help desk already exists.';
+            }
+            if (!empty($validated['virtual_office_id'])) {
+                $errors['virtual_office_id'] = 'A discount for this virtual office already exists.';
+            }
+
+            throw ValidationException::withMessages($errors);
+        }
 
         Discount::create($validated);
 

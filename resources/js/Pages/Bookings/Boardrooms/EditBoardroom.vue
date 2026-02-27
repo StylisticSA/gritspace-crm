@@ -26,10 +26,19 @@ interface Boardroom {
     amenities?: Amenity[];
 }
 
+interface discount {
+    name: string;
+    discount: number;
+}
+
 const props = defineProps<{
     boardroom: Boardroom;
     locations: Location[];
     amenities: Amenity[];
+    closedDiscount: discount;
+    dedicatedDiscount: discount;
+    hotdeskDiscount: discount;
+    virtualDiscount: discount;
 }>();
 
 const pricingOptions = {
@@ -63,46 +72,85 @@ const selectedPlan = ref<string | null>(null);
                             </Link>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
-                            <div class="space-y-2">
-                                <p><strong>Location:</strong> {{ boardroom.location?.name || 'N/A' }}</p>
-                                <p><strong>Seats:</strong> {{ boardroom.seats ?? 'N/A' }}</p>
+                        <!-- Details -->
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <p><strong>Location:</strong> {{ boardroom.location?.name || 'N/A' }}</p>
+                                    <p><strong>Seats:</strong> {{ boardroom.seats ?? 'N/A' }}</p>
+                                </div>
+
+                                <div class="md:col-span-1">
+                                    <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
+                                    <ul class="space-y-1 text-sm text-gray-700">
+                                        <li>
+                                            Hourly Rate: <strong>R{{ boardroom.hourly_price ?? '0.00' }}</strong>
+                                        </li>
+                                        <li>
+                                            Full Day Rate: <strong>R{{ boardroom.daily_price ?? '0.00' }}</strong>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
 
-                            <div v-if="boardroom.amenities?.length">
-                                <p><strong>Amenities:</strong></p>
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    <span
-                                        v-for="(a, index) in boardroom.amenities"
-                                        :key="a.id"
-                                        :style="{
-                                            backgroundColor: [
-                                                '#b99456',
-                                                '#8a920e',
-                                                '#8895a6',
-                                                '#5c732b',
-                                                '#323c44',
-                                                '#c56641',
-                                            ][index % 6],
-                                        }"
-                                        class="px-2 py-1 text-xs text-white rounded">
-                                        {{ a.amenity_name }}
-                                    </span>
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
+                                    <div class="md:col-span-2">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li>
+                                                Includes 15 free boardroom hours per month (For
+                                                <strong>Closed Office</strong> monthly bookings)
+                                            </li>
+                                            <li v-if="props.closedDiscount && props.closedDiscount?.discount">
+                                                You Booked Closed Office, It has
+                                                <strong>{{ props.closedDiscount?.discount }}%</strong> discount on
+                                                boardrooms.
+                                            </li>
+                                            <li v-if="props.hotdeskDiscount && props.hotdeskDiscount?.discount">
+                                                You Booked Hot Desk Office, It has
+                                                <strong>{{ props.hotdeskDiscount?.discount }}%</strong> discount on
+                                                boardrooms.
+                                            </li>
+                                            <li v-if="props.virtualDiscount && props.virtualDiscount?.discount">
+                                                You Booked a Virtual Office, It has
+                                                <strong>{{ props.virtualDiscount?.discount }}%</strong> discount on
+                                                boardrooms.
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Price Selection -->
-                        <div class="pt-4 border-t border-gray-200">
-                            <h4 class="font-semibold text-gray-800">Pricing Options</h4>
-                            <ul class="mt-2 space-y-1 text-sm text-gray-700">
-                                <li>
-                                    Hourly Rate: <strong>R{{ boardroom.hourly_price ?? '0.00' }}</strong>
-                                </li>
-                                <li>
-                                    Full Day Rate: <strong>R{{ boardroom.daily_price ?? '0.00' }}</strong>
-                                </li>
-                            </ul>
+                        <div class="space-y-6 pt-4 border-t border-gray-200">
+                            <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
+                                <div v-if="boardroom.amenities?.length">
+                                    <h4 class="font-semibold text-gray-800 mb-2">Amenities</h4>
+
+                                    <div class="flex flex-wrap gap-2 mt-1">
+                                        <span
+                                            v-for="(a, index) in boardroom.amenities"
+                                            :key="a.id"
+                                            :style="{
+                                                backgroundColor: [
+                                                    '#b99456',
+                                                    '#8a920e',
+                                                    '#8895a6',
+                                                    '#5c732b',
+                                                    '#323c44',
+                                                    '#c56641',
+                                                ][index % 6],
+                                            }"
+                                            class="px-2 py-1 text-xs text-white rounded">
+                                            {{ a.amenity_name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div v-else>
+                                    <p class="text-primary">It has no amenities</p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Booking Form -->

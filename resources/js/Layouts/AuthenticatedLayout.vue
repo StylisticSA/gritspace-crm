@@ -1,33 +1,53 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import NotificationDropdown from '@/Components/Modals/Nortifications/NotificationDropdown.vue';
+import axios from 'axios';
 
 const showingNavigationDropdown = ref(false);
 
 const page = usePage();
 const can = page.props.can || {};
 
-const props = defineProps({
-    notificationsSummary: Object,
-    adminSummary: Object,
-    notificationsTotal: Number,
-    adminTotal: Number,
-    can: Object,
+const notificationsSummary = ref(page.props.notificationsSummary || {});
+const adminSummary = ref(page.props.adminSummary || {});
+const notificationsTotal = ref(page.props.notificationsTotal || 0);
+const adminTotal = ref(page.props.adminTotal || 0);
+
+const refreshNotifications = () => {
+    router.reload({
+        only: ['notificationsSummary', 'notificationsTotal', 'adminSummary', 'adminTotal'],
+        preserveScroll: true,
+        onSuccess: () => {
+            notificationsSummary.value = page.props.notificationsSummary || {};
+            adminSummary.value = page.props.adminSummary || {};
+            notificationsTotal.value = page.props.notificationsTotal || 0;
+            adminTotal.value = page.props.adminTotal || 0;
+        },
+    });
+};
+
+const loadNotifications = async () => {
+    try {
+        const { data } = await axios.get(route('admin.notify'));
+        notificationsSummary.value = data.notificationsSummary;
+        adminSummary.value = data.adminSummary;
+        notificationsTotal.value = data.notificationsTotal;
+        adminTotal.value = data.adminTotal;
+    } catch (error) {
+        console.error('Failed to load notifications:', error);
+    }
+};
+
+onMounted(() => {
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
 });
-
-// Direct access
-const notificationsSummary = page.props.notificationsSummary || {};
-const adminSummary = page.props.adminSummary || {};
-
-// Totals
-const notificationsTotal = computed(() => page.props.notificationsTotal || 0);
-const adminTotal = computed(() => page.props.adminTotal || 0);
 </script>
 
 <template>
@@ -427,6 +447,12 @@ const adminTotal = computed(() => page.props.adminTotal || 0);
                                                 v-if="can['manage settings']"
                                                 :href="route('admin.notes.index')"
                                                 >Notes</DropdownLink
+                                            >
+
+                                            <DropdownLink
+                                                v-if="can['manage settings']"
+                                                :href="route('admin.hours.index')"
+                                                >Hours</DropdownLink
                                             >
 
                                             <DropdownLink

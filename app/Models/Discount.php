@@ -11,15 +11,18 @@ class Discount extends Model
 {
     protected $guarded = [];
 
-    public function office(){
+    public function office()
+    {
         return $this->belongsTo(Office::class);
     }
 
-    public function hotdesk(){
-        return $this->belongsTo(HelpDesk::class);
+    public function hotdesk()
+    {
+        return $this->belongsTo(HelpDesk::class, 'help_desk_id');
     }
 
-    public function virtuals(){
-        return $this->belongsTo(VirtualOffice::class);
+    public function virtuals()
+    {
+        return $this->belongsTo(VirtualOffice::class, 'virtual_office_id');
     }
 }

@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Inertia\Inertia;
 use App\Models\Amenity;
-use App\Models\Location;
 use App\Models\Boardroom;
-use Illuminate\Http\Request;
 use App\Models\BoardroomBooking;
-use Illuminate\Support\Facades\DB;
+use App\Models\Booking;
+use App\Models\Discount;
+use App\Models\HotDeskBooking;
+use App\Models\Location;
+use App\Models\User;
+use App\Models\VirtualBooking;
 use App\Notifications\BoardroomBookingNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class BoardroomBookingController extends Controller
 {
@@ -70,10 +74,54 @@ class BoardroomBookingController extends Controller
         $amenities = Amenity::select('id', 'amenity_name')->get();
         $boardroom = $bookedboardroom->load(['location', 'amenities']);
 
+        $closed = Booking::with('category')
+                ->where('user_id', auth()->id())
+                ->whereHas('category', fn($q) => 
+                    $q->whereRaw("LOWER(name) IN ('closed office','closed offices')")
+                )->first();
+
+        $dedicated = Booking::with('category')
+                ->where('user_id', auth()->id())
+                ->whereHas('category', fn($q) => 
+                    $q->whereRaw("LOWER(name) IN ('dedicated office','dedicated offices')")
+                )->first();
+
+        $hotdesk = HotDeskBooking::where('user_id', auth()->id())->first();
+
+        $virtual = VirtualBooking::where('user_id', auth()->id())->first();
+
+        
+        $discountClosed = $closed ? Discount::with('office.bookings')->where('office_id', $closed->id)
+                            ->where('office_type', 'closed')
+                            ->first()
+                        : null;
+
+        $discountDedicated = $dedicated ? Discount::with('office.bookings')->where('office_id', $dedicated->id)
+                            ->where('office_type', 'dedicated')
+                            ->first()
+                        : null;
+
+        $discountHotdesk = $hotdesk ? Discount::with('hotdesk.hotdeskbookings')->where('help_desk_id', $hotdesk->id)
+                            ->where('office_type', 'hotdesk')
+                            ->first()
+                        : null;
+
+        $discountVirtual = $virtual ? Discount::with('virtuals.bookings')->where('virtual_office_id', $virtual->id)
+                            ->where('office_type', 'virtuals')
+                            ->first()
+                        : null;
+
+        // dd($discountVirtual);
+
         return Inertia::render('Bookings/Boardrooms/EditBoardroom', [
-            'boardroom' => $boardroom,
-            'locations' => $locations,
-            'amenities' => $amenities
+            'boardroom'         => $boardroom,
+            'locations'         => $locations,
+            'amenities'         => $amenities,
+            'closedDiscount'    => $discountClosed,
+            'dedicatedDiscount' => $discountDedicated,
+            'hotdeskDiscount'   => $discountHotdesk,
+            'virtualsDiscount'  => $discountVirtual,
+            
         ]);
     }
 
