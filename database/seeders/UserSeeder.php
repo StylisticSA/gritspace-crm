@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'admin@admin.com',
             'password' => Hash::make('superadmin'),
+            'is_active' => '1'
             
         ]);
 
@@ -25,7 +26,7 @@ class UserSeeder extends Seeder
             'name' => 'User',
             'email' => 'user@user.com',
             'password' => Hash::make('password'),
-            'is_active' => 'new'
+            'is_active' => '1'
         ]);
     }
 }
