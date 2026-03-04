@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Note;
-use App\Models\User;
-use Inertia\Inertia;
+use App\Models\AgrementUpload;
+use App\Models\BoardroomBooking;
 use App\Models\Booking;
-use App\Models\Invoice;
-use App\Models\Location;
-use App\Models\Printing;
+use App\Models\ClientInformation;
 use App\Models\ClientRate;
 use App\Models\DailyUsage;
-use Illuminate\Http\Request;
-use App\Models\AgrementUpload;
+use App\Models\FreeHours;
 use App\Models\HotDeskBooking;
+use App\Models\Invoice;
+use App\Models\Location;
+use App\Models\Note;
+use App\Models\Printing;
+use App\Models\User;
 use App\Models\VirtualBooking;
-use App\Models\BoardroomBooking;
-use App\Models\ClientInformation;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -306,8 +307,6 @@ class DashboardController extends Controller
 
         $notes = Note::with('user')->latest('created_at')->take(4)->get()->reverse()->values();
 
-
-
         $today = Carbon::today();
 
         $invoiceCounts = Invoice::where('issued_due_date', '>=', $today)
@@ -315,6 +314,14 @@ class DashboardController extends Controller
                             ->groupBy('status')
                             ->pluck('total', 'status');
 
+        $freeHours = FreeHours::select('id','user_id','boardroom_id','hours_used','status','closed_at')
+                    ->where('status','in_progress')->get();
+
+        
+        $statusCounts = FreeHours::select('status', DB::raw('COUNT(*) as total'))
+                        ->whereIn('status', ['in_progress', 'closed'])
+                        ->groupBy('status')
+                        ->pluck('total', 'status');
 
         return Inertia::render('Admin/AdminDashboard', [
             'notes'                 => $notes,
@@ -335,6 +342,10 @@ class DashboardController extends Controller
 
             'locationsWithStats'    => $locationsWithStats,
             'invoiceCounts'         => $invoiceCounts,
+
+            'inProgressCount'       => $statusCounts['in_progress'] ?? 0,
+            'closedCount'           => $statusCounts['closed'] ?? 0,
+
         ]);
 
     }

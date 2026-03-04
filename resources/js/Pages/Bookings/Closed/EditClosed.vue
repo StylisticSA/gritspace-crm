@@ -160,7 +160,7 @@ if (flashMessage) {
 
                                     <!-- Second column: Discounts -->
                                     <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount(s)</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
                                             <li v-if="office.free_boardroom_hours">
                                                 Includes <strong>{{ office.free_boardroom_hours }}</strong> free

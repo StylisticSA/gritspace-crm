@@ -58,6 +58,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
     public function companyDetails()
     {
         return $this->hasOne(ClientInformation::class);
@@ -155,5 +160,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(AgrementUpload::class);
     }
 
-
+    public function freeHours()
+    {
+        return $this->hasMany(FreeHours::class);
+    }
 }

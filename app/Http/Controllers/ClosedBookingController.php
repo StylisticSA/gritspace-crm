@@ -57,7 +57,7 @@ class ClosedBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
-
+        } else {
             $bookings = Booking::with(['office','office.location', 'category'])
                 ->whereHas('category', function ($query) {
                     $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
@@ -169,7 +169,8 @@ class ClosedBookingController extends Controller
      */
     public function edit(Office $closed)
     {
-       
+     
+
         $locations = Location::select('id', 'name')->get();
 
         $pricings = OfficePricing::select('id', 'category_name', 'pricing_type', 'rate')
@@ -228,6 +229,8 @@ class ClosedBookingController extends Controller
 
         $discount = Discount::where('office_id',$closed->id)
                     ->where('office_type', 'closed')->first(['name','discount']);
+        
+       
 
         return Inertia::render('Bookings/Closed/EditClosed', [
             'office' => $closed->load(['location', 'pricing', 'amenities']),

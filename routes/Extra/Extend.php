@@ -111,7 +111,10 @@ Route::middleware(['web', 'auth', 'verified'])
                         'edit' => 'hours.edit',
                         'update' => 'hours.update',
                         'destroy' => 'hours.destroy',
+                        
                 ]);
+
+        Route::get('hour-search', [FreeHoursController::class, 'search'])->name('hours.user');
 
         Route::resource('printing-admin', PrintingController::class)->names([
                         'index' => 'printing.index',

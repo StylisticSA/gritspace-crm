@@ -158,6 +158,7 @@ const selectedPlan = ref<string | null>(null);
                             <BookingBoardroom
                                 :buttonName="boardroom.boardroom_name"
                                 :boardroom-id="boardroom.id"
+                                :discount-closed="props.closedDiscount?.discount"
                                 :pricing-options="pricingOptions"
                                 :available-plans="availablePlans"
                                 :selected-plan="selectedPlan" />

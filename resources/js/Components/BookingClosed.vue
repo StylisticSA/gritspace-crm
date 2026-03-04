@@ -40,8 +40,6 @@ const form = useForm({
     category_id: props.categoryId,
 });
 
-console.log('loc', props.location);
-
 const unitPrice = computed(() => props.pricingOptions[form.plan] || 0);
 
 const weekdaysCount = computed(

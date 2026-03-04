@@ -51,8 +51,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'add permissions',
             'edit bookings',
             'delete bookings',
+            'View dashboard'
         ];
 
+        //permissions on users - view book boardrooms view book extrasview book offices
         foreach ($customPermissions as $permName) {
             $perm = Permission::create(['name' => $permName]);
             $allPermissions[] = $perm->id;

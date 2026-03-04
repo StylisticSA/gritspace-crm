@@ -7,6 +7,7 @@ use App\Models\Boardroom;
 use App\Models\BoardroomBooking;
 use App\Models\Booking;
 use App\Models\Discount;
+use App\Models\FreeHours;
 use App\Models\HotDeskBooking;
 use App\Models\Location;
 use App\Models\User;
@@ -69,6 +70,7 @@ class BoardroomBookingController extends Controller
      */
     public function edit(Boardroom $bookedboardroom)
     {
+        // dd($bookedboardroom);
 
         $locations = Location::select('id', 'name')->get();
         $amenities = Amenity::select('id', 'amenity_name')->get();
@@ -111,7 +113,7 @@ class BoardroomBookingController extends Controller
                             ->first()
                         : null;
 
-        // dd($discountVirtual);
+        $freeHours = FreeHours::where('user_id', auth()->id())->get();
 
         return Inertia::render('Bookings/Boardrooms/EditBoardroom', [
             'boardroom'         => $boardroom,
@@ -130,6 +132,7 @@ class BoardroomBookingController extends Controller
      */
     public function store(Request $request)
     {
+       
 
         $validated = $request->validate([
            'boardroom_id'          => 'required|exists:boardrooms,id',
@@ -143,8 +146,12 @@ class BoardroomBookingController extends Controller
                'array',
            ],
 
-           'months'                => 'required|integer|min:1',
-           'selected_price'        => 'required|numeric|min:0',
+           'months'                 => 'required|integer|min:1',
+           'selected_price'         => 'required|numeric|min:0',
+
+            'discounted_price'      => 'required|numeric|min:0',
+            'discount_percentage'   => 'required|integer|min:0|max:100',
+
 
         ]);
 
@@ -185,6 +192,8 @@ class BoardroomBookingController extends Controller
             ])->withInput();
         }
 
+        // dd($validated);
+
         $booking = BoardroomBooking::create([
             'user_id'         => auth()->id(),
             'boardroom_id'    => $office->id,
@@ -193,6 +202,8 @@ class BoardroomBookingController extends Controller
             'selected_times'  => $validated['selected_times'] ?? null,
             'months'          => $validated['months'] ?? null,
             'selected_price'  => $validated['selected_price'],
+            'discounted_price'    => $validated['discounted_price'],     
+            'discount_percentage' => $validated['discount_percentage'],
             'status'          => 'pending',
         ]);
 

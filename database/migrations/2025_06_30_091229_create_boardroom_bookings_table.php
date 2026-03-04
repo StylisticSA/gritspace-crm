@@ -25,6 +25,8 @@ return new class () extends Migration {
             $table->decimal('selected_price', 10, 2);
             $table->string('status')->default('pending');
 
+            $table->decimal('discounted_price', 10, 2); 
+            $table->unsignedTinyInteger('discount_percentage')->default(0);
 
             $table->timestamps();
 
