@@ -114,7 +114,8 @@ Route::middleware(['web', 'auth', 'verified'])
                         
                 ]);
 
-        Route::get('hour-search', [FreeHoursController::class, 'search'])->name('hours.user');
+        Route::get('hour-search-inprogress', [FreeHoursController::class, 'searchProgress'])->name('hours.user');
+        Route::get('hour-search-closed', [FreeHoursController::class, 'searchClosed'])->name('hours.closed');
 
         Route::resource('printing-admin', PrintingController::class)->names([
                         'index' => 'printing.index',

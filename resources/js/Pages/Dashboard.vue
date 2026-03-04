@@ -243,53 +243,58 @@ const formatDate = dateStr => {
 
                 <!-- 2-column grid -->
                 <div v-if="can['view dashboard']">
-                    <div class="grid grid-cols-1 gap-4 py-5 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-4 pt-2 lg:grid-cols-2">
                         <!-- Extras -->
-                        <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
-                            <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
-                                Extras
-                                <span class="text-sm">Usage from: 23rd - Today</span>
-                            </h3>
-                            <div
-                                class="grid items-center grid-cols-1 gap-4 pt-5 sm:grid-cols-2"
-                                v-show="user">
-                                <!-- Coffee -->
-                                <div
-                                    class="border-r border-gray-200 bg-white px-6 pb-6 pt-6 dark:border-gray-800 dark:bg-white/[0.03]">
-                                    <div class="text-center">
-                                        <h3 class="text-xl font-semibold text-gray-600">Coffee</h3>
-                                        <p class="mt-2 text-5xl font-bold text-gray-900">{{ coffee }}</p>
-                                        <span class="block mt-1 text-sm text-gray-500">cups</span>
-                                    </div>
+                        <div>
+                            <div class="flex flex-col gap-5">
+                                <!-- Extras Block 1 -->
+                                <div class="p-4 text-lg font-semibold text-gray-800 bg-white">
+                                    <h3
+                                        class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
+                                        Extras
+                                        <span class="text-sm">Usage from: 23rd - Today</span>
+                                    </h3>
+                                    <div class="grid items-center grid-cols-1 gap-4 pt-5 sm:grid-cols-2">
+                                        <!-- Coffee -->
+                                        <div
+                                            class="border-r border-gray-200 bg-white px-6 pb-6 pt-6 dark:border-gray-800 dark:bg-white/[0.03]">
+                                            <div class="text-center">
+                                                <h3 class="text-base font-semibold text-gray-600">Coffee</h3>
+                                                <p class="mt-2 text-5xl font-bold text-gray-900">{{ coffee }}</p>
+                                                <span class="block mt-1 text-sm text-gray-500">cups</span>
+                                            </div>
+                                            <div class="flex justify-center mt-6">
+                                                <button
+                                                    @click="showCofeModal = true"
+                                                    class="px-3 py-1 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                                    View
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                    <div class="flex justify-center mt-6">
-                                        <button
-                                            @click="showCofeModal = true"
-                                            class="px-3 py-1 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                            View
-                                        </button>
-                                    </div>
-                                </div>
+                                        <!-- Printed -->
+                                        <div class="px-6 pt-5 pb-5 bg-white border-l border-black md:border-l-0">
+                                            <div class="text-center">
+                                                <h3 class="text-xl font-semibold text-gray-600">Printed</h3>
+                                                <p class="pt-5 text-gray-600 text-md">Color - {{ printColor }}</p>
+                                                <p class="pt-2 text-gray-600 text-md">Black - {{ printBlack }}</p>
+                                            </div>
 
-                                <!-- Printing -->
-                                <div class="px-6 pt-5 pb-5 bg-white border-l border-black md:border-l-0">
-                                    <div class="text-center">
-                                        <h3 class="text-xl font-semibold text-gray-600">Printed</h3>
-                                        <p class="pt-5 text-gray-600 text-md">Color - {{ printColor }}</p>
-                                        <p class="pt-2 text-gray-600 text-md">Black - {{ printBlack }}</p>
-                                    </div>
-
-                                    <div class="flex justify-center pt-5">
-                                        <button
-                                            @click="showPrintModal = true"
-                                            class="px-3 py-1 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                            View
-                                        </button>
+                                            <div class="flex justify-center pt-5">
+                                                <button
+                                                    @click="showPrintModal = true"
+                                                    class="px-3 py-1 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                                    View
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="grid grid-cols-1 gap-4 pt-5 lg:grid-cols-2">
                         <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
                             <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
                                 Invoices

@@ -3,6 +3,7 @@ import { useForm, router } from '@inertiajs/vue3';
 import useStatusMessage from './../../Composables/useStatusMessage';
 
 const props = defineProps({
+    location_id: Number,
     locations: Array,
     agreement: Array,
     show: Boolean,
@@ -13,10 +14,11 @@ const props = defineProps({
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const form = useForm({
-    location_id: '',
+    location_id: props.location_id,
     agreement: null,
 });
 
+console.log('id', props.location_id);
 const handleFileUpload = (event, field) => {
     form[field] = event.target.files[0];
 };
@@ -27,16 +29,18 @@ const submit = () => {
         forceFormData: true,
 
         onSuccess: () => {
-            // form.reset();
-            // props.onClose();
             message.value = 'Agreement file Successfully Uploaded!';
             status.value = 'success';
 
             setTimeout(() => {
                 message.value = '';
                 status.value = '';
-                // router.visit(route('companydetail.index'));
-            }, 3000);
+                router.visit(route('companydetail.index'));
+            }, 4000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
         },
     });
 };

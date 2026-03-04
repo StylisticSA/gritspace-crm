@@ -18,6 +18,7 @@ const amountError = ref(null);
 const statusError = ref(null);
 
 const form = useForm({
+    ids: [],
     user_id: '',
     boardroom_id: '',
     status: '',
@@ -26,10 +27,14 @@ const form = useForm({
     closed_at: '',
 });
 
+const inprogres = ref([]);
+const closed = ref([]);
+
 const boardrooms = ref([]);
 const bookings = ref([]);
 const totalHours = ref('');
 const remainingHours = ref('');
+const hoursUsed = ref('');
 
 watch(
     () => props.user,
@@ -44,20 +49,27 @@ watch(
     async newUserId => {
         if (newUserId) {
             try {
-                const response = await axios.get(route('admin.hours.user'), {
+                const response = await axios.get(route('admin.hours.closed'), {
                     params: { user_id: newUserId },
                 });
+
+                inprogres.value = response.data.hours ?? [];
+                closed.value = response.data.hours_closed ?? [];
 
                 boardrooms.value = response.data.boardrooms ?? [];
                 bookings.value = response.data.bookings ?? [];
                 totalHours.value = response.data.hours_used ?? '';
                 remainingHours.value = response.data.remaining_hours ?? '';
+                hoursUsed.value = response.data.sum_hours_used ?? '';
             } catch (error) {
                 console.error('Error fetching boardrooms:', error);
+                inprogres.value = [];
+                closed.value = [];
                 boardrooms.value = [];
                 bookings.value = [];
                 totalHours.value = '';
                 remainingHours.value = '';
+                hoursUsed.value = '';
             }
         } else {
             boardrooms.value = [];
@@ -86,29 +98,23 @@ watch(
     }
 );
 
-watch(
-    () => props.user,
-    newUser => {
-        form.user_id = newUser ?? '';
-    },
-    { immediate: true }
-);
-
 const submit = () => {
     amountError.value = null;
     statusError.value = null;
-
-    if (Number(form.hours) === 0) {
-        amountError.value = 'Amount must be greater than 0';
-        return;
-    }
 
     if (form.status === 'none') {
         statusError.value = 'Please choose In progress or Closed';
         return;
     }
 
-    form.post(route('admin.hours.store'), {
+    form.ids = inprogres.value.map(item => item.id);
+
+    if (form.ids.length === 0) {
+        console.error('No record IDs found for update');
+        return;
+    }
+
+    form.put(route('admin.hours.update', form.ids[0]), {
         preserveScroll: true,
         onSuccess: () => {
             message.value = 'Boardroom Hours updated successfully';
@@ -117,7 +123,7 @@ const submit = () => {
             setTimeout(() => {
                 router.reload({ preserveScroll: true });
                 router.visit(route('admin.dashboard'));
-            }, 4000);
+            }, 2000);
         },
         onError: errors => {
             message.value = Object.values(errors).join('\n');
@@ -125,28 +131,15 @@ const submit = () => {
         },
     });
 };
-
-const incrementhour = () => {
-    if (form.hours_used === '') form.hours_used = 0;
-    form.hours_used = Math.min(Number(form.hours_used) + 1);
-};
-
-const decrementhour = () => {
-    if (form.hours_used === '' || Number(form.hours_used) <= 1) {
-        form.hours_used = 1;
-    } else {
-        form.hours_used = Number(form.hours_used) - 1;
-    }
-};
 </script>
 
 <template>
     <div
         v-if="show"
         class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto bg-black/60">
-        <div class="w-full max-w-4xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
+        <div class="w-full max-w-6xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
             <div class="flex items-center justify-between mb-5">
-                <h2 class="text-2xl sm:text-2xl">Boardroom Free Hours</h2>
+                <h2 class="text-2xl sm:text-2xl">Close Boardroom Free Hours</h2>
 
                 <button
                     @click="props.onClose"
@@ -233,14 +226,6 @@ const decrementhour = () => {
                                 <label class="flex items-center space-x-2">
                                     <input
                                         type="radio"
-                                        value="in_progress"
-                                        v-model="form.status"
-                                        class="form-radio text-primary" />
-                                    <span>In Progress</span>
-                                </label>
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
                                         value="closed"
                                         v-model="form.status"
                                         class="form-radio text-primary" />
@@ -280,7 +265,7 @@ const decrementhour = () => {
 
                         <!-- Close Date -->
                         <div
-                            class="mb-3"
+                            class="mb-5"
                             v-if="form.status === 'closed'">
                             <label class="block font-medium text-md">Close Date</label>
                             <input
@@ -293,58 +278,80 @@ const decrementhour = () => {
                                 {{ form.errors.closed_at }}
                             </div>
                         </div>
+                        <div class="mt-5">
+                            <div v-if="hoursUsed">
+                                <h4 class="block mb-3 text-xl text-center text-gray-900">Used Hours</h4>
+
+                                <p class="block text-5xl font-semibold text-center text-black">
+                                    {{ hoursUsed }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Hours Counter + Info -->
                     <div>
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                            <div class="text-center border-r border-gray-200">
-                                <label
-                                    for="counter"
-                                    class="block mb-2 text-xl text-center text-gray-900"
-                                    >Hours:</label
-                                >
-                                <div class="flex flex-col items-center my-10 space-y-3">
-                                    <button
-                                        type="button"
-                                        @click="incrementhour"
-                                        class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        +
-                                    </button>
-                                    <input
-                                        type="text"
-                                        id="counter"
-                                        v-model="form.hours_used"
-                                        class="text-sm font-medium text-center border border-gray-300 w-14 h-11 bg-gray-50 focus:ring-primary/60 focus:border-primary/60"
-                                        required />
-                                    <p
-                                        v-if="amountError"
-                                        class="mt-1 text-sm text-red-600">
-                                        {{ amountError }}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        @click="decrementhour"
-                                        class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        –
-                                    </button>
-                                </div>
-                            </div>
-
+                        <div class="grid grid-cols-1 gap-6 mt-5">
                             <hr class="my-2 border-gray-300 md:hidden" />
 
-                            <div>
-                                <div>
-                                    <h3 class="block mb-3 text-xl text-center text-gray-900">Free Hours</h3>
-                                    <p class="block text-5xl font-semibold text-center text-black">{{ totalHours }}</p>
+                            <div v-if="form.user_id && inprogres.length > 0">
+                                <div class="overflow-x-auto">
+                                    <h4 class="block mb-3 text-xl text-gray-900">In Progress</h4>
+
+                                    <table class="w-full">
+                                        <thead>
+                                            <tr class="border-b border-secondary-200 dark:border-secondary-700">
+                                                <th
+                                                    class="text-left py-3 px-4 text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                                    Username
+                                                </th>
+                                                <th
+                                                    class="text-left py-3 px-4 text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                                    Boardrooms
+                                                </th>
+                                                <th
+                                                    class="text-left py-3 px-4 text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                                    Start Date
+                                                </th>
+                                                <th
+                                                    class="text-left py-3 px-4 text-sm font-semibold text-secondary-700 dark:text-secondary-300">
+                                                    Status
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="closed in inprogres"
+                                                :key="closed.id"
+                                                class="border-b border-secondary-100 dark:border-secondary-800 hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors">
+                                                <td class="py-3 px-4">
+                                                    <div>
+                                                        <p class="text-sm font-medium text-secondary-900">
+                                                            {{ closed.user?.name }}
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <span class="text-sm text-secondary-700 dark:text-secondary-300">{{
+                                                        closed.boardroom?.boardroom_name
+                                                    }}</span>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <span class="text-sm text-secondary-700 dark:text-secondary-300">{{
+                                                        closed.start_at
+                                                    }}</span>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                    <span
+                                                        class="px-2 py-1 rounded text-xs font-semibold capitalize bg-yellow-100 text-yellow-800">
+                                                        In Progress
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <hr class="my-5 border-gray-300" />
-                                <div class="mt-5">
-                                    <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
-                                    <p class="block text-3xl font-semibold text-center text-black">
-                                        {{ remainingHours }}
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     </div>

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('is_active')->default(true)->after('password');
+            $table->string('user_type')->nullable()->index()->after('is_active');
+       
         });
     }
 
@@ -22,7 +24,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-             $table->dropColumn('is_active');
+            $table->dropIndex(['user_type']); 
+
+            $table->dropColumn(['is_active', 'user_type']);
         });
+
     }
 };

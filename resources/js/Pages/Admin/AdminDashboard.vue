@@ -4,13 +4,13 @@ import { Head, router } from '@inertiajs/vue3';
 import NoteTrail from '../../Components/NoteTrail.vue';
 import { ref } from 'vue';
 import GlobalNoteModal from '../../Components/Modals/NoteModal.vue';
-import HoursModal from '../../Components/Modals/Hours/HoursModal.vue';
+import HoursModal from '../../Components/Modals/Hours/ProgressHoursModal.vue';
+import CloseHoursModal from '../../Components/Modals/Hours/CloseHoursModal.vue';
 import PlanModal from '../../Components/Modals/PlanModal.vue';
 import CoffeeModal from '../../Components/Modals/CoffeeModal.vue';
 import PrintingModal from '../../Components/Modals/PrintingModal.vue';
 import BoardroomModal from '../../Components/Modals/BoardroomModal.vue';
 import HotDeskModal from '../../Components/Modals/VirtualModal.vue';
-import { format } from 'date-fns';
 
 const props = defineProps({
     notes: Object,
@@ -39,6 +39,7 @@ const props = defineProps({
 
 const showNoteModal = ref(false);
 const showHoursModal = ref(false);
+const showHoursCloseModal = ref(false);
 const showPlanModal = ref(false);
 const showCofeModal = ref(false);
 const showPrintModal = ref(false);
@@ -140,10 +141,81 @@ function viewInvoices() {
                     </div>
                 </div>
 
+                <!-- row 3 -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <!-- Invoices -->
+                    <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
+                        <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
+                            Invoices
+                            <span class="text-sm"></span>
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <!-- Pending -->
+                            <div class="bg-yellow-50 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-yellow-800">Pending</h4>
+                                <p class="text-3xl font-bold text-yellow-900">{{ invoiceCounts.pending ?? 0 }}</p>
+                            </div>
+
+                            <!-- Paid -->
+                            <div class="bg-green-50 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-green-800">Paid</h4>
+                                <p class="text-3xl font-bold text-green-900">{{ invoiceCounts.paid ?? 0 }}</p>
+                            </div>
+
+                            <!-- Cancelled -->
+                            <div class="bg-gray-100 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-gray-700">Cancelled</h4>
+                                <p class="text-3xl font-bold text-gray-900">{{ invoiceCounts.cancelled ?? 0 }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <button
+                                @click="viewInvoices()"
+                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                View All Invoices
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Boardroom Hours -->
+                    <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
+                        <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
+                            Boardroom Hours
+                            <span class="text-sm"></span>
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                            <!-- Pending -->
+                            <div class="bg-green-600 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-white">In Progress</h4>
+                                <p class="text-3xl font-bold text-white">{{ inProgressCount ?? 0 }}</p>
+                            </div>
+
+                            <!-- Paid -->
+                            <div class="bg-bluemain p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-white">Closed</h4>
+                                <p class="text-3xl font-bold text-white">{{ closedCount ?? 0 }}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                            <button
+                                v-if="can['manage settings']"
+                                @click="showHoursModal = true"
+                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                Add Hours
+                            </button>
+                            <button
+                                v-if="can['manage settings']"
+                                @click="showHoursCloseModal = true"
+                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-primary hover:bg-bluemain/60">
+                                Close Hours
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <!-- 2-column grid -->
-                <div class="grid grid-cols-1 gap-4 py-5 lg:grid-cols-3">
-                    <!-- LEFT COLUMN: Two stacked Extras blocks -->
-                    <div class="flex flex-col gap-4">
+                <div class="grid grid-cols-1 gap-4 py-5 lg:grid-cols-2">
+                    <div class="flex flex-col gap-5">
                         <!-- Extras Block 1 -->
                         <div class="p-4 text-lg font-semibold text-gray-800 bg-white">
                             <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
@@ -188,79 +260,7 @@ function viewInvoices() {
                         </div>
                     </div>
 
-                    <!-- Invoices -->
-                    <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
-                        <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
-                            Invoices
-                            <span class="text-sm"></span>
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                            <!-- Pending -->
-                            <div class="bg-yellow-50 p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-yellow-800">Pending</h4>
-                                <p class="text-3xl font-bold text-yellow-900">{{ invoiceCounts.pending ?? 0 }}</p>
-                            </div>
-
-                            <!-- Paid -->
-                            <div class="bg-green-50 p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-green-800">Paid</h4>
-                                <p class="text-3xl font-bold text-green-900">{{ invoiceCounts.paid ?? 0 }}</p>
-                            </div>
-
-                            <!-- Cancelled -->
-                            <div class="bg-gray-100 p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-gray-700">Cancelled</h4>
-                                <p class="text-3xl font-bold text-gray-900">{{ invoiceCounts.cancelled ?? 0 }}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <button
-                                @click="viewInvoices()"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                View All Invoices
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Boardroom Hours -->
-                    <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
-                        <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
-                            Boardroom Hours
-                            <span class="text-sm"></span>
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
-                            <!-- Pending -->
-                            <div class="bg-green-600 p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-white">In Progress</h4>
-                                <p class="text-3xl font-bold text-white">{{ inProgressCount ?? 0 }}</p>
-                            </div>
-
-                            <!-- Paid -->
-                            <div class="bg-bluemain p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-white">Closed</h4>
-                                <p class="text-3xl font-bold text-white">{{ closedCount ?? 0 }}</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
-                            <button
-                                @click="viewInvoices()"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                View All Hours
-                            </button>
-                            <button
-                                v-if="can['manage settings']"
-                                @click="showHoursModal = true"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-primary hover:bg-bluemain/60">
-                                Add Hours
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- row 3 -->
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- RIGHT COLUMN: Recent Notes spans full height on desktop -->
+                    <!-- Notes -->
                     <div class="p-4 overflow-y-auto bg-white rounded shadow lg:row-span-3">
                         <h3 class="flex justify-between mb-3 text-lg font-semibold text-gray-800">
                             Recent Notes
@@ -283,6 +283,12 @@ function viewInvoices() {
                 :can="can"
                 :show="showHoursModal"
                 :onClose="() => (showHoursModal = false)" />
+
+            <CloseHoursModal
+                :users="users"
+                :can="can"
+                :show="showHoursCloseModal"
+                :onClose="() => (showHoursCloseModal = false)" />
 
             <PlanModal
                 :users="users"

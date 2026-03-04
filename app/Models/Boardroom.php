@@ -26,7 +26,7 @@ class Boardroom extends Model
 
     public function boardroombookings()
     {
-        return $this->hasMany(BoardroomBooking::class);
+        return $this->hasMany(BoardroomBooking::class, 'boardroom_id');
     }
 
     public function hours()
