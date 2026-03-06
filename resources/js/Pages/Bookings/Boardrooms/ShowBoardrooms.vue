@@ -4,19 +4,76 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
     can: Object,
+    approvedBoardrooms: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
+
 const showNoteModal = ref(false);
+const showAvailModal = ref(false);
+const showModal = ref(false);
+const showDatesModal = ref(false);
+const showViewModal = ref(false);
+
+const bookingToDelete = ref(null);
+const selectedBooking = ref(null);
+const selectedDates = ref(null);
+
+const pendingCount = computed(() => props.approvedBoardrooms?.length ?? 0);
+
+const viewDatesModal = booking => {
+    selectedDates.value = booking;
+    showDatesModal.value = true;
+};
+
+const openViewModal = booking => {
+    selectedBooking.value = booking;
+    showViewModal.value = true;
+};
+
+const closeViewModal = () => {
+    showViewModal.value = false;
+    selectedBooking.value = null;
+    selectedDates.value = null;
+    window.location.reload();
+};
+
+const formatDate = date => {
+    if (!date) return '—';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-ZA', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+};
+
+// Capitalize helper
+const capitalize = text => {
+    if (!text) return 'N/A';
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+};
+
+// Pagination label formatter
+const formatLabel = label => {
+    if (label === '&laquo; Previous') return 'Prev';
+    if (label === 'Next &raquo;') return 'Next';
+    return label;
+};
+
+const getDateKey = dateStr => {
+    return new Date(dateStr).toISOString().split('T')[0];
+};
 
 watch(search, value => {
     router.get(
@@ -114,9 +171,6 @@ const cancelBooking = id => {
     );
 };
 
-const showModal = ref(false);
-const bookingToDelete = ref(null);
-
 const deleteBooking = () => {
     if (bookingToDelete.value) {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
@@ -132,54 +186,22 @@ const deleteBooking = () => {
     }
 };
 
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
-const selectedDates = ref(null);
-const showDatesModal = ref(false);
+function goToBoardroom(boardroomId) {
+    router.visit(`/booking-boardrooms/${boardroomId}`);
+}
 
-const viewDatesModal = booking => {
-    selectedDates.value = booking;
-    showDatesModal.value = true;
-};
+const allBookings = computed(() => {
+    const boardroom = props.approvedBoardrooms.map(b => ({
+        name: b.boardroom.boardroom_name,
+        type: 'Boardrooms',
+        price: Number(b.selected_price),
+        plan: b.plan,
+        id: b.boardroom_id,
+        months: Number(b.months),
+    }));
 
-const openViewModal = booking => {
-    selectedBooking.value = booking;
-    showViewModal.value = true;
-};
-
-const closeViewModal = () => {
-    showViewModal.value = false;
-    selectedBooking.value = null;
-    selectedDates.value = null;
-    window.location.reload();
-};
-
-const formatDate = date => {
-    if (!date) return '—';
-    const d = new Date(date);
-    return d.toLocaleDateString('en-ZA', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
-};
-
-// Capitalize helper
-const capitalize = text => {
-    if (!text) return 'N/A';
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-};
-
-// Pagination label formatter
-const formatLabel = label => {
-    if (label === '&laquo; Previous') return 'Prev';
-    if (label === 'Next &raquo;') return 'Next';
-    return label;
-};
-
-const getDateKey = dateStr => {
-    return new Date(dateStr).toISOString().split('T')[0];
-};
+    return [...boardroom];
+});
 </script>
 
 <template>
@@ -187,14 +209,27 @@ const getDateKey = dateStr => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Boardrooms</h2>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <!-- Title -->
+                <h2 class="text-lg sm:text-xl font-semibold leading-tight text-gray-800">Booked Boardrooms</h2>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                <!-- Action buttons -->
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
+
+                    <button
+                        @click="showNoteModal = true"
+                        class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white rounded bg-bluemain hover:bg-bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -535,6 +570,13 @@ const getDateKey = dateStr => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

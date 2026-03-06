@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Amenity;
+use App\Models\BoardroomBooking;
 use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Discount;
@@ -68,9 +69,20 @@ class ClosedBookingController extends Controller
 
         }
 
+       
+
+        $approvedClosed = Booking::with(['office','office.location', 'category'])
+                       ->whereHas('category', function ($query) {
+                           $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                       })
+                       ->where('user_id', auth()->id())
+                       ->where('status', 'approved')
+                       ->get();
+
         return Inertia::render('Bookings/Closed/ShowClosed', [
-            'bookings' => $bookings,
-            'users' => $users,
+            'bookings'              => $bookings,
+            'users'                 => $users,
+            'approvedClosed'        => $approvedClosed,
             'filters' => [
                 'search' => $search,
             ]

@@ -55,7 +55,7 @@ class BookingController extends Controller
                         })
                         ->where('user_id', auth()->id())
                         ->where('status', 'approved')
-                        ->get();
+                        ->get(); 
 
         $approvedHotDesk = HotDeskBooking::with('helpdesk')
                         ->where('user_id', auth()->id())

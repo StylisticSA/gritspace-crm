@@ -5,21 +5,30 @@ import { computed, ref, watch } from 'vue';
 import { eachDayOfInterval } from 'date-fns';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
     can: Object,
+    approvedDedicated: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+const pendingCount = computed(() => props.approvedDedicated?.length ?? 0);
 
-const isLoading = ref(false);
-const showNoteModal = ref(false);
-
-const showDatesModal = ref(false);
 const selectedDates = ref(null);
+const isLoading = ref(false);
+const bookingToDelete = ref(null);
+const search = ref(props.filters?.search ?? '');
+const selectedBooking = ref(null);
+
+const showNoteModal = ref(false);
+const showAvailModal = ref(false);
+const showDatesModal = ref(false);
+const showModal = ref(false);
+const showViewModal = ref(false);
 
 const viewDatesModal = booking => {
     selectedDates.value = booking;
@@ -32,7 +41,6 @@ const closeDateModal = () => {
     selectedDates.value = null;
 };
 
-const search = ref(props.filters?.search ?? '');
 watch(search, value => {
     router.get(
         route('bookingdedicated.show'),
@@ -45,9 +53,6 @@ watch(search, value => {
         }
     );
 });
-
-const showModal = ref(false);
-const bookingToDelete = ref(null);
 
 const deleteBooking = () => {
     if (bookingToDelete.value) {
@@ -63,9 +68,6 @@ const deleteBooking = () => {
         });
     }
 };
-
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
 
 const openViewModal = booking => {
     selectedBooking.value = booking;
@@ -202,6 +204,18 @@ function groupByMonth(dates) {
     });
     return grouped;
 }
+
+const allBookings = computed(() => {
+    const dedicated = props.approvedDedicated.map(b => ({
+        name: b.office.office_name,
+        type: 'Dedicated Desk',
+        plan: b.plan,
+        price: b.total_price,
+        id: b.office_id,
+    }));
+
+    return [...dedicated];
+});
 </script>
 
 <template>
@@ -209,14 +223,25 @@ function groupByMonth(dates) {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Dedicated Desks</h2>
+                <!-- Action buttons -->
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                    <button
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -562,6 +587,13 @@ function groupByMonth(dates) {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

@@ -36,7 +36,7 @@ class VirtualBookingController extends Controller
          $approvedVirtuals = VirtualBooking::with('virtualOffice.location')
                             ->where('user_id', auth()->id())
                             ->where('status', 'approved')
-                            ->get();
+                            ->get(); 
 
 
         return Inertia::render('Bookings/Virtual/IndexVirtual', [
@@ -183,7 +183,10 @@ class VirtualBookingController extends Controller
     }
 
     /**
-     * View the booked virtuals.
+     * Approve function
+     *
+     * @param VirtualBooking $virtual
+     * @return void
      */
     public function show(Request $request)
     {
@@ -191,6 +194,12 @@ class VirtualBookingController extends Controller
         $user = auth()->user();
 
         $search = $request->input('search');
+
+        $users = User::with('roles')
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                })->select('id', 'name')
+                ->get();
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
             $bookings = VirtualBooking::with(['user', 'virtualOffice'])
@@ -205,35 +214,34 @@ class VirtualBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
-            $users = User::with('roles')
-                    ->whereHas('roles', function ($query) {
-                        $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
-                    })->select('id', 'name')
-                    ->get();
-
-                    // dd($users);
+           
 
             } else {
-            $bookings = VirtualBooking::with(['virtualOffice', 'user'])
-                        ->where('user_id', $user->id)
-                        ->when($search, function ($query, $search) {
-                            $query->whereHas('user', function ($q) use ($search) {
-                                $q->where('name', 'like', "%{$search}%");
+                $bookings = VirtualBooking::with(['virtualOffice', 'user'])
+                            ->where('user_id', $user->id)
+                            ->when($search, function ($query, $search) {
+                                $query->whereHas('user', function ($q) use ($search) {
+                                    $q->where('name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('virtualOffice', function ($q) use ($search) {
+                                    $q->where('virtualoffice_name', 'like', "%{$search}%");
+                                });
                             })
-                            ->orWhereHas('virtualOffice', function ($q) use ($search) {
-                                $q->where('virtualoffice_name', 'like', "%{$search}%");
-                            });
-                        })
-                        ->latest()
-                        ->paginate(10);
+                            ->latest()
+                            ->paginate(10);
 
 
-        }
+            }
 
+        $approvedVirtuals = VirtualBooking::with('virtualOffice.location')
+                    ->where('user_id', auth()->id())
+                    ->where('status', 'approved')
+                    ->get();  
 
         return Inertia::render('Bookings/Virtual/ShowVirtual', [
-            'bookings' => $bookings,
-            'users' => $users,
+            'bookings'          => $bookings,
+            'users'             => $users,
+            'approvedVirtuals'  => $approvedVirtuals,
             'filters' => [
                 'search' => $search,
             ]
@@ -316,6 +324,12 @@ class VirtualBookingController extends Controller
         return back()->with('success', 'Booking approved successfully.');
     }
 
+    /**
+     * Approve function
+     *
+     * @param VirtualBooking $virtual
+     * @return void
+     */
     public function reject(Request $request, VirtualBooking $virtual)
     {
         $virtual->update([
@@ -346,6 +360,12 @@ class VirtualBookingController extends Controller
         return back()->with('success', 'Booking rejected.');
     }
 
+    /**
+     * Approve function
+     *
+     * @param VirtualBooking $virtual
+     * @return void
+     */
     public function cancel(Request $request, VirtualBooking $virtual)
     {
         $virtual->update([

@@ -4,19 +4,23 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
+    approvedVirtuals: Object,
     can: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+const pendingCount = computed(() => props.approvedVirtuals?.length ?? 0);
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 const showNoteModal = ref(false);
+const showAvailModal = ref(false);
 
 watch(search, value => {
     router.get(
@@ -180,6 +184,19 @@ const groupedDates = computed(() => {
         return acc;
     }, {});
 });
+
+const allBookings = computed(() => {
+    const virtuals = props.approvedVirtuals.map(v => ({
+        name: v.virtual_office?.virtualoffice_name,
+        type: 'Virtuals',
+        price: Number(v.selected_price),
+        plan: v.plan,
+        id: v.id,
+        months: Number(v.months),
+    }));
+
+    return [...virtuals];
+});
 </script>
 
 <template>
@@ -187,14 +204,24 @@ const groupedDates = computed(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Virtual Offices</h2>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                <div class="flex gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="px-4 py-2 text-lg font-medium text-white border border-solid rounded-sm bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
+                    <button
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -538,6 +565,13 @@ const groupedDates = computed(() => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

@@ -160,6 +160,7 @@ class FreeHoursController extends Controller
 
     public function searchProgress(Request $request)
     {
+
         $userId = $request->input('user_id');
 
         $hours = FreeHours::with(['user', 'boardroom', 'user.bookings'])
@@ -167,29 +168,33 @@ class FreeHoursController extends Controller
                 ->where('status', 'in_progress')
                 ->get();
 
-        $hoursUsedTotal = FreeHours::where('user_id', $userId)
-                ->where('status', 'in_progress')
-                ->whereRelation('boardroom', 'id', $request->boardroom_id) 
-                ->sum('hours_used');
+        $bookings = Booking::with(['office','office.location', 'category'])
+                ->where('user_id', $userId)
+                ->whereHas('category', function ($query) {
+                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                })
+                ->where('status', 'paid')
+                ->get();
+
+                dd($bookings);
+
+        $boardrooms = Boardroom::with(['location', 'BoardroomBookings' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                }])->whereHas('BoardroomBookings', function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                })->get();
+
+        
+        $hoursUsedTotal = $hours->sum('hours_used');
 
         $sumTotal = FreeHours::where('user_id', $userId)
                   ->sum('hours_used');
 
         $remainingHours = 15 - (int)$hoursUsedTotal;
 
-        $bookings = Booking::with(['office','office.location', 'category'])
-                ->whereHas('category', function ($query) {
-                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
-                })
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
-                ->get();
-
-        $boardrooms = Boardroom::with(['location', 'BoardroomBookings' => function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        }])->whereHas('BoardroomBookings', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->get();
+        $hoursByBoardroom = $hours->groupBy('boardroom_id')->map(function ($records) {
+            return $records->sum('hours_used');
+        });
 
         return response()->json([
             'hours' => $hours,
@@ -197,10 +202,12 @@ class FreeHoursController extends Controller
             'bookings' => $bookings,
             'hours_used' => $hoursUsedTotal,
             'remaining_hours' => $remainingHours,
-            'sum_hours_used' => $sumTotal
+            
         ]);
 
     }
+
+ 
 
     public function searchClosed(Request $request)
     {

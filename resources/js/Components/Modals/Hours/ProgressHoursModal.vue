@@ -4,7 +4,7 @@ import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 
-const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+const { message, status } = useStatusMessage();
 
 const props = defineProps({
     users: Object,
@@ -53,7 +53,6 @@ watch(
                 bookings.value = response.data.bookings ?? [];
                 totalHours.value = response.data.hours_used ?? '';
                 remainingHours.value = response.data.remaining_hours ?? '';
-                hoursUsed.value = response.data.sum_hours_used ?? '';
             } catch (error) {
                 console.error('Error fetching boardrooms:', error);
                 boardrooms.value = [];
@@ -88,19 +87,11 @@ watch(
     }
 );
 
-watch(
-    () => props.user,
-    newUser => {
-        form.user_id = newUser ?? '';
-    },
-    { immediate: true }
-);
-
 const submit = () => {
     amountError.value = null;
     statusError.value = null;
 
-    if (Number(form.hours) === 0) {
+    if (Number(form.hours_used) === 0) {
         amountError.value = 'Amount must be greater than 0';
         return;
     }
@@ -130,7 +121,7 @@ const submit = () => {
 
 const incrementhour = () => {
     if (form.hours_used === '') form.hours_used = 0;
-    form.hours_used = Math.min(Number(form.hours_used) + 1);
+    form.hours_used = Number(form.hours_used) + 1;
 };
 
 const decrementhour = () => {
@@ -179,192 +170,170 @@ const decrementhour = () => {
                 @submit.prevent="submit"
                 class="mt-10 space-y-6">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                    <div>
-                        <!-- User Selection -->
-                        <div class="mb-3">
-                            <div v-if="can['manage settings']">
-                                <label class="block font-medium text-md">User</label>
-                                <select
-                                    v-model="form.user_id"
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select User</option>
-                                    <option
-                                        v-for="user in users"
-                                        :key="user.id"
-                                        :value="user.id">
-                                        {{ user.name }}
-                                    </option>
-                                </select>
-                                <div
-                                    v-if="form.errors.user_id"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.user_id }}
-                                </div>
-                            </div>
-                            <input
-                                v-else
-                                type="hidden"
-                                v-model="form.user_id" />
-                        </div>
-
-                        <!-- Boardroom Selection -->
-                        <div class="mb-3">
-                            <label class="block font-medium text-md">Boardroom</label>
+                    <!-- User Selection -->
+                    <div class="mb-3">
+                        <div v-if="can['manage settings']">
+                            <label class="block font-medium text-md">User</label>
                             <select
-                                v-model="form.boardroom_id"
+                                v-model="form.user_id"
                                 class="w-full px-3 py-2 border rounded">
-                                <option value="">Select Boardroom</option>
+                                <option value="">Select User</option>
                                 <option
-                                    v-for="room in boardrooms"
-                                    :key="room.id"
-                                    :value="room.id">
-                                    {{ room.boardroom_name }} - {{ room.location?.name }}
+                                    v-for="user in users"
+                                    :key="user.id"
+                                    :value="user.id">
+                                    {{ user.name }}
                                 </option>
                             </select>
-                        </div>
-
-                        <!-- Status Radio Group -->
-                        <div class="mb-5">
-                            <label class="block font-medium text-md mb-2">Status</label>
-                            <p
-                                v-if="statusError"
-                                class="mt-1 text-sm text-red-600">
-                                {{ statusError }}
-                            </p>
-                            <div class="flex space-x-6">
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="in_progress"
-                                        v-model="form.status"
-                                        class="form-radio text-primary" />
-                                    <span>In Progress</span>
-                                </label>
-                                <!-- <label class="flex items-center space-x-2 disabled">
-                                    <input
-                                        type="radio"
-                                        value="closed"
-                                        v-model="form.status"
-                                        class="form-radio text-primary" />
-                                    <span>Closed</span>
-                                </label> -->
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="none"
-                                        v-model="form.status"
-                                        class="form-radio text-primary" />
-                                    <span>None</span>
-                                </label>
-                            </div>
                             <div
-                                v-if="form.errors.status"
+                                v-if="form.errors.user_id"
                                 class="text-sm text-red-600">
-                                {{ form.errors.status }}
+                                {{ form.errors.user_id }}
                             </div>
                         </div>
+                        <input
+                            v-else
+                            type="hidden"
+                            v-model="form.user_id" />
+                    </div>
 
-                        <!-- Start Date -->
+                    <!-- Boardroom Selection -->
+                    <div class="mb-3">
+                        <label class="block font-medium text-md">Boardroom</label>
+                        <select
+                            v-model="form.boardroom_id"
+                            class="w-full px-3 py-2 border rounded">
+                            <option value="">Select Boardroom</option>
+                            <option
+                                v-for="room in boardrooms"
+                                :key="room.id"
+                                :value="room.id">
+                                {{ room.boardroom_name }} - {{ room.location?.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Status Radio Group -->
+                    <div class="mb-5">
+                        <label class="block font-medium text-md mb-2">Status</label>
+                        <p
+                            v-if="statusError"
+                            class="mt-1 text-sm text-red-600">
+                            {{ statusError }}
+                        </p>
+                        <div class="flex space-x-6">
+                            <label class="flex items-center space-x-2">
+                                <input
+                                    type="radio"
+                                    value="in_progress"
+                                    v-model="form.status"
+                                    class="form-radio text-primary" />
+                                <span>In Progress</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input
+                                    type="radio"
+                                    value="none"
+                                    v-model="form.status"
+                                    class="form-radio text-primary" />
+                                <span>None</span>
+                            </label>
+                        </div>
                         <div
-                            class="mb-3"
-                            v-if="form.status === 'in_progress'">
-                            <label class="block font-medium text-md">Start Date</label>
-                            <input
-                                type="date"
-                                v-model="form.start_at"
-                                class="w-full px-3 py-2 border rounded" />
-                            <div
-                                v-if="form.errors.start_at"
-                                class="text-sm text-red-600">
-                                {{ form.errors.start_at }}
-                            </div>
-                        </div>
-
-                        <!-- Close Date -->
-                        <div
-                            class="mb-3"
-                            v-if="form.status === 'closed'">
-                            <label class="block font-medium text-md">Close Date</label>
-                            <input
-                                type="date"
-                                v-model="form.closed_at"
-                                class="w-full px-3 py-2 border rounded" />
-                            <div
-                                v-if="form.errors.closed_at"
-                                class="text-sm text-red-600">
-                                {{ form.errors.closed_at }}
-                            </div>
+                            v-if="form.errors.status"
+                            class="text-sm text-red-600">
+                            {{ form.errors.status }}
                         </div>
                     </div>
 
-                    <!-- Hours Counter + Info -->
+                    <!-- Start Date -->
+                    <div
+                        class="mb-3"
+                        v-if="form.status === 'in_progress'">
+                        <label class="block font-medium text-md">Start Date</label>
+                        <input
+                            type="date"
+                            v-model="form.start_at"
+                            class="w-full px-3 py-2 border rounded" />
+                        <div
+                            v-if="form.errors.start_at"
+                            class="text-sm text-red-600">
+                            {{ form.errors.start_at }}
+                        </div>
+                    </div>
+
+                    <!-- Close Date -->
+                    <div
+                        class="mb-3"
+                        v-if="form.status === 'closed'">
+                        <label class="block font-medium text-md">Close Date</label>
+                        <input
+                            type="date"
+                            v-model="form.closed_at"
+                            class="w-full px-3 py-2 border rounded" />
+                        <div
+                            v-if="form.errors.closed_at"
+                            class="text-sm text-red-600">
+                            {{ form.errors.closed_at }}
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-5 border-gray-300" />
+                <!-- Hours Counter + Info -->
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
+                    <div
+                        class="text-center border-r border-gray-200"
+                        v-if="totalHours < 15">
+                        <label
+                            for="counter"
+                            class="block mb-2 text-xl text-center text-gray-900"
+                            >Hours:</label
+                        >
+                        <div class="flex flex-col items-center my-10 space-y-3">
+                            <button
+                                type="button"
+                                @click="incrementhour"
+                                class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60">
+                                +
+                            </button>
+                            <input
+                                type="text"
+                                id="counter"
+                                v-model="form.hours_used"
+                                class="text-sm font-medium text-center border border-gray-300 w-14 h-11 bg-gray-50"
+                                required />
+                            <p
+                                v-if="amountError"
+                                class="mt-1 text-sm text-red-600">
+                                {{ amountError }}
+                            </p>
+                            <button
+                                type="button"
+                                @click="decrementhour"
+                                class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60">
+                                –
+                            </button>
+                        </div>
+                    </div>
+
                     <div>
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                            <div class="text-center border-r border-gray-200">
-                                <label
-                                    for="counter"
-                                    class="block mb-2 text-xl text-center text-gray-900"
-                                    >Hours:</label
-                                >
-                                <div class="flex flex-col items-center my-10 space-y-3">
-                                    <button
-                                        type="button"
-                                        @click="incrementhour"
-                                        class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        +
-                                    </button>
-                                    <input
-                                        type="text"
-                                        id="counter"
-                                        v-model="form.hours_used"
-                                        class="text-sm font-medium text-center border border-gray-300 w-14 h-11 bg-gray-50 focus:ring-primary/60 focus:border-primary/60"
-                                        required />
-                                    <p
-                                        v-if="amountError"
-                                        class="mt-1 text-sm text-red-600">
-                                        {{ amountError }}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        @click="decrementhour"
-                                        class="text-lg font-bold text-gray-900 bg-gray-100 border border-gray-300 rounded w-11 h-11 hover:bg-primary/60 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        –
-                                    </button>
-                                </div>
-                            </div>
-
-                            <hr class="my-2 border-gray-300 md:hidden" />
-
-                            <div>
-                                <div v-if="totalHours < hoursUsed">
-                                    <h3 class="block mb-3 text-xl text-center text-gray-900">Free Hours</h3>
-                                    <p class="block text-5xl font-semibold text-center text-black">
-                                        {{ totalHours }}
-                                    </p>
-                                </div>
-                                <div v-if="hoursUsed == totalHours">
-                                    <h3 class="block mb-3 text-xl text-center text-gray-900">Used Hours</h3>
-
-                                    <p class="block text-5xl font-semibold text-center text-black">
-                                        {{ hoursUsed }}
-                                    </p>
-                                </div>
-                                <div
-                                    v-if="totalHours < 15"
-                                    class="mt-5">
-                                    <hr class="my-5 border-gray-300" />
-                                    <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
-                                    <p class="block text-3xl font-semibold text-center text-black">
-                                        {{ remainingHours }}
-                                    </p>
-                                </div>
-                            </div>
+                        <div>
+                            <h3 class="block mb-3 text-xl text-center text-gray-900">Total Hours Used</h3>
+                            <p class="block text-5xl font-semibold text-center text-black">{{ totalHours }}</p>
+                        </div>
+                        <div
+                            v-if="totalHours < 15"
+                            class="mt-8">
+                            <hr class="my-5 border-gray-300" />
+                            <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
+                            <p class="block text-3xl font-semibold text-center text-black">{{ remainingHours }}</p>
                         </div>
                     </div>
                 </div>
 
                 <hr class="my-5 border-gray-300" />
 
+                <!-- Submit + Cancel -->
                 <div class="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <button
                         type="submit"

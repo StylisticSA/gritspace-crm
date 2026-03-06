@@ -62,13 +62,20 @@ class DedicatedBookingController extends Controller
                 ->where('user_id', $user->id)
                 ->latest()
                 ->paginate(10);
-        }
-
-   
+            }
+                
+                $approvedDedicated = Booking::with(['office', 'office.location', 'category'])
+                            ->whereHas('category', function ($query) {
+                                $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
+                            })
+                            ->where('user_id', auth()->id())
+                            ->where('status', 'approved')
+                            ->get();   
 
         return Inertia::render('Bookings/Dedicated/ShowDedicated', [
             'bookings' => $bookings,
             'users' => $users ?? null,
+            'approvedDedicated'    => $approvedDedicated, 
             'filters' => [
                 'search' => $search,
             ]

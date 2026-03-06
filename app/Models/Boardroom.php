@@ -29,7 +29,7 @@ class Boardroom extends Model
         return $this->hasMany(BoardroomBooking::class, 'boardroom_id');
     }
 
-    public function hours()
+    public function freehours()
     {
         return $this->hasMany(FreeHours::class);
     }
@@ -43,4 +43,6 @@ class Boardroom extends Model
     {
         return $this->morphMany(PaymentGateway::class, 'payable');
     }
+
+   
 }

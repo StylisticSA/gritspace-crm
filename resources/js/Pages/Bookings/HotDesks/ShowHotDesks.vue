@@ -4,16 +4,28 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
+    approvedHotDesk: Object,
     can: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+
 const showNoteModal = ref(false);
+const showViewModal = ref(false);
+const showModal = ref(false);
+const showDatesModal = ref(false);
+const showAvailModal = ref(false);
+
+const selectedBooking = ref(null);
+const bookingToDelete = ref(null);
+const selectedDates = ref(null);
+const isLoading = ref(false);
 
 const search = ref(props.filters?.search ?? '');
 watch(search, value => {
@@ -29,20 +41,10 @@ watch(search, value => {
     );
 });
 
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
-
-// Delete logic (e.g. Reject)
-const showModal = ref(false);
-const bookingToDelete = ref(null);
-
 const confirmDelete = id => {
     showModal.value = true;
     bookingToDelete.value = id;
 };
-
-const selectedDates = ref(null);
-const showDatesModal = ref(false);
 
 const viewDatesModal = booking => {
     selectedDates.value = booking;
@@ -64,8 +66,6 @@ const closeDatesModal = () => {
     showDatesModal.value = false;
     selectedDates.value = null;
 };
-
-const isLoading = ref(false);
 
 const paidBooking = id => {
     if (!id) return;
@@ -244,6 +244,20 @@ const groupedModalDates = computed(() => {
 
     return groups;
 });
+
+const pendingCount = computed(() => props.approvedHotDesk?.length ?? 0);
+
+const allBookings = computed(() => {
+    const hot = props.approvedHotDesk.map(b => ({
+        name: b.helpdesk?.help_desk_name,
+        type: 'Hot Desk',
+        plan: b.plan,
+        price: b.selected_price,
+        id: b.helpdesk_id,
+    }));
+
+    return [...hot];
+});
 </script>
 
 <template>
@@ -251,14 +265,23 @@ const groupedModalDates = computed(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Hot Desks</h2>
-
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                <div class="flex gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="px-4 py-2 text-lg text-lgd text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
+                    <button
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -638,6 +661,13 @@ const groupedModalDates = computed(() => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

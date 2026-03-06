@@ -4,25 +4,33 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
     can: Object,
+    approvedClosed: Object,
 });
 
-const showNoteModal = ref(false);
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 
+const showNoteModal = ref(false);
 const showDatesModal = ref(false);
 const selectedDates = ref(null);
+const showModal = ref(false);
+const bookingToDelete = ref(null);
+const showViewModal = ref(false);
 
 const monthDuration = ref(null);
 const showMonths = ref(false);
+const selectedBooking = ref(null);
+
+const pendingCount = computed(() => props.approvedClosed?.length ?? 0);
 
 const viewDatesModal = booking => {
     if (booking.plan === 'daily') {
@@ -82,9 +90,6 @@ watch(search, value => {
     );
 });
 
-const showModal = ref(false);
-const bookingToDelete = ref(null);
-
 const deleteBooking = () => {
     if (bookingToDelete.value) {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
@@ -102,9 +107,6 @@ const deleteBooking = () => {
         });
     }
 };
-
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
 
 const openViewModal = booking => {
     selectedBooking.value = booking;
@@ -238,6 +240,21 @@ const cancelBooking = id => {
         );
     }
 };
+
+const allBookings = computed(() => {
+    const closed = props.approvedClosed.map(b => ({
+        name: b.office.office_name,
+        type: 'Closed Office',
+        price: b.total_price,
+        plan: b.plan,
+        id: b.office_id,
+        months: b.months,
+        monthly_rate: Number(b.office.monthly_rate),
+        daily_rate: Number(b.office.daily_rate),
+    }));
+
+    return [...closed];
+});
 </script>
 
 <template>
@@ -245,14 +262,25 @@ const cancelBooking = id => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Closed Offices</h2>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
+
+                    <button
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -638,6 +666,13 @@ const cancelBooking = id => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>
