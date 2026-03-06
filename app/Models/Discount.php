@@ -4,12 +4,18 @@ namespace App\Models;
 
 use App\Models\HelpDesk;
 use App\Models\Office;
+use App\Models\User;
 use App\Models\VirtualOffice;
 use Illuminate\Database\Eloquent\Model;
 
 class Discount extends Model
 {
     protected $guarded = [];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function office()
     {

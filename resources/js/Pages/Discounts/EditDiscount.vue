@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { watch, computed } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
@@ -11,28 +11,37 @@ const props = defineProps({
     dedicated: Array,
     hotdesk: Array,
     virtuals: Array,
-    discount: Object, // pass the discount to edit
+    boardrooms: Array,
+    users: Array,
+    discount: Object,
 });
 
 const form = useForm({
-    office_id: props.discount.office_id ?? '',
-    help_desk_id: props.discount.help_desk_id ?? '',
-    virtual_office_id: props.discount.virtual_office_id ?? '',
-    discount: props.discount.discount ?? '',
-    selectedCategory: props.discount.office_type ?? 'none',
-    name: props.discount.name ?? '',
+    user_id: props.discount?.user_id || '',
+    office_id: props.discount?.office_id || '',
+    help_desk_id: props.discount?.help_desk_id || '',
+    virtual_office_id: props.discount?.virtual_office_id || '',
+    boardroom_id: props.discount?.boardroom_id || '',
+    discount: props.discount?.discount || '',
+    selectedCategory: props.discount?.selectedCategory || 'none',
+    name: props.discount?.name || '',
+    packadge: props.discount.packadge || '',
 });
 
 const submit = () => {
     form.put(route('admin.discount.update', props.discount.id), {
         onSuccess: () => {
-            message.value = 'Discount has been Updated Successfully.';
+            message.value = 'Discount has been updated successfully.';
             status.value = 'success';
 
             setTimeout(() => {
                 router.reload({ preserveScroll: true });
                 router.visit(route('admin.discounts.index'));
-            }, 2000);
+            }, 4000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
         },
     });
 };
@@ -43,9 +52,30 @@ watch(
         form.office_id = '';
         form.help_desk_id = '';
         form.virtual_office_id = '';
+        form.boardroom_id = '';
         form.name = '';
     }
 );
+
+const filteredBoardrooms = computed(() => {
+    let selectedOffice = null;
+
+    if (form.selectedCategory === 'closed') {
+        selectedOffice = props.closed.find(o => o.id === form.office_id);
+    } else if (form.selectedCategory === 'dedicated') {
+        selectedOffice = props.dedicated.find(o => o.id === form.office_id);
+    } else if (form.selectedCategory === 'hotdesk') {
+        selectedOffice = props.hotdesk.find(d => d.id === form.help_desk_id);
+    } else if (form.selectedCategory === 'virtuals') {
+        selectedOffice = props.virtuals.find(v => v.id === form.virtual_office_id);
+    }
+
+    if (selectedOffice?.location?.id) {
+        return props.boardrooms.filter(b => b.location?.id === selectedOffice.location.id);
+    }
+
+    return props.boardrooms;
+});
 </script>
 
 <template>
@@ -124,7 +154,7 @@ watch(
                             </div>
 
                             <!-- Office Name Input / Dropdown -->
-                            <div>
+                            <div v-if="form.selectedCategory !== 'none'">
                                 <div
                                     v-if="
                                         form.errors.office_id ||
@@ -140,16 +170,9 @@ watch(
                                 </div>
                                 <label class="block text-lg font-medium text-gray-700">Office Name</label>
 
-                                <!-- None selected -->
-                                <input
-                                    v-if="form.selectedCategory === 'none'"
-                                    v-model="form.name"
-                                    type="text"
-                                    class="w-full px-3 py-2 border rounded" />
-
                                 <!-- Closed -->
                                 <select
-                                    v-else-if="form.selectedCategory === 'closed'"
+                                    v-if="form.selectedCategory === 'closed'"
                                     v-model="form.office_id"
                                     @change="
                                         form.name =
@@ -228,6 +251,58 @@ watch(
                                         :key="virtual.id"
                                         :value="virtual.id">
                                         {{ virtual.virtualoffice_name }} ({{ virtual.location?.name }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- packadge -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Office Packadge</label>
+                                <select
+                                    v-model="form.packadge"
+                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
+                                    <option value="">Select Packadge</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="hourly">Hourly</option>
+                                </select>
+                            </div>
+
+                            <!-- user -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Users</label>
+                                <select
+                                    v-model="form.user_id"
+                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
+                                    <option value="">Select User</option>
+                                    <option
+                                        v-for="user in users"
+                                        :key="user.id"
+                                        :value="user.id">
+                                        {{ user.name }} - ({{ user.company_details?.location?.name }})
+                                    </option>
+                                </select>
+                                <div
+                                    v-if="form.errors.user_id"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.user_id }}
+                                </div>
+                            </div>
+
+                            <!-- Boardroom -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Boardroom</label>
+                                <select
+                                    v-model="form.boardroom_id"
+                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
+                                    <option value="">Select Boardroom</option>
+                                    <option
+                                        v-for="board in filteredBoardrooms"
+                                        :key="board.id"
+                                        :value="board.id">
+                                        {{ board.boardroom_name }} ({{ board.location?.name }})
                                     </option>
                                 </select>
                             </div>

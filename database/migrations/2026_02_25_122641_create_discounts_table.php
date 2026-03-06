@@ -14,12 +14,16 @@ return new class extends Migration
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
             
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('office_id')->nullable()->constrained('offices')->nullOnDelete();
             $table->foreignId('help_desk_id')->nullable()->constrained('help_desks')->nullOnDelete();
             $table->foreignId('virtual_office_id')->nullable()->constrained('virtual_offices')->nullOnDelete();
+            $table->foreignId('boardroom_id')->nullable()->constrained('boardrooms')->nullOnDelete();
             
             $table->string('name')->index();
             $table->string('office_type');
+            $table->string('packadge')->nullable();
+            
             $table->unsignedInteger('discount');
             $table->timestamps();
         });

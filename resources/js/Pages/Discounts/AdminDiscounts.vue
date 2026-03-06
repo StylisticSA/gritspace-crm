@@ -106,10 +106,13 @@ const formatDate = dateStr => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">
+                                        Discounted User
+                                    </th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Type</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Packadge</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Discount</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Created At</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
                             </thead>
@@ -117,6 +120,7 @@ const formatDate = dateStr => {
                                 <tr
                                     v-for="discount in discounts.data"
                                     :key="discount.id">
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.user?.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ discount.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         {{
@@ -126,11 +130,11 @@ const formatDate = dateStr => {
                                                 : ''
                                         }}
                                     </td>
-
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.discount }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
-                                        {{ formatDate(discount.created_at) }}
+                                        {{ discount.packadge.charAt(0).toUpperCase() + discount.packadge.slice(1) }}
                                     </td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.discount }}</td>
+
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button

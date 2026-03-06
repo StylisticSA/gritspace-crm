@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Boardroom;
 use App\Models\Discount;
 use App\Models\HelpDesk;
 use App\Models\Office;
+use App\Models\User;
 use App\Models\VirtualOffice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +22,7 @@ class DiscountController extends Controller
     {
         $search = $request->input('search');
 
-        $discounts = Discount::when($search, function ($query, $search) {
+        $discounts = Discount::with('user')->when($search, function ($query, $search) {
             $query->where('name', 'like', "%{$search}%");
         })
             ->orderByDesc('created_at')
@@ -58,6 +60,15 @@ class DiscountController extends Controller
                         ]);
                     })->get();
 
+        $boardrooms = Boardroom::with(['location'])->get();
+
+        $users = User::with(['companyDetails.location','companyDetails' => function ($query) {
+                    $query->select('id', 'user_id','location_id', 'name'); 
+                }])
+                ->where('is_active', 1)
+                ->whereIn('user_type', ['new', 'existing'])
+                ->get(['id', 'name']);
+
         $hotdesk = HelpDesk::with(['location'])->select('id','location_id','help_desk_name')->get();
         $virtuals = VirtualOffice::with(['location'])->select('id','location_id','virtualoffice_name')->get();
 
@@ -66,6 +77,8 @@ class DiscountController extends Controller
                     'dedicated'  => $dedicated,
                     'hotdesk'    => $hotdesk,
                     'virtuals'   => $virtuals,
+                    'boardrooms' => $boardrooms,
+                    'users'      => $users,
                 ]);
     }
 
@@ -80,8 +93,11 @@ class DiscountController extends Controller
             'office_id'             => 'nullable|required_without_all:help_desk_id,virtual_office_id',
             'help_desk_id'          => 'nullable|required_without_all:office_id,virtual_office_id',
             'virtual_office_id'     => 'nullable|required_without_all:office_id,help_desk_id',
+            'boardroom_id'          => 'required|numeric',
+            'user_id'               => 'required|numeric',
             'discount'              => 'required|numeric|min:0|max:100',
             'name'                  => 'nullable',
+            'packadge'              => 'nullable',
             'selectedCategory'      => 'nullable',
         ], [
             'office_id.required_without_all'   => 'Please select at least one office type.',
@@ -132,7 +148,22 @@ class DiscountController extends Controller
      */
     public function edit(Discount $discount)
     {
-        // dd($discount);
+        $office = null;
+
+        if ($discount->office_id) {
+            $office = Office::with(['location','category'])
+                ->select('id','location_id','category_id','office_name')
+                ->find($discount->office_id);
+        } elseif ($discount->help_desk_id) {
+            $office = HelpDesk::with(['location'])
+                ->select('id','location_id','help_desk_name')
+                ->find($discount->help_desk_id);
+        } elseif ($discount->virtual_office_id) {
+            $office = VirtualOffice::with(['location'])
+                ->select('id','location_id','virtualoffice_name')
+                ->find($discount->virtual_office_id);
+        } 
+
 
         $closed = Office::with(['location','category'])
                     ->select('id','location_id','category_id', 'office_name')
@@ -152,16 +183,28 @@ class DiscountController extends Controller
                         ]);
                     })->get();
 
+        $boardrooms = Boardroom::with(['location'])->get();
+
+        $users = User::with(['companyDetails.location','companyDetails' => function ($query) {
+                    $query->select('id', 'user_id','location_id', 'name'); 
+                }])
+                ->where('is_active', 1)
+                ->whereIn('user_type', ['new', 'existing'])
+                ->get(['id', 'name']);
+
         $hotdesk = HelpDesk::with(['location'])->select('id','location_id','help_desk_name')->get();
         $virtuals = VirtualOffice::with(['location'])->select('id','location_id','virtualoffice_name')->get();
 
 
         return Inertia::render('Discounts/EditDiscount', [
-            'discount' => $discount,
+            'discount'   => $discount->load(['office','hotdesk','virtuals']),
+            'office'     => $office, 
             'closed'     => $closed,
             'dedicated'  => $dedicated,
             'hotdesk'    => $hotdesk,
             'virtuals'   => $virtuals,
+            'boardrooms' => $boardrooms,
+            'users'      => $users,
         ]);
     }
 
@@ -170,19 +213,22 @@ class DiscountController extends Controller
      */
     public function update(Request $request, Discount $discount)
     {
+        // dd($request);
         $validated = $request->validate([
             'office_id'             => 'nullable|required_without_all:help_desk_id,virtual_office_id',
             'help_desk_id'          => 'nullable|required_without_all:office_id,virtual_office_id',
             'virtual_office_id'     => 'nullable|required_without_all:office_id,help_desk_id',
-            'discount'          => 'required|numeric|min:0|max:100',
-            'name'              => 'nullable',
-            'selectedCategory'  => 'nullable',
+            'boardroom_id'          => 'required|numeric',
+            'user_id'               => 'required|numeric',
+            'discount'              => 'required|numeric|min:0|max:100',
+            'name'                  => 'nullable',
+            'packadge'              => 'nullable',
+            'selectedCategory'      => 'nullable',
         ], [
             'office_id.required_without_all'   => 'Please select at least one office type.',
             'help_desk_id.required_without_all' => 'Please select at least one office type.',
             'virtual_office_id.required_without_all'  => 'Please select at least one office type.',
         ]);
-
      
         $validated['office_type'] = $validated['selectedCategory'];
         unset($validated['selectedCategory']);
@@ -191,6 +237,8 @@ class DiscountController extends Controller
 
         return redirect()->back()->with('success', 'Discount has been updated successfully.');
     }
+
+    
 
     /**
      * Remove the specified resource from storage.

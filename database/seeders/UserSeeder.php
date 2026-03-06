@@ -26,7 +26,8 @@ class UserSeeder extends Seeder
             'name' => 'User',
             'email' => 'user@user.com',
             'password' => Hash::make('password'),
-            'is_active' => '1'
+            'is_active' => '1',
+            'user_type' => 'new'
         ]);
     }
 }
