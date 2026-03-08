@@ -32,22 +32,22 @@ const refreshNotifications = () => {
     });
 };
 
-const loadNotifications = async () => {
-    try {
-        const { data } = await axios.get(route('admin.notify'));
-        notificationsSummary.value = data.notificationsSummary;
-        adminSummary.value = data.adminSummary;
-        notificationsTotal.value = data.notificationsTotal;
-        adminTotal.value = data.adminTotal;
-    } catch (error) {
-        console.error('Failed to load notifications:', error);
-    }
-};
+// const loadNotifications = async () => {
+//     try {
+//         const { data } = await axios.get(route('admin.notify'));
+//         notificationsSummary.value = data.notificationsSummary;
+//         adminSummary.value = data.adminSummary;
+//         notificationsTotal.value = data.notificationsTotal;
+//         adminTotal.value = data.adminTotal;
+//     } catch (error) {
+//         console.error('Failed to load notifications:', error);
+//     }
+// };
 
-onMounted(() => {
-    loadNotifications();
-    setInterval(loadNotifications, 30000);
-});
+// onMounted(() => {
+//     loadNotifications();
+//     setInterval(loadNotifications, 30000);
+// });
 </script>
 
 <template>
@@ -105,13 +105,13 @@ onMounted(() => {
                         <!-- Right Section: User Avatar -->
                         <div class="items-center hidden space-x-2 sm:flex">
                             <div class="items-center hidden space-x-6 sm:flex">
-                                <NotificationDropdown
+                                <!-- <NotificationDropdown
                                     :notifications-summary="notificationsSummary"
                                     :admin-summary="adminSummary"
                                     :notifications-total="notificationsTotal"
                                     :admin-total="adminTotal"
                                     :can="can"
-                                    :officeid="page.props.officeid" />
+                                    :officeid="page.props.officeid" /> -->
 
                                 <!-- Calendars -->
                                 <Dropdown
@@ -473,13 +473,13 @@ onMounted(() => {
 
                         <!-- Hamburger Menu (Mobile) -->
                         <div class="relative w-full sm:hidden flex items-center justify-end">
-                            <NotificationDropdown
+                            <!-- <NotificationDropdown
                                 :notifications-summary="notificationsSummary"
                                 :admin-summary="adminSummary"
                                 :notifications-total="notificationsTotal"
                                 :admin-total="adminTotal"
                                 :can="can"
-                                :officeid="page.props.officeid" />
+                                :officeid="page.props.officeid" /> -->
 
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"

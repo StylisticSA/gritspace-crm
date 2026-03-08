@@ -45,8 +45,6 @@ class DashboardController extends Controller
         $clientEmpty = ClientInformation::where('user_id', auth()->id())->exists();
         $agreementEmpty = AgrementUpload::where('user_id', auth()->id())->exists();
 
-
-
         // Plan User is on
         $closedOfficePlan = Booking::with(['office.location', 'category'])
                             ->where('user_id', auth()->id())
@@ -146,7 +144,6 @@ class DashboardController extends Controller
                     ->limit(6)
                     ->get();
 
-                    // dd($invoices);
      
         return Inertia::render('Dashboard', [
             'notes'                 => $notes,
@@ -314,14 +311,14 @@ class DashboardController extends Controller
                             ->groupBy('status')
                             ->pluck('total', 'status');
 
-        $freeHours = FreeHours::select('id','user_id','boardroom_id','hours_used','status','closed_at')
-                    ->where('status','in_progress')->get();
-
         
-        $statusCounts = FreeHours::select('status', DB::raw('COUNT(*) as total'))
-                        ->whereIn('status', ['in_progress', 'closed'])
+        $statusCounts = DB::table('free_hours')
+                        ->where('status', 'in_progress')
+                        ->whereDate('created_at', Carbon::today())
                         ->groupBy('status')
+                        ->select('status', DB::raw('COUNT(DISTINCT boardroom_id) as total'))
                         ->pluck('total', 'status');
+
 
         return Inertia::render('Admin/AdminDashboard', [
             'notes'                 => $notes,

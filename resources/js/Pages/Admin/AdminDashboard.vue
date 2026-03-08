@@ -172,43 +172,61 @@ function viewInvoices() {
                         <div>
                             <button
                                 @click="viewInvoices()"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                class="block w-full px-3 py-2 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 View All Invoices
                             </button>
                         </div>
                     </div>
 
                     <!-- Boardroom Hours -->
-                    <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">
+                    <div class="p-4 mb-3 text-base font-semibold text-gray-800 bg-white rounded shadow md:max-h-[40vh]">
                         <h3 class="flex items-center justify-between mb-5 text-lg font-semibold text-gray-800">
                             Boardroom Hours
                             <span class="text-sm"></span>
                         </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                            <!-- Pending -->
+
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 text-center">
+                            <!-- Free Hours -->
                             <div class="bg-green-600 p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-white">In Progress</h4>
+                                <h4 class="text-sm font-semibold text-white">Free Hours</h4>
                                 <p class="text-3xl font-bold text-white">{{ inProgressCount ?? 0 }}</p>
+                                <h6 class="text-sm font-semibold text-white">In progress</h6>
                             </div>
 
-                            <!-- Paid -->
+                            <!-- Normal Hours -->
+                            <div class="bg-yellow-600 p-4 rounded shadow">
+                                <h4 class="text-sm font-semibold text-white">Normal Hours</h4>
+                                <p class="text-3xl font-bold text-white">0</p>
+                                <h6 class="text-sm font-semibold text-white">In progress</h6>
+                            </div>
+
+                            <!-- Occupied Boardrooms -->
                             <div class="bg-bluemain p-4 rounded shadow">
-                                <h4 class="text-sm font-semibold text-white">Closed</h4>
-                                <p class="text-3xl font-bold text-white">{{ closedCount ?? 0 }}</p>
+                                <h2 class="text-lg font-semibold text-white">Occupied Boardrooms</h2>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+
+                        <!-- Action Buttons -->
+                        <div class="grid grid-cols-1 gap-3 mt-5 sm:grid-cols-2 lg:grid-cols-3 text-center">
                             <button
                                 v-if="can['manage settings']"
                                 @click="showHoursModal = true"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                Add Hours
+                                class="w-full px-3 py-2 text-sm font-semibold text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                Add Free Hours
                             </button>
+
+                            <button
+                                v-if="can['manage settings']"
+                                class="w-full px-3 py-2 text-sm font-semibold text-black rounded bg-silver hover:bg-bluemain/60">
+                                Add Normal Hours
+                            </button>
+
                             <button
                                 v-if="can['manage settings']"
                                 @click="showHoursCloseModal = true"
-                                class="block w-full px-3 py-1 mt-5 text-sm font-semibold text-white rounded bg-primary hover:bg-bluemain/60">
-                                Close Hours
+                                class="w-full px-3 py-2 text-sm font-semibold text-white rounded bg-primary hover:bg-bluemain/60">
+                                Show Boardrooms
                             </button>
                         </div>
                     </div>
@@ -285,7 +303,6 @@ function viewInvoices() {
                 :onClose="() => (showHoursModal = false)" />
 
             <CloseHoursModal
-                :users="users"
                 :can="can"
                 :show="showHoursCloseModal"
                 :onClose="() => (showHoursCloseModal = false)" />

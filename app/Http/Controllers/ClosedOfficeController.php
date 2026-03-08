@@ -104,7 +104,10 @@ class ClosedOfficeController extends Controller
             'free_boardroom_hours'  => ['nullable'],
             'amenities'             => ['array'],
             'amenities.*'           => ['exists:amenities,id'],
+        ],[
+            'office_name.unique' => 'This office name already exists for the given location and category.',
         ]);
+
 
         $office = Office::create([
             'office_name'           => $validated['office_name'],

@@ -51,6 +51,10 @@ const submit = () => {
                 router.reload({ preserveScroll: true });
             }, 2000);
         },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
+        },
     });
 };
 </script>

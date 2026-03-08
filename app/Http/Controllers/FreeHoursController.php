@@ -6,6 +6,7 @@ use App\Models\Boardroom;
 use App\Models\Booking;
 use App\Models\FreeHours;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class FreeHoursController extends Controller
@@ -26,7 +27,6 @@ class FreeHoursController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10)
             ->withQueryString();
-
 
         return Inertia::render('Hours/HoursIndex', [
             'hours' => $hours,
@@ -52,37 +52,37 @@ class FreeHoursController extends Controller
         $validated = $request->validate([
             'user_id'      => ['required', 'exists:users,id'],
             'boardroom_id' => ['required', 'exists:boardrooms,id'],
+            'office_id'    => ['required', 'exists:offices,id'],
             'hours_used'   => ['required', 'numeric', 'min:1'],
-            'status'       => ['nullable', 'in:in_progress,closed,none'],
+            'status'       => ['required', 'in:in_progress,closed,none'],
             'start_at'     => ['required_if:status,in_progress', 'nullable', 'date'],
             'closed_at'    => ['required_if:status,closed', 'nullable', 'date'],
         ]);
 
         $hoursUsedTotal = FreeHours::where('user_id', $validated['user_id'])
-                        ->whereIn('status',['in_progress','closed'])
+                        ->where('office_id', $validated['office_id'])
+                        ->whereIn('status', ['in_progress', 'closed'])
                         ->sum('hours_used');
 
         $newTotalCurrent = $hoursUsedTotal + $validated['hours_used'];
-        
 
         if ($hoursUsedTotal >= 15 || $newTotalCurrent > 15) {
             return back()->withErrors([
-                'hours_used' => 'User cannot exceed 15 free hours. Currently used: ' . $hoursUsedTotal,
+                'hours_used' => 'User cannot exceed 15 free hours for this office. Currently used: ' . $hoursUsedTotal,
             ]);
         }
 
-      
         $sumTotal = FreeHours::where('user_id', $validated['user_id'])
+                    ->where('office_id', $validated['office_id'])
                     ->sum('hours_used');
-                     
+
         if ($sumTotal == 15) {
             return back()->withErrors([
-                'hours_used' => 'Sorry, this user has no free boardroom hours.'
+                'hours_used' => 'Sorry, this user has no free hours left for this office.',
             ]);
         }
 
-        $newRecord = FreeHours::create($validated);
-
+        FreeHours::create($validated);
 
         return redirect()->back()->with('success', 'Boardroom Hours Saved successfully');
     }
@@ -158,103 +158,76 @@ class FreeHoursController extends Controller
         //
     }
 
+    /**
+     * Calculate progress for a user.
+     */
     public function searchProgress(Request $request)
     {
-
         $userId = $request->input('user_id');
 
-        $hours = FreeHours::with(['user', 'boardroom', 'user.bookings'])
+        $hours = FreeHours::with(['user', 'boardroom','office'])
                 ->where('user_id', $userId)
                 ->where('status', 'in_progress')
                 ->get();
 
-        $bookings = Booking::with(['office','office.location', 'category'])
+                
+        $booked = Booking::with(['office', 'office.location', 'category'])
                 ->where('user_id', $userId)
                 ->whereHas('category', function ($query) {
-                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                    $query->whereIn(DB::raw('LOWER(name)'), [
+                        'closed office',
+                        'closed offices',
+                        'dedicated desk',
+                        'dedicated desks',
+                    ]);
                 })
+                ->whereIn('plan', ['monthly', 'premium'])
                 ->where('status', 'paid')
                 ->get();
 
-                dd($bookings);
+        $boardrooms = Boardroom::with('location')
+                    ->orderBy('boardroom_name')
+                    ->get(['id', 'boardroom_name', 'location_id']);
+  
 
-        $boardrooms = Boardroom::with(['location', 'BoardroomBookings' => function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                }])->whereHas('BoardroomBookings', function ($query) use ($userId) {
-                    $query->where('user_id', $userId);
-                })->get();
-
-        
-        $hoursUsedTotal = $hours->sum('hours_used');
-
-        $sumTotal = FreeHours::where('user_id', $userId)
-                  ->sum('hours_used');
-
-        $remainingHours = 15 - (int)$hoursUsedTotal;
-
-        $hoursByBoardroom = $hours->groupBy('boardroom_id')->map(function ($records) {
-            return $records->sum('hours_used');
+        $hoursByOffice = $hours->groupBy('office_id')->map(function ($records) {
+            $hoursUsed = $records->sum('hours_used');
+            return [
+                'hours_used' => $hoursUsed,
+                'remaining_hours' => 15 - $hoursUsed
+            ];
         });
 
         return response()->json([
             'hours' => $hours,
+            'booked' => $booked,
             'boardrooms' => $boardrooms,
-            'bookings' => $bookings,
-            'hours_used' => $hoursUsedTotal,
-            'remaining_hours' => $remainingHours,
-            
+            'hours_by_office' => $hoursByOffice,
         ]);
-
     }
 
  
-
+    /**
+     * update the hours.
+     */
     public function searchClosed(Request $request)
     {
-        $userId = $request->input('user_id');
+        
+        // $boardrooms = FreeHours::with(['user', 'boardroom'])
+        //             ->where('status', 'in_progress')
+        //             ->whereDate('created_at', now()->today())
+        //             ->get();
 
-        $allHours = FreeHours::with(['user', 'boardroom', 'user.bookings'])
-                    ->where('user_id', $userId)
-                    ->whereIn('status', ['in_progress', 'closed'])
-                    ->whereDate('created_at', now()->today())
+        $boardrooms = FreeHours::query()->with([
+                        'user:id,name', 
+                        'boardroom:id,boardroom_name'
+                    ])->where('status', 'in_progress')
+                    ->whereDate('created_at', today())
+                    ->select('id', 'user_id', 'boardroom_id', 'status', 'created_at')
                     ->get();
 
-        $hours = $allHours->where('status', 'in_progress')->values();
-        $hoursClosed = $allHours->where('status', 'closed')->values();
-            
-
-        $hoursUsedTotal = FreeHours::where('user_id', $userId)
-                ->where('status', 'in_progress')
-                ->sum('hours_used');
-
-        $sumTotal = FreeHours::where('user_id', $userId)
-                    ->where('status', 'closed')
-                  ->sum('hours_used');
-
-        $remainingHours = 15 - (int)$hoursUsedTotal;
-
-        $bookings = Booking::with(['office','office.location', 'category'])
-                ->whereHas('category', function ($query) {
-                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
-                })
-                ->where('user_id', $userId)
-                ->where('status', 'paid')
-                ->get();
-
-        $boardrooms = Boardroom::with(['location', 'BoardroomBookings' => function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        }])->whereHas('BoardroomBookings', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->get();
-
         return response()->json([
-            'hours' => $hours,
             'boardrooms' => $boardrooms,
-            'bookings' => $bookings,
-            'hours_used' => $hoursUsedTotal,
-            'sum_hours_used' => $sumTotal,
-            'remaining_hours' => $remainingHours,
-            'hours_closed' => $hoursClosed
         ]);
 
     }

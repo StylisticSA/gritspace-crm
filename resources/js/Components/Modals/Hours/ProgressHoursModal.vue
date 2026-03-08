@@ -1,10 +1,10 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 
-const { message, status } = useStatusMessage();
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const props = defineProps({
     users: Object,
@@ -20,6 +20,7 @@ const statusError = ref(null);
 const form = useForm({
     user_id: '',
     boardroom_id: '',
+    office_id: '',
     status: '',
     hours_used: 0,
     start_at: '',
@@ -27,18 +28,10 @@ const form = useForm({
 });
 
 const boardrooms = ref([]);
-const bookings = ref([]);
-const totalHours = ref('');
-const remainingHours = ref('');
-const hoursUsed = ref('');
-
-watch(
-    () => props.user,
-    newUser => {
-        form.user_id = newUser ?? '';
-    },
-    { immediate: true }
-);
+const booked = ref([]);
+const hoursByOffice = ref({});
+const totalHoursUsed = ref(0);
+const totalRemainingHours = ref(0);
 
 watch(
     () => form.user_id,
@@ -50,23 +43,34 @@ watch(
                 });
 
                 boardrooms.value = response.data.boardrooms ?? [];
-                bookings.value = response.data.bookings ?? [];
-                totalHours.value = response.data.hours_used ?? '';
-                remainingHours.value = response.data.remaining_hours ?? '';
+                booked.value = response.data.booked ?? [];
+                hoursByOffice.value = response.data.hours_by_office ?? {};
+                totalHoursUsed.value = response.data.total_hours_used ?? 0;
+                totalRemainingHours.value = response.data.total_remaining_hours ?? 0;
             } catch (error) {
-                console.error('Error fetching boardrooms:', error);
+                console.error('Error fetching data:', error);
                 boardrooms.value = [];
-                bookings.value = [];
-                totalHours.value = '';
-                remainingHours.value = '';
+                booked.value = [];
+                hoursByOffice.value = {};
+                totalHoursUsed.value = 0;
+                totalRemainingHours.value = 0;
             }
         } else {
             boardrooms.value = [];
-            bookings.value = [];
-            totalHours.value = '';
-            remainingHours.value = '';
+            booked.value = [];
+            hoursByOffice.value = {};
+            totalHoursUsed.value = 0;
+            totalRemainingHours.value = 0;
         }
     }
+);
+
+watch(
+    () => props.user,
+    newUser => {
+        form.user_id = newUser ?? '';
+    },
+    { immediate: true }
 );
 
 watch(
@@ -87,17 +91,36 @@ watch(
     }
 );
 
+// const modalRef = ref(null);
+
+// // Whenever message changes, scroll modal to top
+// watch(() => messageText.value, newMessage => {
+//   if (newMessage && modalRef.value) {
+//     modalRef.value.scrollTop = 0;
+//   }
+// });
+
+const modalRef = ref(null);
+
+const scrollModalTop = () => {
+    if (modalRef.value) {
+        modalRef.value.scrollTop = 0;
+    }
+};
+
 const submit = () => {
     amountError.value = null;
     statusError.value = null;
 
     if (Number(form.hours_used) === 0) {
         amountError.value = 'Amount must be greater than 0';
+        scrollModalTop();
         return;
     }
 
     if (form.status === 'none') {
         statusError.value = 'Please choose In progress or Closed';
+        scrollModalTop();
         return;
     }
 
@@ -107,6 +130,8 @@ const submit = () => {
             message.value = 'Boardroom Hours Saved successfully';
             status.value = 'success';
 
+            scrollModalTop();
+
             setTimeout(() => {
                 router.reload({ preserveScroll: true });
                 router.visit(route('admin.dashboard'));
@@ -115,6 +140,8 @@ const submit = () => {
         onError: errors => {
             message.value = Object.values(errors).join('\n');
             status.value = 'deleted';
+
+            scrollModalTop();
         },
     });
 };
@@ -131,13 +158,20 @@ const decrementhour = () => {
         form.hours_used = Number(form.hours_used) - 1;
     }
 };
+
+const selectedOfficeHours = computed(() => {
+    if (!form.office_id) return null;
+    return hoursByOffice.value[form.office_id] || null;
+});
 </script>
 
 <template>
     <div
         v-if="show"
         class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto bg-black/60">
-        <div class="w-full max-w-4xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
+        <div
+            ref="modalRef"
+            class="w-full max-w-4xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-2xl sm:text-2xl">Boardroom Free Hours</h2>
 
@@ -155,50 +189,40 @@ const decrementhour = () => {
                 </div>
             </template>
 
-            <div v-if="!props.user">
-                <ul v-for="booked in bookings">
-                    <!-- <li>{{ booked }}</li> -->
-                    <h3 class="block mb-3 text-xl text-gray-900">User Booked Office</h3>
-                    <li><strong>Office Type:</strong> {{ booked.category?.name ?? 'Category of the booking' }}</li>
-                    <li><strong>Office Name:</strong> {{ booked.office?.office_name ?? 'Office Name' }}</li>
-                    <li>
-                        <strong>Office Location:</strong> {{ booked.office.location?.name ?? 'Location of the Office' }}
-                    </li>
-                </ul>
-            </div>
             <form
                 @submit.prevent="submit"
                 class="mt-10 space-y-6">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                    <!-- User Selection -->
-                    <div class="mb-3">
-                        <div v-if="can['manage settings']">
-                            <label class="block font-medium text-md">User</label>
-                            <select
-                                v-model="form.user_id"
-                                class="w-full px-3 py-2 border rounded">
-                                <option value="">Select User</option>
-                                <option
-                                    v-for="user in users"
-                                    :key="user.id"
-                                    :value="user.id">
-                                    {{ user.name }}
-                                </option>
-                            </select>
-                            <div
-                                v-if="form.errors.user_id"
-                                class="text-sm text-red-600">
-                                {{ form.errors.user_id }}
-                            </div>
+                <!-- User Selection -->
+                <div class="mb-3">
+                    <div v-if="can['manage settings']">
+                        <label class="block font-medium text-md">User</label>
+                        <select
+                            v-model="form.user_id"
+                            class="w-full px-3 py-2 border rounded">
+                            <option value="">Select User</option>
+                            <option
+                                v-for="user in users"
+                                :key="user.id"
+                                :value="user.id">
+                                {{ user.name }}
+                            </option>
+                        </select>
+                        <div
+                            v-if="form.errors.user_id"
+                            class="text-sm text-red-600">
+                            {{ form.errors.user_id }}
                         </div>
-                        <input
-                            v-else
-                            type="hidden"
-                            v-model="form.user_id" />
                     </div>
-
+                    <input
+                        v-else
+                        type="hidden"
+                        v-model="form.user_id" />
+                </div>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
                     <!-- Boardroom Selection -->
-                    <div class="mb-3">
+                    <div
+                        v-if="booked.length > 0"
+                        class="mb-3">
                         <label class="block font-medium text-md">Boardroom</label>
                         <select
                             v-model="form.boardroom_id"
@@ -213,8 +237,28 @@ const decrementhour = () => {
                         </select>
                     </div>
 
+                    <!-- office Selection -->
+                    <div
+                        v-if="booked.length > 0"
+                        class="mb-3">
+                        <label class="block font-medium text-md">Offices</label>
+                        <select
+                            v-model="form.office_id"
+                            class="w-full px-3 py-2 border rounded">
+                            <option value="">Select Office</option>
+                            <option
+                                v-for="room in booked"
+                                :key="room.id"
+                                :value="room.id">
+                                {{ room.office.office_name }} - {{ room.office.location?.name }}
+                            </option>
+                        </select>
+                    </div>
+
                     <!-- Status Radio Group -->
-                    <div class="mb-5">
+                    <div
+                        v-if="booked.length > 0"
+                        class="mb-5">
                         <label class="block font-medium text-md mb-2">Status</label>
                         <p
                             v-if="statusError"
@@ -280,10 +324,10 @@ const decrementhour = () => {
                 </div>
                 <hr class="my-5 border-gray-300" />
                 <!-- Hours Counter + Info -->
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                    <div
-                        class="text-center border-r border-gray-200"
-                        v-if="totalHours < 15">
+                <div
+                    class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5"
+                    v-if="booked.length > 0">
+                    <div class="text-center border-r border-gray-200">
                         <label
                             for="counter"
                             class="block mb-2 text-xl text-center text-gray-900"
@@ -315,18 +359,21 @@ const decrementhour = () => {
                             </button>
                         </div>
                     </div>
-
                     <div>
-                        <div>
-                            <h3 class="block mb-3 text-xl text-center text-gray-900">Total Hours Used</h3>
-                            <p class="block text-5xl font-semibold text-center text-black">{{ totalHours }}</p>
-                        </div>
-                        <div
-                            v-if="totalHours < 15"
-                            class="mt-8">
-                            <hr class="my-5 border-gray-300" />
-                            <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
-                            <p class="block text-3xl font-semibold text-center text-black">{{ remainingHours }}</p>
+                        <div v-if="selectedOfficeHours">
+                            <div>
+                                <h3 class="block mb-3 text-xl text-center text-gray-900">Total Hours Used</h3>
+                                <p class="block text-5xl font-semibold text-center text-black">
+                                    {{ selectedOfficeHours.hours_used }}
+                                </p>
+                            </div>
+                            <div class="mt-8">
+                                <hr class="my-5 border-gray-300" />
+                                <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
+                                <p class="block text-3xl font-semibold text-center text-black">
+                                    {{ selectedOfficeHours.remaining_hours }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

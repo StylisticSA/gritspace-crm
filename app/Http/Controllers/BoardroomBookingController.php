@@ -29,10 +29,14 @@ class BoardroomBookingController extends Controller
 
         $locations = Location::select('name', 'address', 'city')->get();
 
+         $approvedBoardrooms = BoardroomBooking::with('boardroom.location')
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->get();
         return Inertia::render('Bookings/Boardrooms/IndexBoardrooms', [
             'boardrooms'        => $boardrooms,
             'locations'         => $locations,
-           
+            'approvedBoardrooms'    =>  $approvedBoardrooms,
         ]);
 
     }

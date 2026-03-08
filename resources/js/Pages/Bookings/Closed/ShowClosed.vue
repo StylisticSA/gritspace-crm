@@ -21,6 +21,7 @@ const isLoading = ref(false);
 
 const showNoteModal = ref(false);
 const showDatesModal = ref(false);
+const showAvailModal = ref(false);
 const selectedDates = ref(null);
 const showModal = ref(false);
 const bookingToDelete = ref(null);
@@ -274,8 +275,8 @@ const allBookings = computed(() => {
                             Payment Pending ({{ pendingCount }})
                         </button>
                     </div>
-
                     <button
+                        v-if="can['manage settings']"
                         @click="showNoteModal = true"
                         class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
                         Add Note

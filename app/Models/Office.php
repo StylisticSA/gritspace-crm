@@ -56,6 +56,11 @@ class Office extends Model
         return $this->hasMany(Booking::class, 'office_id');
     }
 
+    public function freehours()
+    {
+        return $this->hasMany(FreeHours::class, 'office_id');
+    }
+
     public function payments()
     {
         return $this->morphMany(PaymentGateway::class, 'payable');

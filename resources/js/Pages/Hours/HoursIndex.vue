@@ -76,7 +76,7 @@ const formatDate = dateStr => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardroom Hours</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Free Boardrooms Hours</h2>
         </template>
 
         <div class="py-12">
@@ -111,11 +111,11 @@ const formatDate = dateStr => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">User</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Boardroom</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Used Hours</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Status</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Stated At</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
                             </thead>
@@ -123,14 +123,39 @@ const formatDate = dateStr => {
                                 <tr
                                     v-for="cofe in hours.data"
                                     :key="cofe.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.user.name }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.boardrom?.boardroom_name }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.hours }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.status }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ formatDate(cofe.d) }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        {{ cofe.boardroom?.boardroom_name }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-800 text-center">{{ cofe.hours_used }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        <span
+                                            :class="{
+                                                'px-2 py-1 rounded text-xs font-semibold capitalize': true,
+                                                'bg-yellow-100 text-yellow-800': cofe.status === 'in_progress',
+                                                'bg-green-100 text-green-800': cofe.status === 'closed',
+                                                'bg-gray-100 text-gray-800': !['in_progress', 'closed'].includes(
+                                                    cofe.status
+                                                ),
+                                            }">
+                                            {{
+                                                cofe.status === 'in_progress'
+                                                    ? 'In Progress'
+                                                    : cofe.status === 'closed'
+                                                      ? 'Closed'
+                                                      : 'N/A'
+                                            }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ formatDate(cofe.created_at) }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
+                                            <button
+                                                v-if="can['manage settings']"
+                                                @click="$inertia.visit(route('admin.hours.edit', cofe.id))"
+                                                class="px-2 py-1 text-sm text-white rounded bg-primary hover:bg-bluemain/60">
+                                                Action
+                                            </button>
                                             <button
                                                 v-if="can['manage settings']"
                                                 @click="$inertia.visit(route('admin.hours.edit', cofe.id))"

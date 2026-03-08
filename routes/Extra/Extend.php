@@ -104,9 +104,6 @@ Route::middleware(['web', 'auth', 'verified'])
                         'update' => 'coffee.update',
                         'destroy' => 'coffee.destroy',
                 ]);
-
-
-
         
         Route::resource('hours', FreeHoursController::class)->names([
                         'index' => 'hours.index',

@@ -114,12 +114,6 @@ const validateEmail = () => {
     }
 };
 
-// const nextStep = () => {
-//     const valid = validateStep();
-
-//     if (valid) step.value++;
-// };
-
 const nextStep = () => {
     const valid = validateStep();
     if (!valid) return;
@@ -141,15 +135,10 @@ const prevStep = () => {
     }
 };
 
-// const handleFileUpload = (event, field) => {
-//     form[field] = event.target.files[0];
-// };
-
 const handleFileUpload = (event, field) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Allowed types
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     const maxSize = 5 * 1024 * 1024; // 5 MB
 
@@ -195,6 +184,10 @@ const submit = () => {
         onSuccess: () => {
             successMessage.value = 'Client information saved successfully.';
             bookingConflict.value = null;
+
+            setTimeout(() => {
+                Inertia.visit(route('dashboard'));
+            }, 2000);
         },
     });
 };

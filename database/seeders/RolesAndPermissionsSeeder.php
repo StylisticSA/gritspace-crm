@@ -17,7 +17,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Define roles
-        $roles = ['Super Admin', 'Admin', 'Manager', 'User', 'Pending User'];
+        $roles = ['Super Admin', 'Admin','User', 'Pending User'];
         foreach ($roles as $roleName) {
             Role::create(['name' => $roleName]);
         }

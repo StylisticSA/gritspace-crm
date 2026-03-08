@@ -16,13 +16,14 @@ return new class extends Migration
                  
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();      
             $table->foreignId('boardroom_id')->nullable()->constrained('boardrooms')->nullOnDelete();
+            $table->foreignId('office_id')->nullable()->constrained('offices')->nullOnDelete();
 
             $table->integer('hours_used');
 
             $table->string('status');
 
-            $table->date('start_at')->nullable();
-            $table->date('closed_at')->nullable();
+            $table->dateTime('start_at')->nullable();
+            $table->dateTime('closed_at')->nullable();
 
             $table->timestamps();
         });
