@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('free_hours', function (Blueprint $table) {
+        Schema::create('boardroom_hours', function (Blueprint $table) {
             $table->id();
-                 
+
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();      
             $table->foreignId('boardroom_id')->nullable()->constrained('boardrooms')->nullOnDelete();
-            $table->foreignId('office_id')->nullable()->constrained('offices')->nullOnDelete();
 
+            $table->string('user_in_office')->nullable();
+            $table->string('user_type');
+            
             $table->integer('hours_used');
             $table->string('status')->default('in_progress');
 
-            $table->dateTime('start_at')->nullable();   
+            $table->dateTime('start_at')->nullable();
             $table->dateTime('closed_at')->nullable();
-            
-            $table->foreignId('user_closed')->nullable()->constrained('users')->nullOnDelete();   
+
+               $table->foreignId('user_closed')->nullable()->constrained('users')->nullOnDelete();   
 
             $table->timestamps();
         });
@@ -35,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('free_hours');
+        Schema::dropIfExists('boardroom_hours');
     }
 };

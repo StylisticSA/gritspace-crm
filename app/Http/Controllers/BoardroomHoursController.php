@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Boardroom;
+use App\Models\BoardroomHours;
 use App\Models\Booking;
-use App\Models\FreeHours;
+use App\Models\HotDeskBooking;
 use App\Models\User;
+use App\Models\VirtualBooking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-class FreeHoursController extends Controller
+class BoardroomHoursController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -20,13 +22,13 @@ class FreeHoursController extends Controller
     {
         $search = $request->input('search');
 
-        $users = User::whereHas('roles', function ($query) {
+         $users = User::whereHas('roles', function ($query) {
                     $query->whereIn('name', ['user', 'User']);
                 })->with('roles')
                 ->select('id', 'name')
                 ->get();
 
-        $hours = FreeHours::with(['user', 'boardroom'])
+        $boardhours = BoardroomHours::with(['user', 'boardroom'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
@@ -36,8 +38,8 @@ class FreeHoursController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('Hours/HoursIndex', [
-            'hours' => $hours,
+        return Inertia::render('BoardroomHours/BoardIndex', [
+            'boardhours' => $boardhours,
             'users' => $users,
             'filters' => [
                 'search' => $search,
@@ -59,37 +61,23 @@ class FreeHoursController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id'      => ['required', 'exists:users,id'],
-            'boardroom_id' => ['required', 'exists:boardrooms,id'],
-            'office_id'    => ['required', 'exists:offices,id'],
-            'hours_used'   => ['required', 'numeric', 'min:1'],
-           
+            'user_type'       => ['required', 'in:existing,in_office'],
+            'user_id'         => ['nullable', 'required_if:user_type,existing', 'exists:users,id'],
+            'user_in_office'  => ['nullable', 'required_if:user_type,in_office', 'string', 'max:255'],
+            'boardroom_id'    => ['required', 'exists:boardrooms,id'],
+            'hours_used'      => ['required', 'integer', 'min:1'],
+
+            'start_at'        => ['nullable', 'date'],
+            'closed_at'       => ['nullable', 'date'],
         ]);
 
-        $hoursUsedTotal = FreeHours::where('user_id', $validated['user_id'])
-                        ->where('office_id', $validated['office_id'])
-                        ->whereIn('status', ['in_progress', 'closed'])
-                        ->sum('hours_used');
+        // dd($request);
 
-        $newTotalCurrent = $hoursUsedTotal + $validated['hours_used'];
-
-        if ($hoursUsedTotal >= 15 || $newTotalCurrent > 15) {
-            return back()->withErrors([
-                'hours_used' => 'User cannot exceed 15 free hours for this office. Currently used: ' . $hoursUsedTotal,
-            ]);
+        if(empty($validated['user_id'])){
+            $validated['user_id'] = auth()->id();
         }
 
-        $sumTotal = FreeHours::where('user_id', $validated['user_id'])
-                    ->where('office_id', $validated['office_id'])
-                    ->sum('hours_used');
-
-        if ($sumTotal == 15) {
-            return back()->withErrors([
-                'hours_used' => 'Sorry, this user has no free hours left for this office.',
-            ]);
-        }
-
-        if (empty($validated['status'])){
+        if(empty(empty($validated['status']))){
             $validated['status'] = "in_progress";
         }
 
@@ -98,15 +86,16 @@ class FreeHoursController extends Controller
         }
 
 
-        FreeHours::create($validated);
+        $boardroomHour = BoardroomHours::create($validated);
 
-        return redirect()->back()->with('success', 'Boardroom Free Hours Saved successfully');
+        return redirect()->back()->with('success', 'Boardroom Hours Saved successfully');
+
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(FreeHours $freeHours)
+    public function show(BoardroomHours $boardroomHours)
     {
         //
     }
@@ -114,7 +103,7 @@ class FreeHoursController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(FreeHours $freeHours)
+    public function edit(BoardroomHours $boardroomHours)
     {
         //
     }
@@ -122,19 +111,34 @@ class FreeHoursController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, FreeHours $freeHours)
+    public function update(Request $request, BoardroomHours $boardroomHours)
     {
-       
+        $validated = $request->validate([
+            'user_type'       => ['nullable', 'in:existing,in_office'],
+            'user_id'         => ['required', 'required_if:user_type,existing', 'exists:users,id'],
+            'user_in_office'  => ['nullable', 'required_if:user_type,in_office', 'string', 'max:255'],
+            'boardroom_id'    => ['required', 'exists:boardrooms,id'],
+            'hours_used'      => ['required', 'integer', 'min:1'],
+            'status'          => ['nullable', 'in:in_progress,closed,none'],
+            'start_at'        => ['nullable', 'date'],
+            'closed_at'       => ['nullable', 'date'],
+        ]);
+
+        $boardroomHours->update($validated);
+
+        return redirect()->back()->with('success', 'Boardroom Hours Updated successfully');
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FreeHours $freeHours)
+    public function destroy(BoardroomHours $boardroomHours)
     {
         //
     }
 
+    
     /**
      * Calculate progress for a user.
      */
@@ -142,7 +146,7 @@ class FreeHoursController extends Controller
     {
         $userId = $request->input('user_id');
 
-        $hours = FreeHours::with(['user', 'boardroom','office'])
+        $hours = BoardroomHours::with(['user', 'boardroom','office'])
                 ->where('user_id', $userId)
                 ->where('status', 'in_progress')
                 ->get();
@@ -156,9 +160,21 @@ class FreeHoursController extends Controller
                         'closed offices',
                         'dedicated desk',
                         'dedicated desks',
+                        
                     ]);
                 })
-                ->whereIn('plan', ['monthly', 'premium'])
+                ->whereIn('plan', ['daily', 'standard'])
+                ->where('status', 'paid')
+                ->get();
+
+        $hotdesks = HotDeskBooking::with(['helpdesk', 'user'])
+                ->where('user_id', $userId)
+                ->where('status', 'paid')
+                ->get();
+
+        $virtuals = VirtualBooking::with(['virtualOffice', 'user'])
+                ->where('user_id', $userId)
+                ->whereIn('plan', ['standard', 'premium'])
                 ->where('status', 'paid')
                 ->get();
 
@@ -167,19 +183,13 @@ class FreeHoursController extends Controller
                     ->get(['id', 'boardroom_name', 'location_id']);
   
 
-        $hoursByOffice = $hours->groupBy('office_id')->map(function ($records) {
-            $hoursUsed = $records->sum('hours_used');
-            return [
-                'hours_used' => $hoursUsed,
-                'remaining_hours' => 15 - $hoursUsed
-            ];
-        });
-
         return response()->json([
-            'hours' => $hours,
-            'booked' => $booked,
-            'boardrooms' => $boardrooms,
-            'hours_by_office' => $hoursByOffice,
+            'hours'         => $hours,
+            'booked'        => $booked,
+            'boardrooms'    => $boardrooms,
+            'virtuals'      => $virtuals,
+            'hotdesks'      => $hotdesks
+            
         ]);
     }
 
@@ -189,13 +199,8 @@ class FreeHoursController extends Controller
      */
     public function searchClosed(Request $request)
     {
-        
-        // $boardrooms = FreeHours::with(['user', 'boardroom'])
-        //             ->where('status', 'in_progress')
-        //             ->whereDate('created_at', now()->today())
-        //             ->get();
 
-        $boardrooms = FreeHours::query()->with([
+        $boardrooms = BoardroomHours::query()->with([
                         'user:id,name', 
                         'boardroom:id,boardroom_name'
                     ])->where('status', 'in_progress')
@@ -209,9 +214,9 @@ class FreeHoursController extends Controller
 
     }
 
-    public function freeClose(Request $request, FreeHours $freeHours)
+    public function normalClose(Request $request, BoardroomHours $boardroomHours)
     {
-        // dd($freeHours);
+        // dd($boardroomHours);
         $validated = $request->validate([
               'status' => ['nullable'],
               'closed_at' => ['nullable'],
@@ -233,9 +238,10 @@ class FreeHoursController extends Controller
 
         // dd($validated);
 
-        $freeHours->update($validated);
+        $boardroomHours->update($validated);
 
-        return back()->with('success', 'Free Boardroom has been Closed successfully.');
+        return back()->with('success', 'Boardroom has been Closed successfully.');
         
+
     }
 }

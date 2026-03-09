@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgrementUploadController;
 use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\BoardroomController;
+use App\Http\Controllers\BoardroomHoursController;
 use App\Http\Controllers\ClosedOfficeController;
 use App\Http\Controllers\ClosedOfficeRateController;
 use App\Http\Controllers\CoffeeController;
@@ -116,6 +117,21 @@ Route::middleware(['web', 'auth', 'verified'])
 
         Route::get('hour-search-inprogress', [FreeHoursController::class, 'searchProgress'])->name('hours.user');
         Route::get('hour-search-closed', [FreeHoursController::class, 'searchClosed'])->name('hours.closed');
+        Route::put('boardroom-hours-free/{freeHours}', [FreeHoursController::class, 'freeClose'])->name('free_hours.update');
+
+
+        Route::resource('boardroom_hours', BoardroomHoursController::class)->names([
+                        'index' => 'boardroom_hours.index',
+                        'create' => 'boardroom_hours.create',
+                        'edit' => 'boardroom_hours.edit',
+                        'update' => 'boardroom_hours.update',
+                        'destroy' => 'boardroom_hours.destroy',
+                        
+                ]);
+
+        Route::get('boardroom-hours-search', [BoardroomHoursController::class, 'searchProgress'])->name('boardroom_hours.inprogres');
+        Route::get('boardroom-hours-closed', [BoardroomHoursController::class, 'searchClosed'])->name('boardroom_hours.closed');
+        Route::put('boardroom-hours-normal/{boardroomHours}', [BoardroomHoursController::class, 'normalClose'])->name('normal_hours.update');
 
         Route::resource('printing-admin', PrintingController::class)->names([
                         'index' => 'printing.index',

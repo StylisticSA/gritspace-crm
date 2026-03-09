@@ -6,7 +6,8 @@ import { format } from 'date-fns';
 import CloseHoursModal from '../../Components/Modals/Hours/CloseHoursModal.vue';
 
 const props = defineProps({
-    hours: Object,
+    boardhours: Object,
+    Users: Object,
     filters: Object,
     can: Object,
 });
@@ -33,7 +34,7 @@ watch(showMessage, msg => {
 
 watch(search, value => {
     router.get(
-        route('admin.hours.index'),
+        route('admin.boardrom_hours.index'),
         { search: value },
         {
             preserveState: true,
@@ -49,7 +50,7 @@ const confirmDelete = id => {
 
 const deleteamenity = () => {
     if (hoursDelete.value) {
-        router.delete(route('admin.hours.destroy', hoursDelete.value), {
+        router.delete(route('admin.boardroom_hours.destroy', hoursDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -78,7 +79,7 @@ const formatDate = dateStr => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Free Boardrooms Hours</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardrooms Hours</h2>
         </template>
 
         <div class="py-12">
@@ -123,7 +124,7 @@ const formatDate = dateStr => {
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr
-                                    v-for="cofe in hours.data"
+                                    v-for="cofe in boardhours.data"
                                     :key="cofe.id">
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ cofe.user.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
@@ -181,16 +182,16 @@ const formatDate = dateStr => {
                     <div class="flex items-center justify-between mt-4">
                         <div class="text-sm text-gray-600">
                             Showing
-                            <span class="font-medium">{{ hours.from }}</span>
+                            <span class="font-medium">{{ boardhours.from }}</span>
                             to
-                            <span class="font-medium">{{ hours.to }}</span>
+                            <span class="font-medium">{{ boardhours.to }}</span>
                             of
-                            <span class="font-medium">{{ hours.total }}</span> results
+                            <span class="font-medium">{{ boardhours.total }}</span> results
                         </div>
 
                         <div class="flex space-x-1">
                             <template
-                                v-for="(link, index) in hours.links"
+                                v-for="(link, index) in boardhours.links"
                                 :key="index">
                                 <Link
                                     v-if="link.url"
@@ -212,7 +213,7 @@ const formatDate = dateStr => {
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
                             <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
                             <p class="mb-6">
-                                Are you sure you want to delete this amenity? This action cannot be undone.
+                                Are you sure you want to delete this Boardroom Hour? This action cannot be undone.
                             </p>
                             <div class="flex justify-end space-x-3">
                                 <button
@@ -230,10 +231,9 @@ const formatDate = dateStr => {
                     </div>
                 </template>
             </div>
-
             <CloseHoursModal
+                :type="3"
                 :can="can"
-                :type="2"
                 :show="showHoursCloseModal"
                 :onClose="() => (showHoursCloseModal = false)" />
         </div>

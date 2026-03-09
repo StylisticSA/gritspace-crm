@@ -439,6 +439,39 @@ const refreshNotifications = () => {
                                                         >
                                                     </template>
                                                 </Dropdown>
+                                                <Dropdown
+                                                    nested
+                                                    align="right"
+                                                    width="48">
+                                                    <template #trigger>
+                                                        <div
+                                                            v-if="can['view book extras']"
+                                                            class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 transition cursor-pointer hover:bg-gray-50">
+                                                            Hours
+                                                            <svg
+                                                                class="w-4 h-4"
+                                                                fill="currentColor"
+                                                                viewBox="0 0 20 20">
+                                                                <path
+                                                                    fill-rule="evenodd"
+                                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                        </div>
+                                                    </template>
+                                                    <template #content>
+                                                        <DropdownLink
+                                                            v-if="can['manage settings']"
+                                                            :href="route('admin.hours.index')"
+                                                            >Free</DropdownLink
+                                                        >
+                                                        <DropdownLink
+                                                            v-if="can['manage settings']"
+                                                            :href="route('admin.boardroom_hours.index')"
+                                                            >Normal</DropdownLink
+                                                        >
+                                                    </template>
+                                                </Dropdown>
                                             </template>
 
                                             <!-- Notes -->
@@ -447,12 +480,6 @@ const refreshNotifications = () => {
                                                 v-if="can['manage settings']"
                                                 :href="route('admin.notes.index')"
                                                 >Notes</DropdownLink
-                                            >
-
-                                            <DropdownLink
-                                                v-if="can['manage settings']"
-                                                :href="route('admin.hours.index')"
-                                                >Hours</DropdownLink
                                             >
 
                                             <DropdownLink
@@ -780,6 +807,32 @@ const refreshNotifications = () => {
                                     <template #content>
                                         <DropdownLink :href="route('admin.coffee.index')">Coffee</DropdownLink>
                                         <DropdownLink :href="route('admin.printing.index')">Printing</DropdownLink>
+                                    </template>
+                                </Dropdown>
+
+                                <Dropdown
+                                    nested
+                                    align="right"
+                                    width="48">
+                                    <template #trigger>
+                                        <div
+                                            v-if="can['view book extras']"
+                                            class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 transition cursor-pointer hover:bg-gray-50">
+                                            Hours
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path
+                                                    fill-rule="evenodd"
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('admin.coffee.index')">Free</DropdownLink>
+                                        <DropdownLink :href="route('admin.printing.index')">Normal</DropdownLink>
                                     </template>
                                 </Dropdown>
 

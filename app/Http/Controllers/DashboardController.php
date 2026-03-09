@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgrementUpload;
+use App\Models\Boardroom;
 use App\Models\BoardroomBooking;
 use App\Models\Booking;
 use App\Models\ClientInformation;
@@ -319,6 +320,17 @@ class DashboardController extends Controller
                         ->select('status', DB::raw('COUNT(DISTINCT boardroom_id) as total'))
                         ->pluck('total', 'status');
 
+        $statusBoardCount = DB::table('boardroom_hours')
+                        ->where('status', 'in_progress')
+                        ->whereDate('created_at', Carbon::today())
+                        ->distinct('boardroom_id')
+                        ->count('boardroom_id');
+
+
+        $boardrooms = Boardroom::with('location')
+                    ->orderBy('boardroom_name')
+                    ->get(['id', 'boardroom_name', 'location_id']);
+
 
         return Inertia::render('Admin/AdminDashboard', [
             'notes'                 => $notes,
@@ -341,7 +353,8 @@ class DashboardController extends Controller
             'invoiceCounts'         => $invoiceCounts,
 
             'inProgressCount'       => $statusCounts['in_progress'] ?? 0,
-            'closedCount'           => $statusCounts['closed'] ?? 0,
+            'normalCount'           => $statusBoardCount,
+            'boardrooms'            => $boardrooms,
 
         ]);
 

@@ -5,6 +5,7 @@ import NoteTrail from '../../Components/NoteTrail.vue';
 import { ref } from 'vue';
 import GlobalNoteModal from '../../Components/Modals/NoteModal.vue';
 import HoursModal from '../../Components/Modals/Hours/ProgressHoursModal.vue';
+import NormalHoursModal from '../../Components/Modals/Hours/NormalHoursModal.vue';
 import CloseHoursModal from '../../Components/Modals/Hours/CloseHoursModal.vue';
 import PlanModal from '../../Components/Modals/PlanModal.vue';
 import CoffeeModal from '../../Components/Modals/CoffeeModal.vue';
@@ -34,7 +35,9 @@ const props = defineProps({
     invoiceCounts: Array,
 
     inProgressCount: Number,
-    closedCount: Number,
+    normalCount: Number,
+
+    boardrooms: Object,
 });
 
 const showNoteModal = ref(false);
@@ -45,6 +48,7 @@ const showCofeModal = ref(false);
 const showPrintModal = ref(false);
 const showBoardModal = ref(false);
 const showHotDeskModal = ref(false);
+const showNormalHoursModal = ref(false);
 
 function viewInvoices() {
     if (props.can['manage settings']) {
@@ -197,7 +201,7 @@ function viewInvoices() {
                             <!-- Normal Hours -->
                             <div class="bg-yellow-600 p-4 rounded shadow">
                                 <h4 class="text-sm font-semibold text-white">Normal Hours</h4>
-                                <p class="text-3xl font-bold text-white">0</p>
+                                <p class="text-3xl font-bold text-white">{{ normalCount ?? 0 }}</p>
                                 <h6 class="text-sm font-semibold text-white">In progress</h6>
                             </div>
 
@@ -218,6 +222,7 @@ function viewInvoices() {
 
                             <button
                                 v-if="can['manage settings']"
+                                @click="showNormalHoursModal = true"
                                 class="w-full px-3 py-2 text-sm font-semibold text-black rounded bg-silver hover:bg-bluemain/60">
                                 Add Normal Hours
                             </button>
@@ -302,7 +307,15 @@ function viewInvoices() {
                 :show="showHoursModal"
                 :onClose="() => (showHoursModal = false)" />
 
+            <NormalHoursModal
+                :users="users"
+                :boardrooms="boardrooms"
+                :can="can"
+                :show="showNormalHoursModal"
+                :onClose="() => (showNormalHoursModal = false)" />
+
             <CloseHoursModal
+                :type="1"
                 :can="can"
                 :show="showHoursCloseModal"
                 :onClose="() => (showHoursCloseModal = false)" />

@@ -9,6 +9,7 @@ const { message, status, showMessage, messageText, messageClass } = useStatusMes
 const props = defineProps({
     users: Object,
     user: Number,
+    boardrooms: Number,
     show: Boolean,
     onClose: Function,
     can: Object,
@@ -18,53 +19,52 @@ const amountError = ref(null);
 const statusError = ref(null);
 
 const form = useForm({
+    user_type: '',
     user_id: '',
+    user_in_office: '',
     boardroom_id: '',
-    office_id: '',
     status: '',
     hours_used: 0,
     start_at: '',
     closed_at: '',
 });
 
-const boardrooms = ref([]);
+const boardroomsUsers = ref([]);
 const booked = ref([]);
-const hoursByOffice = ref({});
-const totalHoursUsed = ref(0);
-const totalRemainingHours = ref(0);
+const hotdesks = ref([]);
+const virtuals = ref([]);
 
+// Watch user_id → fetch boardroom data
 watch(
     () => form.user_id,
     async newUserId => {
         if (newUserId) {
             try {
-                const response = await axios.get(route('admin.hours.user'), {
+                const response = await axios.get(route('admin.boardroom_hours.inprogres'), {
                     params: { user_id: newUserId },
                 });
 
-                boardrooms.value = response.data.boardrooms ?? [];
+                boardroomsUsers.value = response.data.boardrooms ?? [];
                 booked.value = response.data.booked ?? [];
-                hoursByOffice.value = response.data.hours_by_office ?? [];
-                totalHoursUsed.value = response.data.total_hours_used ?? 0;
-                totalRemainingHours.value = response.data.total_remaining_hours ?? 0;
+                hotdesks.value = response.data.hotdesks ?? [];
+                virtuals.value = response.data.virtuals ?? [];
             } catch (error) {
                 console.error('Error fetching data:', error);
-                boardrooms.value = [];
+                boardroomsUsers.value = [];
                 booked.value = [];
-                hoursByOffice.value = {};
-                totalHoursUsed.value = 0;
-                totalRemainingHours.value = 0;
+                hotdesks.value = [];
+                virtuals.value = [];
             }
         } else {
-            boardrooms.value = [];
+            boardroomsUsers.value = [];
             booked.value = [];
-            hoursByOffice.value = {};
-            totalHoursUsed.value = 0;
-            totalRemainingHours.value = 0;
+            hotdesks.value = [];
+            virtuals.value = [];
         }
     }
 );
 
+// Initialize user_id from props
 watch(
     () => props.user,
     newUser => {
@@ -73,6 +73,7 @@ watch(
     { immediate: true }
 );
 
+// Watch status → auto-fill dates
 watch(
     () => form.status,
     newStatus => {
@@ -91,14 +92,30 @@ watch(
     }
 );
 
-// const modalRef = ref(null);
-
-// // Whenever message changes, scroll modal to top
-// watch(() => messageText.value, newMessage => {
-//   if (newMessage && modalRef.value) {
-//     modalRef.value.scrollTop = 0;
-//   }
-// });
+// Watch user_type → clear irrelevant fields
+watch(
+    () => form.user_type,
+    newUserType => {
+        if (newUserType === 'in_office') {
+            form.user_id = '';
+            form.start_at = '';
+            form.closed_at = '';
+        } else if (newUserType === 'existing') {
+            form.boardroom_id = '';
+            form.office_id = '';
+            form.hours_used = 0;
+            form.start_at = '';
+            form.closed_at = '';
+        } else {
+            form.user_id = '';
+            form.boardroom_id = '';
+            form.office_id = '';
+            form.hours_used = 0;
+            form.start_at = '';
+            form.closed_at = '';
+        }
+    }
+);
 
 const modalRef = ref(null);
 
@@ -124,7 +141,7 @@ const submit = () => {
         return;
     }
 
-    form.post(route('admin.hours.store'), {
+    form.post(route('admin.boardroom_hours.store'), {
         preserveScroll: true,
         onSuccess: () => {
             message.value = 'Boardroom Hours Saved successfully';
@@ -135,7 +152,7 @@ const submit = () => {
             setTimeout(() => {
                 router.reload({ preserveScroll: true });
                 router.visit(route('admin.dashboard'));
-            }, 4000);
+            }, 3000);
         },
         onError: errors => {
             message.value = Object.values(errors).join('\n');
@@ -159,11 +176,6 @@ const decrementhour = () => {
     }
 };
 
-const selectedOfficeHours = computed(() => {
-    if (!form.office_id) return null;
-    return hoursByOffice.value[form.office_id] || null;
-});
-
 const visitNormalHour = () => {
     router.visit(route('admin.boardroom_hours.index'));
 };
@@ -179,7 +191,7 @@ const visitFreeHours = () => {
         class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 overflow-y-auto bg-black/60">
         <div
             ref="modalRef"
-            class="w-full max-w-4xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
+            class="w-full max-w-2xl max-h-[80vh] overflow-y-auto p-4 bg-white rounded shadow-lg sm:p-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 gap-3">
                 <h2 class="text-2xl sm:text-2xl">Boardroom Hours</h2>
 
@@ -211,38 +223,143 @@ const visitFreeHours = () => {
 
             <form
                 @submit.prevent="submit"
-                class="mt-10 space-y-6">
-                <!-- User Selection -->
-                <div class="mb-3">
-                    <div v-if="can['manage settings']">
-                        <label class="block font-medium text-md">User</label>
-                        <select
-                            v-model="form.user_id"
-                            class="w-full px-3 py-2 border rounded">
-                            <option value="">Select User</option>
-                            <option
-                                v-for="user in users"
-                                :key="user.id"
-                                :value="user.id">
-                                {{ user.name }}
-                            </option>
-                        </select>
-                        <div
-                            v-if="form.errors.user_id"
-                            class="text-sm text-red-600">
-                            {{ form.errors.user_id }}
+                ref="modalRef">
+                <!-- Type of Booking -->
+                <div class="grid grid-cols-1 gap-6 mt-5">
+                    <div class="mb-5">
+                        <label class="block font-medium text-md mb-1">Type of Booking</label>
+                        <div class="flex space-x-6">
+                            <label
+                                class="flex items-center justify-center flex-1 space-x-2 border rounded py-2 cursor-pointer"
+                                :class="form.user_type === 'in_office' ? 'border-primary bg-primary/10' : ''">
+                                <input
+                                    type="radio"
+                                    value="in_office"
+                                    v-model="form.user_type"
+                                    class="form-radio text-primary" />
+                                <span>In Office</span>
+                            </label>
+
+                            <label
+                                class="flex items-center justify-center flex-1 space-x-2 border rounded py-2 cursor-pointer"
+                                :class="form.user_type === 'existing' ? 'border-primary bg-primary/10' : ''">
+                                <input
+                                    type="radio"
+                                    value="existing"
+                                    v-model="form.user_type"
+                                    class="form-radio text-primary" />
+                                <span>Existing User</span>
+                            </label>
                         </div>
                     </div>
-                    <input
-                        v-else
-                        type="hidden"
-                        v-model="form.user_id" />
                 </div>
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5">
-                    <!-- Boardroom Selection -->
+
+                <!-- Existing User Section -->
+                <div v-if="form.user_type === 'existing'">
+                    <!-- User Selection -->
+                    <div class="mb-3">
+                        <div v-if="can['manage settings']">
+                            <label class="block font-medium text-md">User</label>
+                            <select
+                                v-model="form.user_id"
+                                class="w-full px-3 py-2 border rounded">
+                                <option value="">Select User</option>
+                                <option
+                                    v-for="user in users"
+                                    :key="user.id"
+                                    :value="user.id">
+                                    {{ user.name }}
+                                </option>
+                            </select>
+                            <div
+                                v-if="form.errors.user_id"
+                                class="text-sm text-red-600">
+                                {{ form.errors.user_id }}
+                            </div>
+                        </div>
+                        <input
+                            v-else
+                            type="hidden"
+                            v-model="form.user_id" />
+                    </div>
+
+                    <div
+                        class="mt-5"
+                        v-if="booked.length > 0">
+                        <label class="block font-medium text-md">Boardroom</label>
+                        <select
+                            v-model="form.boardroom_id"
+                            class="w-full px-3 py-2 border rounded">
+                            <option value="">Select Boardroom</option>
+                            <option
+                                v-for="rooms in boardroomsUsers"
+                                :key="rooms.id"
+                                :value="rooms.id">
+                                {{ rooms.boardroom_name }} - {{ rooms.location?.name }}
+                            </option>
+                        </select>
+                    </div>
+
                     <div
                         v-if="booked.length > 0"
-                        class="mb-3">
+                        class="my-5">
+                        <label class="block font-medium text-md">Offices Booked</label>
+                        <div class="grid grid-col-3 gap-3 mt-2">
+                            <div class="w-full px-3 py-2 border rounded">
+                                <h6 class="text-md font-semibold mb-2">Closed Office</h6>
+                                <div
+                                    class="text-sm"
+                                    v-for="room in booked"
+                                    :key="room.id"
+                                    :value="room.id">
+                                    {{ room.office.office_name }} - {{ room.office.location?.name }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="w-full px-3 py-2 border rounded"
+                        v-if="hotdesks.length > 0">
+                        <label class="block font-medium text-md">Hot Desk</label>
+                        <div
+                            v-for="desk in hotdesks"
+                            :key="desk.id"
+                            :value="desk.id">
+                            {{ desk.helpdesk?.help_desk_name }} - {{ desk.helpdesk?.location?.name }}
+                        </div>
+                    </div>
+                    <div
+                        class="w-full px-3 py-2 border rounded"
+                        v-if="virtuals.length > 0">
+                        <label class="block font-medium text-md">Virtual Offices</label>
+                        <div
+                            v-for="virtual in virtuals"
+                            :key="virtual.id"
+                            :value="virtual.id">
+                            {{ virtual.virtualOffice?.virtualoffice_name }} -
+                            {{ virtual.virtualOffice?.location?.name }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Office Section -->
+                <div v-if="form.user_type === 'in_office'">
+                    <!-- User Selection -->
+                    <div class="mb-3">
+                        <label class="block font-medium text-md">User In Office</label>
+                        <input
+                            type="text"
+                            v-model="form.user_in_office"
+                            placeholder="Enter user name"
+                            class="w-full px-3 py-2 border rounded" />
+                        <div
+                            v-if="form.errors.user_in_office"
+                            class="text-sm text-red-600">
+                            {{ form.errors.user_in_office }}
+                        </div>
+                    </div>
+                    <div class="mt-5">
                         <label class="block font-medium text-md">Boardroom</label>
                         <select
                             v-model="form.boardroom_id"
@@ -256,30 +373,14 @@ const visitFreeHours = () => {
                             </option>
                         </select>
                     </div>
+                </div>
 
-                    <!-- office Selection -->
-                    <div
-                        v-if="booked.length > 0"
-                        class="mb-3">
-                        <label class="block font-medium text-md">Offices</label>
-                        <select
-                            v-model="form.office_id"
-                            class="w-full px-3 py-2 border rounded">
-                            <option value="">Select Office</option>
-                            <option
-                                v-for="room in booked"
-                                :key="room.id"
-                                :value="room.id">
-                                {{ room.office.office_name }} - {{ room.office.location?.name }}
-                            </option>
-                        </select>
-                    </div>
+                <!-- Status -->
+                <hr class="mt-10 border-gray-300" />
 
-                    <!-- Status Radio Group -->
-                    <!-- <div
-                        v-if="booked.length > 0"
-                        class="mb-5">
-                        <label class="block font-medium text-md mb-2">Status</label>
+                <div class="grid grid-cols-1 gap-6 mt-5">
+                    <!-- <div>
+                        <label class="block font-medium text-md">Status</label>
                         <p
                             v-if="statusError"
                             class="mt-1 text-sm text-red-600">
@@ -293,6 +394,14 @@ const visitFreeHours = () => {
                                     v-model="form.status"
                                     class="form-radio text-primary" />
                                 <span>In Progress</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input
+                                    type="radio"
+                                    value="closed"
+                                    v-model="form.status"
+                                    class="form-radio text-primary" />
+                                <span>Closed</span>
                             </label>
                             <label class="flex items-center space-x-2">
                                 <input
@@ -342,18 +451,17 @@ const visitFreeHours = () => {
                         </div>
                     </div> -->
                 </div>
+
+                <!-- Hours Counter -->
                 <hr class="my-5 border-gray-300" />
-                <!-- Hours Counter + Info -->
-                <div
-                    class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-5"
-                    v-if="booked.length > 0">
+                <div class="grid grid-cols-1 gap-6 mt-5">
                     <div class="text-center border-r border-gray-200">
                         <label
                             for="counter"
-                            class="block mb-2 text-xl text-center text-gray-900"
-                            >Hours:</label
-                        >
-                        <div class="flex flex-col items-center my-10 space-y-3">
+                            class="block mb-2 text-xl text-center text-gray-900">
+                            Hours:
+                        </label>
+                        <div class="flex flex-row items-center justify-center my-10 space-x-3">
                             <button
                                 type="button"
                                 @click="incrementhour"
@@ -366,11 +474,6 @@ const visitFreeHours = () => {
                                 v-model="form.hours_used"
                                 class="text-sm font-medium text-center border border-gray-300 w-14 h-11 bg-gray-50"
                                 required />
-                            <p
-                                v-if="amountError"
-                                class="mt-1 text-sm text-red-600">
-                                {{ amountError }}
-                            </p>
                             <button
                                 type="button"
                                 @click="decrementhour"
@@ -378,30 +481,16 @@ const visitFreeHours = () => {
                                 –
                             </button>
                         </div>
-                    </div>
-                    <div>
-                        <hr class="my-5 border-gray-300 sm:border-0" />
-                        <div v-for="count in hoursByOffice">
-                            <div>
-                                <h3 class="block mb-3 text-xl text-center text-gray-900">Total Hours Used</h3>
-                                <p class="block text-5xl font-semibold text-center text-black">
-                                    {{ count.hours_used }}
-                                </p>
-                            </div>
-                            <div class="mt-8">
-                                <hr class="my-5 border-gray-300" />
-                                <h3 class="block mb-3 text-center text-gray-900 text-md">Remaining Hours</h3>
-                                <p class="block text-3xl font-semibold text-center text-black">
-                                    {{ count.remaining_hours }}
-                                </p>
-                            </div>
-                        </div>
+                        <p
+                            v-if="amountError"
+                            class="mt-1 text-sm text-red-600">
+                            {{ amountError }}
+                        </p>
                     </div>
                 </div>
 
-                <hr class="my-5 border-gray-300" />
-
                 <!-- Submit + Cancel -->
+                <hr class="my-5 border-gray-300" />
                 <div class="flex flex-col gap-3 sm:flex-row sm:justify-between">
                     <button
                         type="submit"
