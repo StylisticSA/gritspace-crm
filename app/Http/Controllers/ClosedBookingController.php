@@ -8,11 +8,13 @@ use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Extra;
+use App\Models\HotDeskBooking;
 use App\Models\Location;
 use App\Models\Office;
 use App\Models\OfficePricing;
 use App\Models\Parking;
 use App\Models\User;
+use App\Models\VirtualBooking;
 use App\Notifications\BookingNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -31,11 +33,16 @@ class ClosedBookingController extends Controller
 
         $search = $request->input('search');
 
-        $users = User::with('roles')
+        $users = User::with([
+                    'roles',
+                    'companyDetails.location'
+                ])
                 ->whereHas('roles', function ($query) {
-                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
-                })->select('id', 'name')
+                    $query->whereIn('name', ['user', 'users', 'admin', 'admins']);
+                })
+                ->select('id', 'name')
                 ->get();
+
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 

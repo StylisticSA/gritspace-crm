@@ -26,19 +26,10 @@ interface Boardroom {
     amenities?: Amenity[];
 }
 
-interface discount {
-    name: string;
-    discount: number;
-}
-
 const props = defineProps<{
     boardroom: Boardroom;
     locations: Location[];
     amenities: Amenity[];
-    closedDiscount: discount;
-    dedicatedDiscount: discount;
-    hotdeskDiscount: discount;
-    virtualDiscount: discount;
 }>();
 
 const pricingOptions = {
@@ -97,7 +88,7 @@ const selectedPlan = ref<string | null>(null);
                                 <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
                                     <div class="md:col-span-2">
                                         <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
-                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                        <!-- <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
                                             <li>
                                                 Includes 15 free boardroom hours per month (For
                                                 <strong>Closed Office</strong> monthly bookings)
@@ -117,7 +108,7 @@ const selectedPlan = ref<string | null>(null);
                                                 <strong>{{ props.virtualDiscount?.discount }}%</strong> discount on
                                                 boardrooms.
                                             </li>
-                                        </ul>
+                                        </ul> -->
                                     </div>
                                 </div>
                             </div>
@@ -158,7 +149,6 @@ const selectedPlan = ref<string | null>(null);
                             <BookingBoardroom
                                 :buttonName="boardroom.boardroom_name"
                                 :boardroom-id="boardroom.id"
-                                :discount-closed="props.closedDiscount?.discount"
                                 :pricing-options="pricingOptions"
                                 :available-plans="availablePlans"
                                 :selected-plan="selectedPlan" />

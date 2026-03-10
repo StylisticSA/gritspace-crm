@@ -12,7 +12,6 @@ const props = defineProps({
     availablePlans: Array,
     buttonName: String,
     selectedPlan: String,
-    discountClosed: Number,
 });
 
 const dailyPlans = ['daily'];
@@ -30,8 +29,6 @@ const form = useForm({
     selected_times: {},
     months: 0,
     selected_price: 0, // raw total
-    discounted_price: 0,
-    discount_percentage: 0,
 });
 
 const unitPrice = computed(() => props.pricingOptions[form.plan] || 0);
@@ -102,23 +99,8 @@ watch(weekdaysCount, count => {
     form.months = count;
 });
 
-const discountedClosed = computed(() => {
-    const rawTotal = form.selected_price || 0;
-    const discount = props.discountClosed;
-
-    if (discount === null || discount === undefined || discount === '') {
-        form.discount_percentage = 0;
-        return rawTotal;
-    }
-
-    form.discount_percentage = discount;
-    const discountFactor = (100 - discount) / 100;
-    return rawTotal * discountFactor;
-});
-
 const submit = () => {
     form.selected_times = selectedDateTimes.value;
-    form.discounted_price = discountedClosed.value;
     form.post(route('bookingboardroom.store'), {
         onError: errors => {
             bookingConflict.value = errors.booking_conflict ?? null;
@@ -245,22 +227,6 @@ const currencyFormatter = new Intl.NumberFormat('en-ZA', {
             <input
                 type="hidden"
                 v-model="form.selected_price" />
-        </div>
-
-        <div>
-            <label class="block font-semibold">Discounted Price</label>
-            <input
-                type="text"
-                :value="currencyFormatter.format(discountedClosed)"
-                readonly
-                tabindex="-1"
-                @focus="e => e.target.blur()"
-                class="w-full px-3 py-2 bg-gray-100 border-0 rounded cursor-default select-none" />
-
-            <!-- Show discount info only if discountClosed is set -->
-            <div v-if="props.discountClosed">
-                <small class="text-green-600"> Discount applied: {{ props.discountClosed }}% </small>
-            </div>
         </div>
 
         <!-- SUBMIT -->

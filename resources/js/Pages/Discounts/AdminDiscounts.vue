@@ -106,11 +106,8 @@ const formatDate = dateStr => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">
-                                        Discounted User
-                                    </th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Name</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Type</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Packadge</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Discount</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
@@ -120,19 +117,16 @@ const formatDate = dateStr => {
                                 <tr
                                     v-for="discount in discounts.data"
                                     :key="discount.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.user?.name }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ discount.location?.name }}</td>
+
                                     <td class="px-6 py-4 text-sm text-gray-800">
-                                        {{
-                                            discount.office_type
-                                                ? discount.office_type.charAt(0).toUpperCase() +
-                                                  discount.office_type.slice(1)
-                                                : ''
-                                        }}
+                                        {{ discount.name }}
                                     </td>
+
                                     <td class="px-6 py-4 text-sm text-gray-800">
-                                        {{ discount.packadge.charAt(0).toUpperCase() + discount.packadge.slice(1) }}
+                                        {{ discount.package }}
                                     </td>
+
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ discount.discount }}</td>
 
                                     <td class="px-6 py-4 text-sm text-gray-800">

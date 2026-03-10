@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\Extra;
-use App\Models\Office;
-use App\Models\HelpDesk;
-use App\Models\Printing;
-use App\Models\Boardroom;
-use App\Models\VirtualOffice;
 use App\Models\AgrementUpload;
+use App\Models\Boardroom;
 use App\Models\ClientInformation;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Discount;
+use App\Models\Extra;
+use App\Models\HelpDesk;
+use App\Models\Office;
+use App\Models\Printing;
+use App\Models\VirtualOffice;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
@@ -23,6 +24,12 @@ class Location extends Model
     {
         return $this->hasMany(Office::class);
     }
+
+    public function discounts()
+    {
+        return $this->hasMany(Discount::class);
+    }
+
 
     public function boardrooms()
     {

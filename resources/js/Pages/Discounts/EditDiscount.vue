@@ -1,43 +1,43 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { watch, computed } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import { computed } from 'vue';
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const props = defineProps({
-    closed: Array,
-    dedicated: Array,
-    hotdesk: Array,
-    virtuals: Array,
-    boardrooms: Array,
-    users: Array,
+    locations: Array,
     discount: Object,
 });
 
 const form = useForm({
-    user_id: props.discount?.user_id || '',
-    office_id: props.discount?.office_id || '',
-    help_desk_id: props.discount?.help_desk_id || '',
-    virtual_office_id: props.discount?.virtual_office_id || '',
-    boardroom_id: props.discount?.boardroom_id || '',
-    discount: props.discount?.discount || '',
-    selectedCategory: props.discount?.selectedCategory || 'none',
-    name: props.discount?.name || '',
-    packadge: props.discount.packadge || '',
+    location_id: props.discount.location_id ?? '',
+    name: props.discount.name ?? '',
+    package: props.discount.package ?? '',
+    discount: props.discount.discount ?? '',
+});
+
+const packageOptionsMap = {
+    Closed: ['Monthly', 'Daily'],
+    Dedicated: ['Premium', 'Standard'],
+    'Hot Desks': ['Daily'],
+    Virtuals: ['Monthly'],
+};
+
+const availablePackages = computed(() => {
+    return packageOptionsMap[form.name] || [];
 });
 
 const submit = () => {
-    form.put(route('admin.discount.update', props.discount.id), {
+    form.put(route('admin.discounts.update', props.discount.id), {
         onSuccess: () => {
-            message.value = 'Discount has been updated successfully.';
+            message.value = 'Discount has been Updated Successfully.';
             status.value = 'success';
 
             setTimeout(() => {
-                router.reload({ preserveScroll: true });
                 router.visit(route('admin.discounts.index'));
-            }, 4000);
+            }, 2000);
         },
         onError: errors => {
             message.value = Object.values(errors).join('\n');
@@ -45,41 +45,10 @@ const submit = () => {
         },
     });
 };
-
-watch(
-    () => form.selectedCategory,
-    () => {
-        form.office_id = '';
-        form.help_desk_id = '';
-        form.virtual_office_id = '';
-        form.boardroom_id = '';
-        form.name = '';
-    }
-);
-
-const filteredBoardrooms = computed(() => {
-    let selectedOffice = null;
-
-    if (form.selectedCategory === 'closed') {
-        selectedOffice = props.closed.find(o => o.id === form.office_id);
-    } else if (form.selectedCategory === 'dedicated') {
-        selectedOffice = props.dedicated.find(o => o.id === form.office_id);
-    } else if (form.selectedCategory === 'hotdesk') {
-        selectedOffice = props.hotdesk.find(d => d.id === form.help_desk_id);
-    } else if (form.selectedCategory === 'virtuals') {
-        selectedOffice = props.virtuals.find(v => v.id === form.virtual_office_id);
-    }
-
-    if (selectedOffice?.location?.id) {
-        return props.boardrooms.filter(b => b.location?.id === selectedOffice.location.id);
-    }
-
-    return props.boardrooms;
-});
 </script>
 
 <template>
-    <Head title="Create Discount" />
+    <Head title="Edit Discount" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -108,203 +77,66 @@ const filteredBoardrooms = computed(() => {
                     <form
                         @submit.prevent="submit"
                         class="space-y-6">
-                        <div class="grid grid-cols-1 gap-6">
-                            <!-- Radio Buttons -->
-                            <label class="block text-lg font-medium text-gray-700">Offices</label>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="none"
-                                        v-model="form.selectedCategory" />
-                                    <span>None</span>
-                                </label>
-
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="closed"
-                                        v-model="form.selectedCategory" />
-                                    <span>Closed Offices</span>
-                                </label>
-
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="dedicated"
-                                        v-model="form.selectedCategory" />
-                                    <span>Dedicated Desks</span>
-                                </label>
-
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="hotdesk"
-                                        v-model="form.selectedCategory" />
-                                    <span>Hotdesks</span>
-                                </label>
-
-                                <label class="flex items-center space-x-2">
-                                    <input
-                                        type="radio"
-                                        value="virtuals"
-                                        v-model="form.selectedCategory" />
-                                    <span>Virtual Offices</span>
-                                </label>
-                            </div>
-
-                            <!-- Office Name Input / Dropdown -->
-                            <div v-if="form.selectedCategory !== 'none'">
-                                <div
-                                    v-if="
-                                        form.errors.office_id ||
-                                        form.errors.help_desk_id ||
-                                        form.errors.virtual_office_id
-                                    "
-                                    class="text-sm text-red-600 mb-2">
-                                    {{
-                                        form.errors.office_id ||
-                                        form.errors.help_desk_id ||
-                                        form.errors.virtual_office_id
-                                    }}
-                                </div>
-                                <label class="block text-lg font-medium text-gray-700">Office Name</label>
-
-                                <!-- Closed -->
-                                <select
-                                    v-if="form.selectedCategory === 'closed'"
-                                    v-model="form.office_id"
-                                    @change="
-                                        form.name =
-                                            closed.find(o => o.id === form.office_id)?.office_name +
-                                            ' (' +
-                                            closed.find(o => o.id === form.office_id)?.location?.name +
-                                            ')'
-                                    "
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Closed Office</option>
-                                    <option
-                                        v-for="office in closed"
-                                        :key="office.id"
-                                        :value="office.id">
-                                        {{ office.office_name }} ({{ office.location?.name }})
-                                    </option>
-                                </select>
-
-                                <!-- Dedicated -->
-                                <select
-                                    v-else-if="form.selectedCategory === 'dedicated'"
-                                    v-model="form.office_id"
-                                    @change="
-                                        form.name =
-                                            dedicated.find(o => o.id === form.office_id)?.office_name +
-                                            ' (' +
-                                            dedicated.find(o => o.id === form.office_id)?.location?.name +
-                                            ')'
-                                    "
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Dedicated Desk</option>
-                                    <option
-                                        v-for="office in dedicated"
-                                        :key="office.id"
-                                        :value="office.id">
-                                        {{ office.office_name }} ({{ office.location?.name }})
-                                    </option>
-                                </select>
-
-                                <!-- Hotdesk -->
-                                <select
-                                    v-else-if="form.selectedCategory === 'hotdesk'"
-                                    v-model="form.help_desk_id"
-                                    @change="
-                                        form.name =
-                                            hotdesk.find(d => d.id === form.help_desk_id)?.help_desk_name +
-                                            ' (' +
-                                            hotdesk.find(d => d.id === form.help_desk_id)?.location?.name +
-                                            ')'
-                                    "
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Hotdesk</option>
-                                    <option
-                                        v-for="desk in hotdesk"
-                                        :key="desk.id"
-                                        :value="desk.id">
-                                        {{ desk.help_desk_name }} ({{ desk.location?.name }})
-                                    </option>
-                                </select>
-
-                                <!-- Virtual -->
-                                <select
-                                    v-else-if="form.selectedCategory === 'virtuals'"
-                                    v-model="form.virtual_office_id"
-                                    @change="
-                                        form.name =
-                                            virtuals.find(v => v.id === form.virtual_office_id)?.virtualoffice_name +
-                                            ' (' +
-                                            virtuals.find(v => v.id === form.virtual_office_id)?.location?.name +
-                                            ')'
-                                    "
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Virtual Office</option>
-                                    <option
-                                        v-for="virtual in virtuals"
-                                        :key="virtual.id"
-                                        :value="virtual.id">
-                                        {{ virtual.virtualoffice_name }} ({{ virtual.location?.name }})
-                                    </option>
-                                </select>
-                            </div>
-
-                            <!-- packadge -->
+                        <div class="grid grid-col-1 sm:grid-cols-2 gap-6">
+                            <!-- Location -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Office Packadge</label>
+                                <label class="block text-lg font-medium text-gray-700">Location</label>
                                 <select
-                                    v-model="form.packadge"
-                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
-                                    <option value="">Select Packadge</option>
-                                    <option value="premium">Premium</option>
-                                    <option value="standard">Standard</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="daily">Daily</option>
-                                    <option value="hourly">Hourly</option>
-                                </select>
-                            </div>
-
-                            <!-- user -->
-                            <div>
-                                <label class="block text-lg font-medium text-gray-700">Users</label>
-                                <select
-                                    v-model="form.user_id"
-                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
-                                    <option value="">Select User</option>
+                                    v-model="form.location_id"
+                                    class="w-full px-3 py-2 border rounded">
+                                    <option value="">Select Location</option>
                                     <option
-                                        v-for="user in users"
-                                        :key="user.id"
-                                        :value="user.id">
-                                        {{ user.name }} - ({{ user.company_details?.location?.name }})
+                                        v-for="loc in locations"
+                                        :key="loc.id"
+                                        :value="loc.id">
+                                        {{ loc.name }}
                                     </option>
                                 </select>
                                 <div
-                                    v-if="form.errors.user_id"
+                                    v-if="form.errors.location_id"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.user_id }}
+                                    {{ form.errors.location_id }}
                                 </div>
                             </div>
 
-                            <!-- Boardroom -->
+                            <!-- Office Type -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Boardroom</label>
+                                <label class="block text-lg font-medium text-gray-700">Office Type</label>
                                 <select
-                                    v-model="form.boardroom_id"
+                                    v-model="form.name"
                                     class="w-full max-h-40 overflow-y-auto border rounded p-2">
-                                    <option value="">Select Boardroom</option>
+                                    <option value="">Select Name</option>
+                                    <option value="Closed">Closed Office</option>
+                                    <option value="Dedicated">Dedicated Desks</option>
+                                    <option value="Hot Desks">Hot Desk</option>
+                                    <option value="Virtuals">Virtual Office</option>
+                                </select>
+                                <div
+                                    v-if="form.errors.name"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.name }}
+                                </div>
+                            </div>
+
+                            <!-- Package -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Office Package</label>
+                                <select
+                                    v-model="form.package"
+                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
+                                    <option value="">Select Package</option>
                                     <option
-                                        v-for="board in filteredBoardrooms"
-                                        :key="board.id"
-                                        :value="board.id">
-                                        {{ board.boardroom_name }} ({{ board.location?.name }})
+                                        v-for="pkg in availablePackages"
+                                        :key="pkg"
+                                        :value="pkg">
+                                        {{ pkg }}
                                     </option>
                                 </select>
+                                <div
+                                    v-if="form.errors.package"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.package }}
+                                </div>
                             </div>
 
                             <!-- Discount -->
