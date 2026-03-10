@@ -8,26 +8,36 @@ const { message, status, showMessage, messageText, messageClass } = useStatusMes
 
 const props = defineProps({
     locations: Array,
+    categories: Array,
 });
 
 const form = useForm({
     location_id: '',
+    category_id: '',
     name: '',
     package: '',
     discount: '',
 });
 
-// mapping office types → allowed packages
 const packageOptionsMap = {
-    Closed: ['Monthly', 'Daily'],
-    Dedicated: ['Premium', 'Standard'],
+    'Closed Office': ['Monthly', 'Daily'],
+    'Closed Offices': ['Monthly', 'Daily'],
+    'Dedicated Desk': ['Premium', 'Standard'],
+    'Dedicated Desks': ['Premium', 'Standard'],
+    'Hot Desk': ['Daily'],
     'Hot Desks': ['Daily'],
-    Virtuals: ['Premium', 'Standard'],
+    'Virtual Office': ['Premium', 'Standard'],
+    'Virtual Offices': ['Premium', 'Standard'],
 };
 
-// compute available packages based on selected office type
+// compute available packages based on selected category name
 const availablePackages = computed(() => {
-    return packageOptionsMap[form.name] || [];
+    const selectedCategory = props.categories.find(c => c.id === form.category_id);
+
+    console.log('s', selectedCategory);
+
+    if (!selectedCategory) return [];
+    return packageOptionsMap[selectedCategory.name] || [];
 });
 
 const submit = () => {
@@ -82,7 +92,7 @@ const submit = () => {
                         <div class="grid grid-col-1 sm:grid-cols-2 gap-6">
                             <!-- Location -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Location</label>
+                                <label class="block text-lg font-medium text-gray-700">Locations</label>
                                 <select
                                     v-model="form.location_id"
                                     class="w-full px-3 py-2 border rounded">
@@ -101,22 +111,24 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <!-- Office Type -->
+                            <!-- Category -->
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Office Type</label>
+                                <label class="block text-lg font-medium text-gray-700">Categories</label>
                                 <select
-                                    v-model="form.name"
-                                    class="w-full max-h-40 overflow-y-auto border rounded p-2">
-                                    <option value="">Select Name</option>
-                                    <option value="Closed">Closed Office</option>
-                                    <option value="Dedicated">Dedicated Desks</option>
-                                    <option value="Hot Desks">Hot Desk</option>
-                                    <option value="Virtuals">Virtual Office</option>
+                                    v-model="form.category_id"
+                                    class="w-full px-3 py-2 border rounded">
+                                    <option value="">Select Category</option>
+                                    <option
+                                        v-for="cate in categories"
+                                        :key="cate.id"
+                                        :value="cate.id">
+                                        {{ cate.name }}
+                                    </option>
                                 </select>
                                 <div
-                                    v-if="form.errors.name"
+                                    v-if="form.errors.category_id"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.name }}
+                                    {{ form.errors.category_id }}
                                 </div>
                             </div>
 

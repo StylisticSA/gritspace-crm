@@ -46,12 +46,10 @@ class CategoriesController extends Controller
         // dd($request);
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            // 'offers_level' => "nullable|boolean",
         ]);
 
         $category = Category::create([
-            'name' => $validated['name'],
-            // 'offers_level' => $validated['offers_level'] ? $request->boolean('offers_level') : false,
+            'name' => ucwords($validated['name']),
         ]);
 
 
@@ -61,7 +59,7 @@ class CategoriesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Categories $categories)
+    public function show(Category $categories)
     {
         //
     }
@@ -90,7 +88,7 @@ class CategoriesController extends Controller
         ]);
 
         $category = $category->update([
-            'name' => $validated['name'],
+            'name' => ucwords($validated['name']),
             'offers_level' => $validated['offers_level'] ? $request->boolean('offers_level') : false,
         ]);
 

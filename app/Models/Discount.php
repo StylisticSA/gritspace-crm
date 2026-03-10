@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,7 +20,11 @@ class Discount extends Model
         return $this->belongsTo(Location::class);
     }
 
-  
+     public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
 
 
 }

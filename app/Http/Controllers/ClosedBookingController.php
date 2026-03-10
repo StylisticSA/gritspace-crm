@@ -3,18 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Amenity;
-use App\Models\BoardroomBooking;
 use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Discount;
-use App\Models\Extra;
-use App\Models\HotDeskBooking;
 use App\Models\Location;
 use App\Models\Office;
 use App\Models\OfficePricing;
 use App\Models\Parking;
 use App\Models\User;
-use App\Models\VirtualBooking;
 use App\Notifications\BookingNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,16 +29,11 @@ class ClosedBookingController extends Controller
 
         $search = $request->input('search');
 
-        $users = User::with([
-                    'roles',
-                    'companyDetails.location'
-                ])
+        $users = User::with('roles')
                 ->whereHas('roles', function ($query) {
-                    $query->whereIn('name', ['user', 'users', 'admin', 'admins']);
-                })
-                ->select('id', 'name')
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                })->select('id', 'name')
                 ->get();
-
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
@@ -86,10 +77,14 @@ class ClosedBookingController extends Controller
                        ->where('status', 'approved')
                        ->get();
 
+        $discounts = Discount::select(['location_id','name','package','discount'])
+                   ->get();
+
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings'              => $bookings,
             'users'                 => $users,
             'approvedClosed'        => $approvedClosed,
+            'discounts'             => $discounts,
             'filters' => [
                 'search' => $search,
             ]
@@ -246,10 +241,7 @@ class ClosedBookingController extends Controller
                     ->where('is_available', 1)->get();
 
 
-        $discount = Discount::where('office_id',$closed->id)
-                    ->where('office_type', 'closed')->first(['name','discount']);
-        
-       
+
 
         return Inertia::render('Bookings/Closed/EditClosed', [
             'office' => $closed->load(['location', 'pricing', 'amenities']),
@@ -259,7 +251,7 @@ class ClosedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
             'parking' => $parking,
-            'discount' => $discount,
+            
         ]);
     }
 

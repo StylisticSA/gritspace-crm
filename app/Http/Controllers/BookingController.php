@@ -62,7 +62,7 @@ class BookingController extends Controller
                         ->where('status', 'approved')
                         ->get();
 
-
+    
 
         return Inertia::render('Bookings/offices/IndexBookings', [
             'offices'           => $offices,

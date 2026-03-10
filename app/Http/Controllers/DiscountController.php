@@ -2,16 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Boardroom;
 use App\Models\Category;
 use App\Models\Discount;
-use App\Models\HelpDesk;
 use App\Models\Location;
-use App\Models\Office;
-use App\Models\User;
-use App\Models\VirtualOffice;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -24,15 +18,18 @@ class DiscountController extends Controller
     {
         $search = $request->input('search');
 
-        $discounts = Discount::with(['location'])
-            ->when($search, function ($query, $search) {
-            $query->where('name', 'like', "%{$search}%");
-        })
-            ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString();
-
-  
+        $discounts = Discount::with(['location', 'category'])
+                    ->when($search, function ($query, $search) {
+                        $query->whereHas('location', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('category', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                    })
+                    ->orderByDesc('created_at')
+                    ->paginate(10)
+                    ->withQueryString();
 
         return Inertia::render("Discounts/AdminDiscounts", [
             'discounts' => $discounts,
@@ -49,9 +46,11 @@ class DiscountController extends Controller
     {
         
         $location = Location::get(['id', 'name']);
+        $category = Category::get(['id', 'name']);
 
         return Inertia::render("Discounts/CreateDiscount", [
                     'locations'     => $location,
+                    'categories'    => $category,
                 ]);
     }
 
@@ -63,18 +62,21 @@ class DiscountController extends Controller
 
         $validated = $request->validate([
             'location_id' => ['required', 'exists:locations,id'],
+            'category_id' => ['required', 'exists:categories,id'],
             'package'     => ['required', 'string', 'max:255'],
+
             'discount'    => ['required', 'integer', 'min:0'],
 
-            'name' => [
+            'package' => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('discounts')->where(function ($query) use ($request) {
                     return $query->where('location_id', $request->location_id)
-                                ->where('package', $request->package);
+                                ->where('category_id', $request->category_id);
                 }),
             ],
+
 
         ]);
 
@@ -98,10 +100,13 @@ class DiscountController extends Controller
     {
         
         $location = Location::get(['id', 'name']);
+        $categories = Category::get(['id', 'name']);
+
 
         return Inertia::render("Discounts/EditDiscount", [
                     'locations'     => $location,
                     'discount'  => $discount->load(['location']),
+                     'categories'    => $categories,
                 ]);
         
     }
@@ -116,17 +121,18 @@ class DiscountController extends Controller
             'package'     => ['required', 'string', 'max:255'],
             'discount'    => ['required', 'integer', 'min:0'],
 
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('discounts')
-                    ->where(function ($query) use ($request) {
-                        return $query->where('location_id', $request->location_id)
-                                    ->where('package', $request->package);
-                    })
-                    ->ignore($discount->id), // <-- important for update
-            ],
+            'package' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('discounts')
+                        ->where(function ($query) use ($request) {
+                            return $query->where('location_id', $request->location_id)
+                                        ->where('category_id', $request->category_id);
+                        })
+                        ->ignore($discount->id), 
+                ],
+
         ]);
 
         $discount->update($validated);

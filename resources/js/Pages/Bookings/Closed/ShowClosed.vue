@@ -8,6 +8,7 @@ import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue
 
 const props = defineProps({
     bookings: Object,
+    discount: Object,
     filters: Object,
     users: Object,
     can: Object,
@@ -243,6 +244,7 @@ const cancelBooking = id => {
 };
 
 const allBookings = computed(() => {
+    console.log('closed', props.approvedClosed);
     const closed = props.approvedClosed.map(b => ({
         name: b.office.office_name,
         type: 'Closed Office',

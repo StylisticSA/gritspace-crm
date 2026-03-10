@@ -107,7 +107,7 @@ const formatDate = dateStr => {
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Category</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Packadge</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Discount</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
@@ -120,7 +120,7 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ discount.location?.name }}</td>
 
                                     <td class="px-6 py-4 text-sm text-gray-800">
-                                        {{ discount.name }}
+                                        {{ discount.category?.name }}
                                     </td>
 
                                     <td class="px-6 py-4 text-sm text-gray-800">
