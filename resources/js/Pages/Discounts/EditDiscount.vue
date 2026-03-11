@@ -33,14 +33,12 @@ const packageOptionsMap = {
 const availablePackages = computed(() => {
     const selectedCategory = props.categories.find(c => c.id === form.category_id);
 
-    console.log('s', selectedCategory);
-
     if (!selectedCategory) return [];
     return packageOptionsMap[selectedCategory.name] || [];
 });
 
 const submit = () => {
-    form.put(route('admin.discounts.update', props.discount.id), {
+    form.put(route('admin.discount.update', props.discount.id), {
         onSuccess: () => {
             message.value = 'Discount has been Updated Successfully.';
             status.value = 'success';

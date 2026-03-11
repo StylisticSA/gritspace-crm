@@ -31,6 +31,8 @@ return new class () extends Migration {
             $table->boolean('parking_availability')->default(false);
             $table->string('status')->default('pending');
 
+            $table->integer('boardroom_discounted_percent')->nullable()->default(0);
+   
             $table->timestamps();
 
             $table->softDeletes();

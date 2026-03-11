@@ -35,6 +35,8 @@ class ClosedBookingController extends Controller
                 })->select('id', 'name')
                 ->get();
 
+        $discounts = Discount::select(['location_id','category_id','package','discount'])->get();
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
            $bookings = Booking::with(['user', 'office.location', 'category'])
@@ -77,8 +79,8 @@ class ClosedBookingController extends Controller
                        ->where('status', 'approved')
                        ->get();
 
-        $discounts = Discount::select(['location_id','name','package','discount'])
-                   ->get();
+      
+
 
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings'              => $bookings,
@@ -241,6 +243,10 @@ class ClosedBookingController extends Controller
                     ->where('is_available', 1)->get();
 
 
+        $discounts = Discount::where('location_id', $closed->location_id)
+                    ->where('category_id', $closed->category_id)
+                    ->get(['id','package','discount']);
+        // dd($discounts,$closed);
 
 
         return Inertia::render('Bookings/Closed/EditClosed', [
@@ -251,6 +257,7 @@ class ClosedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
             'parking' => $parking,
+            'discount' => $discounts
             
         ]);
     }
@@ -299,9 +306,11 @@ class ClosedBookingController extends Controller
      */
     public function approve(Request $request, Booking $closed)
     {
+        dd($request);
 
         $closed->update([
             'status' => 'approved',
+            'discounted_percent' => $request->discounted_percent,
         ]);
 
         $office = Office::findOrFail($closed->office_id);

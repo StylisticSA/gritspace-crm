@@ -8,7 +8,7 @@ import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue
 
 const props = defineProps({
     bookings: Object,
-    discount: Object,
+    discounts: Object,
     filters: Object,
     users: Object,
     can: Object,
@@ -21,6 +21,7 @@ const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 
 const showNoteModal = ref(false);
+const showDiscountModal = ref(false);
 const showDatesModal = ref(false);
 const showAvailModal = ref(false);
 const selectedDates = ref(null);
@@ -142,26 +143,52 @@ function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+const discountedPrice = computed(() => {
+    if (!selectedBooking.value || !bookingDiscount.value) {
+        return selectedBooking.value?.total_price ?? 0;
+    }
+
+    const total = Number(selectedBooking.value.total_price);
+    const discountPercent = Number(bookingDiscount.value.discount);
+
+    const discountAmount = total * (discountPercent / 100);
+    const finalTotal = total - discountAmount;
+
+    return {
+        finalTotal,
+        discountPercent,
+        discountAmount,
+    };
+});
+
+console.log('id', discountedPrice);
 const approveBooking = id => {
     if (!id) return;
 
     if (confirm('Are you sure you want to change to Approved?')) {
-        router.put(route('bookingclosed.approve', id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                message.value = 'Office status changed to Approved';
-                status.value = 'success';
-                refreshNotifications();
+        router.put(
+            route('bookingclosed.approve', id),
+            {
+                // 👇 only send the discount percent
+                discount_percent: discountedPrice.value.discountPercent,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    message.value = 'Office status changed to Approved';
+                    status.value = 'success';
+                    refreshNotifications();
 
-                setTimeout(() => {
-                    router.reload({ preserveScroll: true });
-                }, 2000);
-            },
-            onError: () => {
-                message.value = 'Failed to change to approved.';
-                status.value = 'deleted';
-            },
-        });
+                    setTimeout(() => {
+                        router.reload({ preserveScroll: true });
+                    }, 2000);
+                },
+                onError: () => {
+                    message.value = 'Failed to change to approved.';
+                    status.value = 'deleted';
+                },
+            }
+        );
     }
 };
 
@@ -243,21 +270,63 @@ const cancelBooking = id => {
     }
 };
 
-const allBookings = computed(() => {
-    console.log('closed', props.approvedClosed);
-    const closed = props.approvedClosed.map(b => ({
-        name: b.office.office_name,
-        type: 'Closed Office',
-        price: b.total_price,
-        plan: b.plan,
-        id: b.office_id,
-        months: b.months,
-        monthly_rate: Number(b.office.monthly_rate),
-        daily_rate: Number(b.office.daily_rate),
-    }));
+const bookingDiscount = computed(() => {
+    if (!showViewModal.value || !selectedBooking.value) return null;
 
-    return [...closed];
+    // normalize plan to match discount package naming
+    const planNormalized =
+        selectedBooking.value.plan.charAt(0).toUpperCase() + selectedBooking.value.plan.slice(1).toLowerCase();
+
+    // find the discount for this office
+    return props.discounts.find(
+        d =>
+            d.package === planNormalized &&
+            d.location_id === selectedBooking.value.office.location_id &&
+            d.category_id === selectedBooking.value.category_id
+    );
 });
+
+const allBookings = computed(() => {
+    const closed = props.approvedClosed.map(b => {
+        return {
+            name: b.office.office_name,
+            type: 'Closed Office',
+            price: b.total_price,
+            plan: b.plan,
+            id: b.office_id,
+            months: b.months,
+            monthly_rate: Number(b.office.monthly_rate),
+            daily_rate: Number(b.office.daily_rate),
+            location: b.office.location?.name,
+        };
+    });
+
+    return closed;
+});
+
+const form = useForm({
+    user_id: '',
+    office_id: '',
+    discount: '',
+});
+
+const submitForm = () => {
+    form.post(route('admin.discounts.store'), {
+        onSuccess: () => {
+            message.value = 'Discounts has been Saved Successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.reload({ preserveScroll: true });
+                router.visit(route('admin.discounts.index'));
+            }, 2000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
+        },
+    });
+};
 </script>
 
 <template>
@@ -449,7 +518,8 @@ const allBookings = computed(() => {
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-5">
-                        <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
+                        <!-- Modal container -->
+                        <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-bold text-gray-800">
@@ -470,10 +540,10 @@ const allBookings = computed(() => {
                             </template>
 
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-3 m-5 text-sm text-gray-700">
-                                <!-- General Info Table Style -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
+                                <!-- General Info -->
                                 <div class="space-y-2">
-                                    <div class="grid grid-cols-[140px_1fr] gap-x-2 items-start">
+                                    <div class="grid grid-cols-2 gap-x-2 items-start">
                                         <div
                                             v-if="can['manage settings']"
                                             class="mb-3 font-medium text-gray-600">
@@ -497,9 +567,7 @@ const allBookings = computed(() => {
                                         <div class="mb-3 font-medium text-gray-600"><strong>End Date:</strong></div>
                                         <div class="mb-2">{{ formatDate(selectedBooking.end_date) }}</div>
 
-                                        <div class="mb-3 font-medium text-gray-600">
-                                            <strong>Duration:</strong>
-                                        </div>
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Duration:</strong></div>
                                         <div class="mb-2">
                                             {{
                                                 selectedBooking.plan === 'daily'
@@ -507,9 +575,6 @@ const allBookings = computed(() => {
                                                     : (selectedBooking.months + ' Months' ?? '—')
                                             }}
                                         </div>
-
-                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
-                                        <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
 
                                         <div class="mb-3 font-medium text-gray-600"><strong>Status: </strong></div>
                                         <div>
@@ -527,27 +592,100 @@ const allBookings = computed(() => {
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <hr v-if="selectedBooking.parking_price !== '0.00'" />
-                                        <div
-                                            class="grid grid-cols-[140px_1fr] gap-x-2 items-start pt-5"
-                                            v-if="selectedBooking.parking_price !== '0.00'">
-                                            <div class="mb-3 font-medium text-gray-600"><strong>Parking:</strong></div>
-                                            <div class="mb-3">
-                                                {{
-                                                    selectedBooking.parking_price === '0.00'
-                                                        ? 'None'
-                                                        : 'R ' + selectedBooking.parking_price
-                                                }}
+
+                                        <div>
+                                            <hr v-if="selectedBooking.parking_price !== '0.00'" />
+                                            <div
+                                                class="grid grid-cols-[140px_1fr] gap-x-2 items-start pt-5"
+                                                v-if="selectedBooking.parking_price !== '0.00'">
+                                                <div class="mb-3 font-medium text-gray-600">
+                                                    <strong>Parking:</strong>
+                                                </div>
+                                                <div class="mb-3">
+                                                    {{
+                                                        selectedBooking.parking_price === '0.00'
+                                                            ? 'None'
+                                                            : 'R ' + selectedBooking.parking_price
+                                                    }}
+                                                </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Discounts -->
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-x-1 items-start mb-10">
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
+                                        <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
+
+                                        <div
+                                            v-if="can['manage settings']"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Rate:</strong>
+                                        </div>
+                                        <div v-if="can['manage settings']">{{ bookingDiscount?.discount ?? 0 }} %</div>
+
+                                        <div class="mt-5"></div>
+                                        <div></div>
+                                        <div
+                                            v-if="can['manage settings']"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Discount Amount:</strong>
+                                        </div>
+                                        <div v-if="can['manage settings']">
+                                            R {{ discountedPrice.discountAmount.toFixed(2) ?? 0 }}
+                                        </div>
+
+                                        <div
+                                            v-if="can['manage settings']"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Final Total:</strong>
+                                        </div>
+                                        <div v-if="can['manage settings']">
+                                            R {{ discountedPrice.finalTotal.toFixed(2) ?? 0 }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Inline form section -->
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4"
+                                v-if="ndumi">
+                                <div>
+                                    <!-- Second column content -->
+                                </div>
+                                <form
+                                    @submit.prevent="submitForm"
+                                    class="w-full">
+                                    <div>
+                                        <label class="block text-md font-medium text-gray-700"
+                                            >Update Discount (%)</label
+                                        >
+                                        <input
+                                            v-model="form.discount"
+                                            type="number"
+                                            class="w-full px-3 py-1 border rounded" />
+                                        <div
+                                            v-if="form.errors.discount"
+                                            class="text-sm text-red-600">
+                                            {{ form.errors.discount }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button
+                                            v-if="can['manage settings']"
+                                            class="w-full px-4 py-1 text-xs text-white bg-bluemain rounded hover:bg-bluemain/60">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
                             <!-- Modal Footer -->
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
+                                <hr />
                                 <button
                                     v-if="can['manage settings']"
                                     @click="paidBooking(selectedBooking.id)"
@@ -669,6 +807,11 @@ const allBookings = computed(() => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <GlobalNoteModal
+                    :users="users"
+                    :show="showDiscountModal"
+                    :onClose="() => (showDiscountModal = false)" />
 
                 <cartOfficeModal
                     :show="showAvailModal"
