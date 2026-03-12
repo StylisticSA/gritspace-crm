@@ -169,7 +169,6 @@ const approveBooking = id => {
         router.put(
             route('bookingclosed.approve', id),
             {
-                // 👇 only send the discount percent
                 discount_percent: discountedPrice.value.discountPercent,
             },
             {
@@ -177,7 +176,6 @@ const approveBooking = id => {
                 onSuccess: () => {
                     message.value = 'Office status changed to Approved';
                     status.value = 'success';
-                    refreshNotifications();
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });
@@ -201,7 +199,6 @@ const paidBooking = id => {
             onSuccess: () => {
                 message.value = 'Office status changed to Paid';
                 status.value = 'success';
-                refreshNotifications();
 
                 setTimeout(() => {
                     router.reload({ preserveScroll: true });
@@ -227,7 +224,6 @@ const rejectBooking = id => {
                 onSuccess: () => {
                     message.value = '';
                     status.value = 'deleted';
-                    refreshNotifications();
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });
@@ -255,7 +251,6 @@ const cancelBooking = id => {
                 onSuccess: () => {
                     message.value = '';
                     status.value = 'cancelled';
-                    refreshNotifications();
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });
@@ -273,14 +268,9 @@ const cancelBooking = id => {
 const bookingDiscount = computed(() => {
     if (!showViewModal.value || !selectedBooking.value) return null;
 
-    // normalize plan to match discount package naming
-    const planNormalized =
-        selectedBooking.value.plan.charAt(0).toUpperCase() + selectedBooking.value.plan.slice(1).toLowerCase();
-
     // find the discount for this office
     return props.discounts.find(
         d =>
-            d.package === planNormalized &&
             d.location_id === selectedBooking.value.office.location_id &&
             d.category_id === selectedBooking.value.category_id
     );
@@ -303,30 +293,6 @@ const allBookings = computed(() => {
 
     return closed;
 });
-
-const form = useForm({
-    user_id: '',
-    office_id: '',
-    discount: '',
-});
-
-const submitForm = () => {
-    form.post(route('admin.discounts.store'), {
-        onSuccess: () => {
-            message.value = 'Discounts has been Saved Successfully.';
-            status.value = 'success';
-
-            setTimeout(() => {
-                router.reload({ preserveScroll: true });
-                router.visit(route('admin.discounts.index'));
-            }, 2000);
-        },
-        onError: errors => {
-            message.value = Object.values(errors).join('\n');
-            status.value = 'deleted';
-        },
-    });
-};
 </script>
 
 <template>
@@ -533,12 +499,6 @@ const submitForm = () => {
                                 </button>
                             </div>
 
-                            <template v-if="showMessage">
-                                <div :class="messageClass">
-                                    {{ messageText }}
-                                </div>
-                            </template>
-
                             <!-- Modal Content -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
                                 <!-- General Info -->
@@ -620,20 +580,31 @@ const submitForm = () => {
                                         <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
 
                                         <div
-                                            v-if="can['manage settings']"
+                                            v-if="selectedBooking.plan === 'monthly'"
                                             class="mb-3 font-medium text-gray-600">
-                                            <strong>Boardroom Discount Rate:</strong>
+                                            <strong>Boardroom Discount Monthly:</strong>
                                         </div>
-                                        <div v-if="can['manage settings']">{{ bookingDiscount?.discount ?? 0 }} %</div>
+                                        <div v-if="selectedBooking.plan === 'monthly'">
+                                            {{ selectedBooking.office?.free_boardroom_hours }} Hours
+                                        </div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'daily'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Daily:</strong>
+                                        </div>
+                                        <div v-if="selectedBooking.plan === 'daily'">
+                                            {{ bookingDiscount?.discount ?? 0 }} %
+                                        </div>
 
                                         <div class="mt-5"></div>
                                         <div></div>
-                                        <div
+                                        <!-- <div
                                             v-if="can['manage settings']"
                                             class="mb-3 font-medium text-gray-600">
                                             <strong>Discount Amount:</strong>
-                                        </div>
-                                        <div v-if="can['manage settings']">
+                                        </div> -->
+                                        <!-- <div v-if="can['manage settings']">
                                             R {{ discountedPrice.discountAmount.toFixed(2) ?? 0 }}
                                         </div>
 
@@ -644,7 +615,7 @@ const submitForm = () => {
                                         </div>
                                         <div v-if="can['manage settings']">
                                             R {{ discountedPrice.finalTotal.toFixed(2) ?? 0 }}
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                             </div>

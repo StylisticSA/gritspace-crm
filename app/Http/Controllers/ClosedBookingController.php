@@ -18,13 +18,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
-class ClosedBookingController extends Controller
+   class ClosedBookingController extends Controller
 {
     /**
      * Display the specified resource.
      */
     public function show(Office $Office, Request $request)
     {
+     
+
         $user = auth()->user();
 
         $search = $request->input('search');
@@ -67,6 +69,8 @@ class ClosedBookingController extends Controller
                 ->latest()
                 ->paginate(10);
 
+                // dd($bookings);
+
         }
 
        
@@ -79,14 +83,13 @@ class ClosedBookingController extends Controller
                        ->where('status', 'approved')
                        ->get();
 
-      
-
+     
 
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings'              => $bookings,
             'users'                 => $users,
             'approvedClosed'        => $approvedClosed,
-            'discounts'             => $discounts,
+
             'filters' => [
                 'search' => $search,
             ]
@@ -185,7 +188,7 @@ class ClosedBookingController extends Controller
      */
     public function edit(Office $closed)
     {
-     
+        // dd($closed);
 
         $locations = Location::select('id', 'name')->get();
 
@@ -244,9 +247,9 @@ class ClosedBookingController extends Controller
 
 
         $discounts = Discount::where('location_id', $closed->location_id)
-                    ->where('category_id', $closed->category_id)
-                    ->get(['id','package','discount']);
-        // dd($discounts,$closed);
+                ->where('category_id', $closed->category_id)
+                ->get(['id', 'package', 'discount']);
+
 
 
         return Inertia::render('Bookings/Closed/EditClosed', [
@@ -257,7 +260,7 @@ class ClosedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
             'parking' => $parking,
-            'discount' => $discounts
+            'discounts' => $discounts
             
         ]);
     }
@@ -306,11 +309,14 @@ class ClosedBookingController extends Controller
      */
     public function approve(Request $request, Booking $closed)
     {
-        dd($request);
+        // dd($request);
+
 
         $closed->update([
             'status' => 'approved',
-            'discounted_percent' => $request->discounted_percent,
+            'boardroom_discounted_percent' => $closed->plan === 'daily' 
+                                            ? $request->discount_percent 
+                                            : null,
         ]);
 
         $office = Office::findOrFail($closed->office_id);

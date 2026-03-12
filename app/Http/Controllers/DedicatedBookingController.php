@@ -267,9 +267,12 @@ class DedicatedBookingController extends Controller
             ->unique()
             ->values();
 
-            // dd($dedicated);
-        $discount = Discount::where('office_id',$dedicated->id)
-                    ->where('office_type', 'dedicated')->first(['name','discount']);
+        $discounts = Discount::where('location_id', $dedicated->location_id)
+                ->where('category_id', $dedicated->category_id)
+                ->get(['id', 'package', 'discount']);
+
+
+
 
         return Inertia::render('Bookings/Dedicated/EditDedicated', [
             'office' => $dedicated->load(['location', 'pricing', 'amenities']),
@@ -278,7 +281,8 @@ class DedicatedBookingController extends Controller
             'amenities' => $amenities,
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
-            'discount' => $discount,
+            'discounts' => $discounts,
+           
         ]);
     }
 

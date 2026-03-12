@@ -50,7 +50,7 @@ const props = defineProps<{
     categories: Category[];
     bookedDates: string[];
     parking: Parking;
-    discount: Discounts[];
+    discounts: Discounts[];
 }>();
 
 const { props: pageProps } = usePage();
@@ -132,30 +132,38 @@ if (flashMessage) {
                                 </div>
                             </div>
 
-                            <!-- Pricing Summary -->
+                            <!-- Discounts -->
                             <div class="pt-4 border-t border-gray-200">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                                     <!-- Second column: Discounts -->
-                                    <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount(s)</h4>
+                                    <div
+                                        class="md:col-span-2"
+                                        v-if="discounts">
+                                        <h4 class="font-semibold text-gray-800">Boardroom Discount(s)</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
                                             <li v-if="office.free_boardroom_hours">
                                                 Includes <strong>{{ office.free_boardroom_hours }}</strong> free
-                                                boardroom hours per month (Not Daily).
+                                                boardroom hours per Monthly Package
                                             </li>
                                             <li
-                                                v-if="discount"
-                                                v-for="item in discount"
+                                                v-if="discounts"
+                                                v-for="item in discounts"
                                                 :key="item.id">
-                                                It has <strong>{{ item.discount }}%</strong> discount , boardrooms,
-                                                after free has expired.
+                                                It has <strong>{{ item.discount }}%</strong> discount when you book
+                                                Daily Package
                                             </li>
                                         </ul>
+                                        <p class="py-3 text-sm text-primary">
+                                            NOTE: The discount will be applied upon approval.
+                                        </p>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-primary">No amnenities.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-6 border-t border-gray-200">
+                            <div class="space-y-3 border-t border-gray-200">
                                 <div class="grid grid-col-1 gap-3 mt-5">
                                     <div v-if="office.amenities?.length">
                                         <p><strong>Amenities:</strong></p>
@@ -179,7 +187,7 @@ if (flashMessage) {
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <p class="text-red-600">It has No amnenities assigned yet..</p>
+                                        <p class="text-primary">No amnenities.</p>
                                     </div>
                                 </div>
                             </div>

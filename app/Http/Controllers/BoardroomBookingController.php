@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Amenity;
 use App\Models\Boardroom;
 use App\Models\BoardroomBooking;
+use App\Models\Booking;
+use App\Models\Discount;
 use App\Models\Location;
 use App\Models\User;
 use App\Notifications\BoardroomBookingNotification;
@@ -70,12 +72,57 @@ class BoardroomBookingController extends Controller
         $amenities = Amenity::select('id', 'amenity_name')->get();
         $boardroom = $bookedboardroom->load(['location', 'amenities']);
 
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin') && !$user->hasRole('super admin')) {
+            $closed = Booking::with([
+                    'office:id,office_name,free_boardroom_hours',
+                    'office.location:id,name',
+                    'category:id,name'
+                ])
+                ->whereHas('category', function ($query) {
+                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices', 'dedicated desks', 'dedicated desk')");
+                })
+                ->where('user_id', auth()->id())
+                ->where('status', 'paid')
+                ->get();
+
+            $dailyOffice    = $closed->firstWhere('plan', 'daily');
+            $standardOffice = $closed->firstWhere('plan', 'standard');
+
+            if ($dailyOffice) {
+                $selectedOffice = $dailyOffice;
+            } elseif ($standardOffice) {
+                $selectedOffice = $standardOffice;
+            } else {
+                $selectedOffice = null;
+            }
+
+            $closedFiltered = $selectedOffice ? collect([$selectedOffice]) : collect();
+
+            if ($selectedOffice) {
+                $discounts = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->where('category_id', $selectedOffice->category_id)
+                    ->get(['id', 'package', 'discount']);
+          
+
+                $discountPercent = optional($discounts->first())->discount ?? 0;
+            } else {
+                $discounts = collect();
+                $discountPercent = 0;
+            }
+        }
+
         return Inertia::render('Bookings/Boardrooms/EditBoardroom', [
-            'boardroom'         => $boardroom,
-            'locations'         => $locations,
-            'amenities'         => $amenities,
-            
+            'boardroom'   => $boardroom,
+            'locations'   => $locations,
+            'amenities'   => $amenities,
+            'discounts'   => $discounts ?? null,
+            'closed'      => $closedFiltered ?? null,   
+            'closedFirst' => $discountPercent ?? 0,
         ]);
+
+        
     }
 
     /**
@@ -84,6 +131,8 @@ class BoardroomBookingController extends Controller
     public function store(Request $request)
     {
        
+        // dd($request);
+        
 
         $validated = $request->validate([
            'boardroom_id'          => 'required|exists:boardrooms,id',
@@ -100,11 +149,13 @@ class BoardroomBookingController extends Controller
            'months'                 => 'required|integer|min:1',
            'selected_price'         => 'required|numeric|min:0',
 
-            'discounted_price'      => 'required|numeric|min:0',
-            'discount_percentage'   => 'required|integer|min:0|max:100',
+            'discounted_price'      => 'nullable|numeric|min:0',
+            'discount_percentage'   => 'nullable|integer|min:0|max:100',
 
 
         ]);
+
+        // dd($validated);
 
         $office = Boardroom::findOrFail($validated['boardroom_id']);
 
@@ -143,7 +194,7 @@ class BoardroomBookingController extends Controller
             ])->withInput();
         }
 
-        // dd($validated);
+
 
         $booking = BoardroomBooking::create([
             'user_id'         => auth()->id(),

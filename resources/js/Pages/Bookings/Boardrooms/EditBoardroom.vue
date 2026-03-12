@@ -26,10 +26,19 @@ interface Boardroom {
     amenities?: Amenity[];
 }
 
+interface Discounts {
+    id: number;
+    package: string;
+    discount: number;
+}
+
 const props = defineProps<{
     boardroom: Boardroom;
     locations: Location[];
     amenities: Amenity[];
+    discounts: Discounts[];
+    closed: Object;
+    closedFirst: number;
 }>();
 
 const pricingOptions = {
@@ -85,31 +94,34 @@ const selectedPlan = ref<string | null>(null);
                             </div>
 
                             <div class="pt-4 border-t border-gray-200">
-                                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
+                                <div
+                                    class="grid grid-cols-1 gap-4 mt-2"
+                                    v-if="closed">
                                     <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
-                                        <!-- <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
-                                            <li>
-                                                Includes 15 free boardroom hours per month (For
-                                                <strong>Closed Office</strong> monthly bookings)
+                                        <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount(s)</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li
+                                                class="space-y-1 text-md"
+                                                v-for="close in closed">
+                                                This discounts apply because you have
+                                                <strong>{{ close.office?.office_name }}</strong>
+                                                which comes with
+                                                <strong>{{ close.office?.free_boardroom_hours }}</strong> hours free
                                             </li>
-                                            <li v-if="props.closedDiscount && props.closedDiscount?.discount">
-                                                You Booked Closed Office, It has
-                                                <strong>{{ props.closedDiscount?.discount }}%</strong> discount on
-                                                boardrooms.
+                                            <li
+                                                v-if="discounts"
+                                                v-for="item in discounts"
+                                                :key="item.id">
+                                                It has <strong>{{ item.discount }}%</strong> discount
                                             </li>
-                                            <li v-if="props.hotdeskDiscount && props.hotdeskDiscount?.discount">
-                                                You Booked Hot Desk Office, It has
-                                                <strong>{{ props.hotdeskDiscount?.discount }}%</strong> discount on
-                                                boardrooms.
-                                            </li>
-                                            <li v-if="props.virtualDiscount && props.virtualDiscount?.discount">
-                                                You Booked a Virtual Office, It has
-                                                <strong>{{ props.virtualDiscount?.discount }}%</strong> discount on
-                                                boardrooms.
-                                            </li>
-                                        </ul> -->
+                                        </ul>
+                                        <p class="py-5 text-sm text-primary">
+                                            NOTE: The discount will be applied upon approval.
+                                        </p>
                                     </div>
+                                </div>
+                                <div v-else>
+                                    <p class="text-primary">No discounts</p>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +151,7 @@ const selectedPlan = ref<string | null>(null);
                                     </div>
                                 </div>
                                 <div v-else>
-                                    <p class="text-primary">It has no amenities</p>
+                                    <p class="text-primary">No amenities</p>
                                 </div>
                             </div>
                         </div>
@@ -149,6 +161,7 @@ const selectedPlan = ref<string | null>(null);
                             <BookingBoardroom
                                 :buttonName="boardroom.boardroom_name"
                                 :boardroom-id="boardroom.id"
+                                :closed-first="closedFirst"
                                 :pricing-options="pricingOptions"
                                 :available-plans="availablePlans"
                                 :selected-plan="selectedPlan" />

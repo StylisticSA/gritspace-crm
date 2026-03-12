@@ -18,7 +18,7 @@ class DedicatedDeskController extends Controller
     /**
     * Display a listing of the resource.
     */
-    public function adminIndex(Request $request)
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Office::class);
 
@@ -186,6 +186,7 @@ class DedicatedDeskController extends Controller
             'daily_rate'      => ['required', 'numeric', 'min:0'],
             'amenities'       => ['array'],
             'amenities.*'     => ['exists:amenities,id'],
+            'free_boardroom_hours'  => ['nullable'],
             'is_available'    => ['nullable'],
             'available_dates' => ['nullable'],
         ]);
@@ -197,6 +198,7 @@ class DedicatedDeskController extends Controller
             'location_id'       => $validated['location_id'],
             'monthly_rate'      => $validated['monthly_rate'],
             'daily_rate'        => $validated['daily_rate'],
+            'free_boardroom_hours'  => $validated['free_boardroom_hours'] ?? null,
             'is_available'      => false,
             'available_dates'   => null,
         ]);
@@ -273,6 +275,7 @@ class DedicatedDeskController extends Controller
             'daily_rate'      => ['required', 'numeric', 'min:0'],
             'amenities'       => ['array'],
             'amenities.*'     => ['exists:amenities,id'],
+            'free_boardroom_hours' => ['nullable'],
         ]);
 
 
@@ -282,6 +285,7 @@ class DedicatedDeskController extends Controller
             'location_id'     => $validated['location_id'],
             'monthly_rate'      => $validated['monthly_rate'],
             'daily_rate'        => $validated['daily_rate'],
+            'free_boardroom_hours'  => $validated['free_boardroom_hours'] ?? null,
         ]);
 
         $Office->amenities()->sync($validated['amenities'] ?? []);

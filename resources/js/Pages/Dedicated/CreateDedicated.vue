@@ -14,6 +14,7 @@ const form = useForm({
     pricing_id: '',
     amenities: [],
     pricing_type: [],
+    free_boardroom_hours: '',
 });
 
 const props = defineProps({
@@ -164,6 +165,21 @@ const submit = () => {
                                     v-if="form.errors.daily_rate"
                                     class="text-sm text-red-600">
                                     {{ form.errors.daily_rate }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Free Discounts (%)</label>
+                                <input
+                                    v-model="form.free_boardroom_hours"
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="2%" />
+                                <div
+                                    v-if="form.errors.free_boardroom_hours"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
                             </div>
                         </div>

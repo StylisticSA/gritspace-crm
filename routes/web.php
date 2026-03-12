@@ -219,7 +219,7 @@ Route::middleware(['web', 'auth', 'verified'])
             ->name('closedoffices.destroy');
 
  
-        Route::get('/dedicated-offices', [DedicatedDeskController::class, 'adminIndex'])->name('dedicateddesk');
+        Route::get('/dedicated-offices', [DedicatedDeskController::class, 'index'])->name('dedicateddesk');
         Route::get('/dedicated-offices/create', [DedicatedDeskController::class, 'create'])->name('dedicateddesk.create');
         Route::post('/dedicated-offices', [DedicatedDeskController::class, 'store'])->name('dedicateddesk.store');
         Route::get('/dedicated-offices/{Office}/edit', [DedicatedDeskController::class, 'edit'])->name('dedicateddesk.edit');

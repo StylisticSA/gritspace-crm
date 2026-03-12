@@ -12,6 +12,7 @@ const props = defineProps({
     availablePlans: Array,
     buttonName: String,
     selectedPlan: String,
+    closedFirst: Number,
 });
 
 const dailyPlans = ['daily'];
@@ -28,7 +29,9 @@ const form = useForm({
     selected_dates: [],
     selected_times: {},
     months: 0,
-    selected_price: 0, // raw total
+    selected_price: 0,
+    discount_percentage: props.closedFirst,
+    discounted_price: 0,
 });
 
 const unitPrice = computed(() => props.pricingOptions[form.plan] || 0);
@@ -48,6 +51,8 @@ watch(
         form.end_date = '';
         form.months = 0;
         form.selected_price = 0;
+        form.discount_percentage = 0;
+        form.discounted_price = 0;
         selectedDateTimes.value = {};
     }
 );
@@ -60,6 +65,7 @@ watch(
         end_date: form.end_date,
         months: form.months,
         selected_times: selectedDateTimes.value,
+        discount_percentage: form.discount_percentage,
     }),
     () => {
         if (!form.plan) return;
@@ -72,6 +78,13 @@ watch(
             form.selected_price = unitPrice.value * totalHours;
         } else if (dailyPlans.includes(form.plan)) {
             form.selected_price = unitPrice.value * weekdaysCount.value;
+        }
+
+        // ✅ Apply discount calculation
+        if (form.discount_percentage > 0) {
+            form.discounted_price = form.selected_price - (form.selected_price * form.discount_percentage) / 100;
+        } else {
+            form.discounted_price = form.selected_price;
         }
     },
     { immediate: true, deep: true }
@@ -112,7 +125,7 @@ const submit = () => {
             setTimeout(() => {
                 successMessage.value = null;
                 Inertia.visit(route('bookingboardroom.show'));
-            }, 1500);
+            }, 2000);
         },
     });
 };
@@ -227,6 +240,37 @@ const currencyFormatter = new Intl.NumberFormat('en-ZA', {
             <input
                 type="hidden"
                 v-model="form.selected_price" />
+        </div>
+
+        <!-- Discount (%) -->
+
+        <div v-if="closedFirst > 0">
+            <label class="block font-semibold">Discount (%)</label>
+            <input
+                type="text"
+                :value="form.discount_percentage"
+                readonly
+                tabindex="-1"
+                @focus="e => e.target.blur()"
+                class="w-full px-3 py-2 bg-gray-100 border-0 rounded cursor-default select-none" />
+            <input
+                type="hidden"
+                v-model="form.discount_percentage" />
+        </div>
+
+        <!-- Payable Amount -->
+        <div v-if="closedFirst > 0">
+            <label class="block font-semibold">Payable Amount</label>
+            <input
+                type="text"
+                :value="currencyFormatter.format(form.discounted_price)"
+                readonly
+                tabindex="-1"
+                @focus="e => e.target.blur()"
+                class="w-full px-3 py-2 bg-gray-100 border-0 rounded cursor-default select-none" />
+            <input
+                type="hidden"
+                v-model="form.discounted_price" />
         </div>
 
         <!-- SUBMIT -->

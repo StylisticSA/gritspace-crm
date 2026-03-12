@@ -22,6 +22,7 @@ const form = useForm({
     monthly_rate: props.office.monthly_rate,
     daily_rate: props.office.daily_rate,
     location_id: props.office.location_id,
+    free_boardroom_hours: props.office.free_boardroom_hours,
     pricing_type: [props.office.price_premium, props.office.price_standard],
     amenities: amenitiesSelected,
 });
@@ -176,6 +177,22 @@ const submit = () => {
                                     v-if="form.errors.daily_rate"
                                     class="text-sm text-red-600">
                                     {{ form.errors.daily_rate }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Free Discounts (%)</label>
+                                <input
+                                    v-model="form.free_boardroom_hours"
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="0 %" />
+                                <div
+                                    v-if="form.errors.free_boardroom_hours"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
                             </div>
                         </div>
