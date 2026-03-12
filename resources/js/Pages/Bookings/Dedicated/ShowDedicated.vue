@@ -402,7 +402,7 @@ const allBookings = computed(() => {
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                        <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
+                        <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-bold text-gray-800">Booking Details</h2>
@@ -420,7 +420,7 @@ const allBookings = computed(() => {
                             </template>
 
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-2 text-sm text-gray-700">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
                                 <!-- General Info Table Style -->
                                 <div class="space-y-2">
                                     <div class="grid items-start grid-cols-2 gap-x-1">
@@ -470,6 +470,49 @@ const allBookings = computed(() => {
                                                 }">
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Discounts -->
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-x-1 items-start mb-10">
+                                        <div class="mb-3 font-medium text-gray-600">
+                                            <strong>Parking:</strong>
+                                        </div>
+                                        <div class="mb-3 text-right">
+                                            {{
+                                                selectedBooking.parking_price === '0.00'
+                                                    ? 'None'
+                                                    : 'R ' + selectedBooking.parking_price
+                                            }}
+                                        </div>
+                                        <div class="col-span-2 my-3">
+                                            <hr />
+                                        </div>
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
+                                        <div class="mb-3 text-right">R {{ selectedBooking.total_price ?? '0.00' }}</div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'premium'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Premium:</strong>
+                                        </div>
+                                        <div
+                                            v-if="selectedBooking.plan === 'premium'"
+                                            class="text-right">
+                                            {{ selectedBooking.office?.free_boardroom_hours }} Hours
+                                        </div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'standard'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Standard:</strong>
+                                        </div>
+                                        <div
+                                            v-if="selectedBooking.plan === 'standard'"
+                                            class="text-right">
+                                            {{ bookingDiscount?.discount ?? 0 }} %
                                         </div>
                                     </div>
                                 </div>

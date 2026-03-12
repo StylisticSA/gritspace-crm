@@ -26,7 +26,6 @@ use Inertia\Inertia;
     public function show(Office $Office, Request $request)
     {
      
-
         $user = auth()->user();
 
         $search = $request->input('search');
@@ -37,7 +36,7 @@ use Inertia\Inertia;
                 })->select('id', 'name')
                 ->get();
 
-        $discounts = Discount::select(['location_id','category_id','package','discount'])->get();
+ 
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
@@ -69,11 +68,8 @@ use Inertia\Inertia;
                 ->latest()
                 ->paginate(10);
 
-                // dd($bookings);
-
+            
         }
-
-       
 
         $approvedClosed = Booking::with(['office','office.location', 'category'])
                        ->whereHas('category', function ($query) {
@@ -89,7 +85,6 @@ use Inertia\Inertia;
             'bookings'              => $bookings,
             'users'                 => $users,
             'approvedClosed'        => $approvedClosed,
-
             'filters' => [
                 'search' => $search,
             ]

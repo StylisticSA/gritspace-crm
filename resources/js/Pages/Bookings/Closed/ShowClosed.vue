@@ -8,7 +8,6 @@ import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue
 
 const props = defineProps({
     bookings: Object,
-    discounts: Object,
     filters: Object,
     users: Object,
     can: Object,
@@ -485,9 +484,9 @@ const allBookings = computed(() => {
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-5">
                         <!-- Modal container -->
-                        <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
+                        <div class="w-full max-w-4xl p-2 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
                             <!-- Modal Header -->
-                            <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center justify-between mb-4 p-3">
                                 <h2 class="text-lg font-bold text-gray-800">
                                     {{ selectedBooking.office?.office_name ?? '—' }} -
                                     {{ capitalizeFirst(selectedBooking.plan) ?? '—' }}
@@ -552,30 +551,25 @@ const allBookings = computed(() => {
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
                                         </div>
-
-                                        <div>
-                                            <hr v-if="selectedBooking.parking_price !== '0.00'" />
-                                            <div
-                                                class="grid grid-cols-[140px_1fr] gap-x-2 items-start pt-5"
-                                                v-if="selectedBooking.parking_price !== '0.00'">
-                                                <div class="mb-3 font-medium text-gray-600">
-                                                    <strong>Parking:</strong>
-                                                </div>
-                                                <div class="mb-3">
-                                                    {{
-                                                        selectedBooking.parking_price === '0.00'
-                                                            ? 'None'
-                                                            : 'R ' + selectedBooking.parking_price
-                                                    }}
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Discounts -->
                                 <div class="space-y-2">
                                     <div class="grid grid-cols-2 gap-x-1 items-start mb-10">
+                                        <div class="mb-3 font-medium text-gray-600">
+                                            <strong>Parking:</strong>
+                                        </div>
+                                        <div class="mb-3">
+                                            {{
+                                                selectedBooking.parking_price === '0.00'
+                                                    ? 'None'
+                                                    : 'R ' + selectedBooking.parking_price
+                                            }}
+                                        </div>
+                                        <div class="col-span-2 my-2">
+                                            <hr />
+                                        </div>
                                         <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
                                         <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
 
@@ -596,26 +590,6 @@ const allBookings = computed(() => {
                                         <div v-if="selectedBooking.plan === 'daily'">
                                             {{ bookingDiscount?.discount ?? 0 }} %
                                         </div>
-
-                                        <div class="mt-5"></div>
-                                        <div></div>
-                                        <!-- <div
-                                            v-if="can['manage settings']"
-                                            class="mb-3 font-medium text-gray-600">
-                                            <strong>Discount Amount:</strong>
-                                        </div> -->
-                                        <!-- <div v-if="can['manage settings']">
-                                            R {{ discountedPrice.discountAmount.toFixed(2) ?? 0 }}
-                                        </div>
-
-                                        <div
-                                            v-if="can['manage settings']"
-                                            class="mb-3 font-medium text-gray-600">
-                                            <strong>Final Total:</strong>
-                                        </div>
-                                        <div v-if="can['manage settings']">
-                                            R {{ discountedPrice.finalTotal.toFixed(2) ?? 0 }}
-                                        </div> -->
                                     </div>
                                 </div>
                             </div>

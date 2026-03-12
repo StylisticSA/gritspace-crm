@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
@@ -194,7 +194,8 @@ const allBookings = computed(() => {
     const boardroom = props.approvedBoardrooms.map(b => ({
         name: b.boardroom.boardroom_name,
         type: 'Boardrooms',
-        price: Number(b.selected_price),
+        price: Number(b.discount_percentage) > 0 ? Number(b.discounted_price) : Number(b.selected_price),
+        percent: Number(b.discount_percentage),
         plan: b.plan,
         id: b.boardroom_id,
         months: Number(b.months),
@@ -225,6 +226,7 @@ const allBookings = computed(() => {
                     </div>
 
                     <button
+                        v-if="can['manage settings']"
                         @click="showNoteModal = true"
                         class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white rounded bg-bluemain hover:bg-bluemain/60">
                         Add Note
@@ -451,7 +453,7 @@ const allBookings = computed(() => {
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center px-5 bg-black bg-opacity-50">
-                        <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
+                        <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-bold text-gray-800">Booking Details</h2>
@@ -469,7 +471,7 @@ const allBookings = computed(() => {
                             </template>
 
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-2 mbb-5">
                                 <!-- General Info Table Style -->
                                 <div class="space-y-2">
                                     <div class="grid items-start grid-cols-2 gap-x-2">
@@ -496,9 +498,6 @@ const allBookings = computed(() => {
                                         </div>
                                         <div>{{ selectedBooking.months ?? '—' }}</div>
 
-                                        <div class="mb-5 font-medium text-gray-600"><strong>Total Price:</strong></div>
-                                        <div>R {{ selectedBooking.selected_price ?? '0.00' }}</div>
-
                                         <div class="mb-5 font-medium text-gray-600"><strong>Booked Date:</strong></div>
                                         <div>
                                             {{ formatDate(selectedBooking.created_at) }}
@@ -522,10 +521,25 @@ const allBookings = computed(() => {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="space-y-2">
+                                    <div class="grid items-start grid-cols-2 gap-x-2">
+                                        <div class="mb-5 font-medium text-gray-600"><strong>Total Price:</strong></div>
+                                        <div>R {{ selectedBooking.selected_price ?? '0.00' }}</div>
+
+                                        <div class="mb-5 font-medium text-gray-600"><strong>Discounted %:</strong></div>
+                                        <div>R {{ selectedBooking.discount_percentage }} %</div>
+
+                                        <div class="mb-5 font-medium text-gray-600">
+                                            <strong>Final Price:</strong>
+                                        </div>
+                                        <div>R {{ selectedBooking.discounted_price }}</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Modal Footer -->
-                            <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
+                            <div class="flex flex-col gap-3 mt-10 sm:flex-row sm:justify-between sm:gap-4">
                                 <button
                                     v-if="can['manage settings']"
                                     @click="paidBooking(selectedBooking.id)"

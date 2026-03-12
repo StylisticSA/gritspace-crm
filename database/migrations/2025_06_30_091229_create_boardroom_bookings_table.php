@@ -28,8 +28,6 @@ return new class () extends Migration {
             $table->unsignedTinyInteger('discount_percentage')->nullable()->default(0);
             $table->decimal('discounted_price', 10, 2)->nullable()->default(0); 
 
-            $table->decimal('discounted_amount', 10, 2)->nullable()->nullable()->default(0);
-
             $table->timestamps();
 
             $table->softDeletes();
