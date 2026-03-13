@@ -190,7 +190,7 @@ function viewInvoices() {
                         </h3>
 
                         <!-- Stats Grid -->
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 text-center">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 text-center">
                             <!-- Free Hours -->
                             <div class="bg-green-600 p-4 rounded shadow">
                                 <h4 class="text-sm font-semibold text-white">Free Hours</h4>
