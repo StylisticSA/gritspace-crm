@@ -34,12 +34,12 @@ onMounted(() => {
 
 const canManageSettings = props.can?.['manage settings'] ?? false;
 
-// Unique offices
-const uniqueOffices = computed(() => {
+// Unique boardrooms
+const uniqueBoardrooms = computed(() => {
     const seen = new Map();
     props.events.forEach(event => {
-        const id = event.extendedProps?.office_id;
-        const name = event.extendedProps?.office;
+        const id = event.extendedProps?.boardroom_id;
+        const name = event.extendedProps?.boardroom;
         if (id && name && !seen.has(id)) {
             seen.set(id, { id, name });
         }
@@ -60,13 +60,14 @@ const uniqueLocations = computed(() => {
     return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 });
 
-const activeFilters = ref(uniqueOffices.value.map(o => o.id));
+// Initialize filters once with full set
+const activeFilters = ref(uniqueBoardrooms.value.map(b => b.id));
 const activeLocationFilters = ref(uniqueLocations.value.map(l => l.id));
 
 const filteredEvents = computed(() =>
     props.events.filter(
         event =>
-            activeFilters.value.includes(event.extendedProps?.office_id) &&
+            activeFilters.value.includes(event.extendedProps?.boardroom_id) &&
             activeLocationFilters.value.includes(event.extendedProps?.location_id)
     )
 );
@@ -86,8 +87,8 @@ const calendarOptions = ref({
     headerToolbar: {},
 
     eventContent: function (arg) {
-        const user = arg.event.title;
-        const office = arg.event.extendedProps?.office;
+        const isOwner = arg.event.extendedProps?.isOwner;
+        const boardroomName = arg.event.extendedProps?.boardroom;
 
         const wrapper = document.createElement('div');
         wrapper.classList.add('fc-custom-event');
@@ -98,17 +99,21 @@ const calendarOptions = ref({
         wrapper.style.textOverflow = 'ellipsis';
         wrapper.style.maxWidth = '100%';
 
-        if (canManageSettings) {
-            const userEl = document.createElement('div');
-            userEl.textContent = user;
-            userEl.className = 'text-xs font-semibold text-gray-800';
-            wrapper.appendChild(userEl);
+        const titleEl = document.createElement('div');
+        if (canManageSettings || isOwner) {
+            titleEl.textContent = arg.event.title;
+        } else {
+            titleEl.textContent = 'Booked';
         }
+        titleEl.className = 'text-xs font-semibold text-gray-800';
+        wrapper.appendChild(titleEl);
 
-        const officeEl = document.createElement('div');
-        officeEl.textContent = office ?? '';
-        officeEl.className = 'text-xs text-gray-600';
-        wrapper.appendChild(officeEl);
+        if (boardroomName) {
+            const brEl = document.createElement('div');
+            brEl.textContent = boardroomName;
+            brEl.className = 'text-xs text-gray-600';
+            wrapper.appendChild(brEl);
+        }
 
         return { domNodes: [wrapper] };
     },
@@ -127,7 +132,7 @@ const calendarOptions = ref({
 
         selectedEvent.value = {
             title: info.event.title,
-            office: info.event.extendedProps?.office,
+            boardroom: info.event.extendedProps?.boardroom,
             start: rawStart.toISOString().split('T')[0],
             end: info.event.endStr,
             color: info.event.backgroundColor,
@@ -136,21 +141,22 @@ const calendarOptions = ref({
     },
 });
 
-const groupedOffices = computed(() => {
+// Grouped boardrooms by location (always from props.events)
+const groupedBoardrooms = computed(() => {
     const groups = {};
     props.events.forEach(event => {
         const locName = event.extendedProps?.location;
-        const officeId = event.extendedProps?.office_id;
-        const officeName = event.extendedProps?.office;
+        const boardroomId = event.extendedProps?.boardroom_id;
+        const boardroomName = event.extendedProps?.boardroom;
 
-        if (!locName || !officeId || !officeName) return;
+        if (!locName || !boardroomId || !boardroomName) return;
 
         if (!groups[locName]) {
             groups[locName] = [];
         }
 
-        if (!groups[locName].some(o => o.id === officeId)) {
-            groups[locName].push({ id: officeId, name: officeName });
+        if (!groups[locName].some(b => b.id === boardroomId)) {
+            groups[locName].push({ id: boardroomId, name: boardroomName });
         }
     });
     return groups;
@@ -174,7 +180,10 @@ const groupedOffices = computed(() => {
 
                     <div class="mb-2">
                         <button
-                            @click="activeFilters = uniqueBoardrooms.map(r => r.id)"
+                            @click="
+                                activeFilters = uniqueBoardrooms.map(b => b.id);
+                                activeLocationFilters = uniqueLocations.map(l => l.id);
+                            "
                             class="block w-full px-3 py-1 text-sm text-white rounded bg-primary">
                             All
                         </button>
