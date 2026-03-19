@@ -5,8 +5,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const form = useForm({
     location_id: '',
     virtualoffice_name: '',
-    //address: '',
-    //discount: '',
+    free_boardroom_hours: '',
     price: '',
     duration: '',
     amenities: [],
@@ -104,37 +103,22 @@ const props = defineProps({
                                     {{ form.errors.price }}
                                 </div>
                             </div>
-
-                            <!-- Discount -->
-                            <!-- <div>
-                                <label class="block text-lg font-medium text-gray-700">Discount</label>
+                            <!-- discounts -->
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Boardroom Discounts (%)</label>
                                 <input
-                                    v-model="form.discount"
+                                    v-model="form.free_boardroom_hours"
                                     type="number"
                                     step="1"
                                     min="0"
                                     class="w-full px-3 py-2 border rounded"
-                                    placeholder="e.g. 2" />
+                                    placeholder="0 %" />
                                 <div
-                                    v-if="form.errors.discount"
+                                    v-if="form.errors.free_boardroom_hours"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.discount }}
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
-                            </div> -->
-
-                            <!-- Address -->
-                            <!-- <div>
-                                <label class="block text-lg font-medium text-gray-700">Address</label>
-                                <input
-                                    v-model="form.address"
-                                    type="text"
-                                    class="w-full px-3 py-2 border rounded" />
-                                <div
-                                    v-if="form.errors.address"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.address }}
-                                </div>
-                            </div> -->
+                            </div>
                         </div>
 
                         <!-- Amenities -->

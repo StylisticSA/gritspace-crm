@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const props = defineProps({
     locations: Array,
@@ -14,6 +15,7 @@ const form = useForm({
     price: '',
     duration: '',
     discount: '',
+    is_available: useToday(),
     amenities: [],
 });
 

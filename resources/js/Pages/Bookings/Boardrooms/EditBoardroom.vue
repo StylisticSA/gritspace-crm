@@ -96,7 +96,7 @@ const selectedPlan = ref<string | null>(null);
                             <div class="pt-4 border-t border-gray-200">
                                 <div
                                     class="grid grid-cols-1 gap-4 mt-2"
-                                    v-if="closed">
+                                    v-if="discounts.length > 0">
                                     <div class="md:col-span-2">
                                         <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount(s)</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
@@ -115,18 +115,18 @@ const selectedPlan = ref<string | null>(null);
                                                 It has <strong>{{ item.discount }}%</strong> discount
                                             </li>
                                         </ul>
-                                        <p class="py-5 text-sm text-primary">
+                                        <p class="py-3 text-sm text-primary">
                                             NOTE: The discount will be applied upon approval.
                                         </p>
                                     </div>
                                 </div>
                                 <div v-else>
-                                    <p class="text-primary">No discounts</p>
+                                    <h4 class="text-primary">No Discounts</h4>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="space-y-6 pt-4 border-t border-gray-200">
+                        <div class="space-y-2 pt-5 border-t border-gray-200">
                             <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
                                 <div v-if="boardroom.amenities?.length">
                                     <h4 class="font-semibold text-gray-800 mb-2">Amenities</h4>
@@ -151,7 +151,7 @@ const selectedPlan = ref<string | null>(null);
                                     </div>
                                 </div>
                                 <div v-else>
-                                    <p class="text-primary">No amenities</p>
+                                    <h4 class="text-primary">No Amenities</h4>
                                 </div>
                             </div>
                         </div>

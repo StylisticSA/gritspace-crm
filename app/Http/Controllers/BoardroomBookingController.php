@@ -67,8 +67,7 @@ class BoardroomBookingController extends Controller
      */
     public function edit(Boardroom $bookedboardroom)
     {
-        // dd($bookedboardroom);
-
+        
         $locations = Location::select('id', 'name')->get();
         $amenities = Amenity::select('id', 'amenity_name')->get();
         $boardroom = $bookedboardroom->load(['location', 'amenities']);
@@ -118,8 +117,8 @@ class BoardroomBookingController extends Controller
             'boardroom'   => $boardroom,
             'locations'   => $locations,
             'amenities'   => $amenities,
-            'discounts'   => $discounts ?? null,
-            'closed'      => $closedFiltered ?? null,   
+            'discounts'   => $discounts ?? 0,
+            'closed'      => $closedFiltered ?? 0,   
             'closedFirst' => $discountPercent ?? 0,
         ]);
 

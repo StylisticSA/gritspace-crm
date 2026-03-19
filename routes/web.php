@@ -39,24 +39,6 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::get('/clear-cache', function () {
-    Artisan::call('cache:clear');
-    Artisan::call('route:clear');
-    Artisan::call('config:clear');
-    Artisan::call('view:clear');
-
-    return 'All caches cleared!';
-});
-
-
-// Route::get('/run-storage-link', function () {
-
-//     Artisan::call('storage:link');
-
-//     return 'Storage link created successfully!';
-// });
-
-
 
 // Route::get('/dashboard', function () {
 //     return Inertia::render('Dashboard');
@@ -268,13 +250,13 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::delete('/virtual-office/{virtualoffice}', [VirtualOfficeController::class, 'destroy'])
                 ->name('virtual-office.destroy');
 
-        Route::get('/help-desks', [HelpDeskController::class, 'index'])->name('help-desks');
-        Route::get('/help-desk/create', [HelpDeskController::class, 'create'])->name('help-desk.create');
-        Route::post('/help-desk', [HelpDeskController::class, 'store'])->name('help-desk.store');
-        Route::get('/help-desk/{helpDesk}/edit', [HelpDeskController::class, 'edit'])->name('help-desk.edit');
-        Route::put('/help-desk/{helpDesk}', [HelpDeskController::class, 'update'])->name('help-desk.update');
-        Route::delete('/help-desk/{helpDesk}', [HelpDeskController::class, 'destroy'])
-                ->name('help-desk.destroy');
+        Route::get('/hot-desks', [HelpDeskController::class, 'index'])->name('help-desks');
+        Route::get('/hot-desk/create', [HelpDeskController::class, 'create'])->name('help-desk.create');
+        Route::post('/hot-desk', [HelpDeskController::class, 'store'])->name('help-desk.store');
+        Route::get('/hot-desk/{helpDesk}/edit', [HelpDeskController::class, 'edit'])->name('help-desk.edit');
+        Route::put('/hot-desk/{helpDesk}', [HelpDeskController::class, 'update'])->name('help-desk.update');
+        Route::delete('/hot-desk/{helpDesk}', [HelpDeskController::class, 'destroy'])
+                ->name('hot-desk.destroy');
 
      
         Route::get('/locations', [LocationController::class, 'index'])->name('locations');

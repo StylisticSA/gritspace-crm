@@ -164,8 +164,6 @@ class DedicatedDeskController extends Controller
     {
         // dd($request);
 
-        $this->authorize('create', Office::class);
-
         $validated = $request->validate([
             'office_name'  => [
                 'required',
@@ -180,27 +178,28 @@ class DedicatedDeskController extends Controller
                     }),
 
             ],
-            'category_id'     => ['required', 'exists:categories,id'],
-            'location_id'     => ['required', 'exists:locations,id'],
-            'monthly_rate'    => ['required', 'numeric', 'min:0'],
-            'daily_rate'      => ['required', 'numeric', 'min:0'],
-            'amenities'       => ['array'],
-            'amenities.*'     => ['exists:amenities,id'],
+            'category_id'           => ['required', 'exists:categories,id'],
+            'location_id'           => ['required', 'exists:locations,id'],
+            'monthly_rate'          => ['required', 'numeric', 'min:0'],
+            'daily_rate'            => ['required', 'numeric', 'min:0'],
+            'is_available'          => ['nullable'],
+            'available_dates'       => ['nullable'],
             'free_boardroom_hours'  => ['nullable'],
-            'is_available'    => ['nullable'],
-            'available_dates' => ['nullable'],
+            'amenities'             => ['array'],
+            'amenities.*'           => ['exists:amenities,id'],
         ]);
 
-   
+       
+
         $office = Office::create([
-            'office_name'       => $validated['office_name'],
-            'category_id'       => $validated['category_id'],
-            'location_id'       => $validated['location_id'],
-            'monthly_rate'      => $validated['monthly_rate'],
-            'daily_rate'        => $validated['daily_rate'],
+            'office_name'           => $validated['office_name'],
+            'category_id'           => $validated['category_id'],
+            'location_id'           => $validated['location_id'],
+            'monthly_rate'          => $validated['monthly_rate'],
+            'daily_rate'            => $validated['daily_rate'],
             'free_boardroom_hours'  => $validated['free_boardroom_hours'] ?? null,
-            'is_available'      => false,
-            'available_dates'   => null,
+            'is_available'          => true,
+            'available_dates'       => $validated['is_available'],
         ]);
 
         if (isset($validated['amenities']) && count($validated['amenities']) > 0) {
@@ -269,23 +268,24 @@ class DedicatedDeskController extends Controller
                             ->where('category_id', $request->category_id);
                     })
             ],
-            'category_id'     => ['required', 'exists:categories,id'],
-            'location_id'     => ['required', 'exists:locations,id'],
-            'monthly_rate'    => ['required', 'numeric', 'min:0'],
-            'daily_rate'      => ['required', 'numeric', 'min:0'],
-            'amenities'       => ['array'],
-            'amenities.*'     => ['exists:amenities,id'],
-            'free_boardroom_hours' => ['nullable'],
+            'category_id'           => ['required', 'exists:categories,id'],
+            'location_id'           => ['required', 'exists:locations,id'],
+            'monthly_rate'          => ['required', 'numeric', 'min:0'],
+            'daily_rate'            => ['required', 'numeric', 'min:0'],
+            'amenities'             => ['array'],
+            'amenities.*'           => ['exists:amenities,id'],
+            'free_boardroom_hours'  => ['nullable'],
         ]);
 
 
         $Office->update([
-            'office_name'     => $validated['office_name'],
-            'category_id'     => $validated['category_id'],
-            'location_id'     => $validated['location_id'],
-            'monthly_rate'      => $validated['monthly_rate'],
-            'daily_rate'        => $validated['daily_rate'],
+            'office_name'           => $validated['office_name'],
+            'category_id'           => $validated['category_id'],
+            'location_id'           => $validated['location_id'],
+            'monthly_rate'          => $validated['monthly_rate'],
+            'daily_rate'            => $validated['daily_rate'],
             'free_boardroom_hours'  => $validated['free_boardroom_hours'] ?? null,
+        
         ]);
 
         $Office->amenities()->sync($validated['amenities'] ?? []);

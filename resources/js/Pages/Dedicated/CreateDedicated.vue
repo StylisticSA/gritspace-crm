@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { watch, computed } from 'vue';
+import { watch } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const form = useForm({
     office_name: '',
@@ -12,6 +13,7 @@ const form = useForm({
     monthly_rate: '',
     daily_rate: '',
     pricing_id: '',
+    is_available: useToday(),
     amenities: [],
     pricing_type: [],
     free_boardroom_hours: '',
@@ -168,7 +170,7 @@ const submit = () => {
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-lg font-medium text-gray-700">Free Discounts (%)</label>
+                                <label class="block text-lg font-medium text-gray-700">Boardroom Discounts (%)</label>
                                 <input
                                     v-model="form.free_boardroom_hours"
                                     type="number"

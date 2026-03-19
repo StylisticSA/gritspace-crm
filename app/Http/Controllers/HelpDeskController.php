@@ -55,6 +55,8 @@ class HelpDeskController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
+
         $validated = $request->validate([
             'help_desk_name' => [
                 'required',
@@ -77,10 +79,10 @@ class HelpDeskController extends Controller
 
         $amenities = $request->input('amenities', []);
 
-        $validated['is_available']    = false;
-        $validated['available_dates'] = null;
-
-        $helpDesk = HelpDesk::create($validated);
+        $helpDesk = HelpDesk::create(array_merge($validated, [
+            'is_available'      => true,
+            'available_dates'   => $validated['is_available'],
+        ]));
 
         if (!empty($amenities)) {
             $helpDesk->amenities()->sync($amenities);

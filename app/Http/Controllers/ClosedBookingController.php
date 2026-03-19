@@ -36,11 +36,14 @@ use Inertia\Inertia;
                 })->select('id', 'name')
                 ->get();
 
- 
+        
+        $discounts = Discount::where('package','daily')->get(['id', 'package', 'discount']);
+
+        // dd($discounts->first()->discount);
 
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
-           $bookings = Booking::with(['user', 'office.location', 'category'])
+            $bookings = Booking::with(['user', 'office.location', 'category'])
                         ->whereHas('category', function ($query) {
                             $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
                         })
@@ -59,6 +62,9 @@ use Inertia\Inertia;
                         ->latest()
                         ->paginate(10);
 
+                       
+
+
         } else {
             $bookings = Booking::with(['office','office.location', 'category'])
                 ->whereHas('category', function ($query) {
@@ -68,6 +74,9 @@ use Inertia\Inertia;
                 ->latest()
                 ->paginate(10);
 
+               
+
+        
             
         }
 
@@ -79,12 +88,13 @@ use Inertia\Inertia;
                        ->where('status', 'approved')
                        ->get();
 
-     
+        
 
         return Inertia::render('Bookings/Closed/ShowClosed', [
             'bookings'              => $bookings,
             'users'                 => $users,
             'approvedClosed'        => $approvedClosed,
+            'discounts'             => $discounts->first()->discount ?? 0,
             'filters' => [
                 'search' => $search,
             ]
@@ -174,7 +184,7 @@ use Inertia\Inertia;
 
         $admins->each(fn ($user) => $user->notify(new BookingNotification($bookingData, 'created', 'admin')));
 
-        return back()->with('success', 'Booking created successfully!');
+        return back()->with('success', 'Thank you for your enquiry. We will get back to you shortly');
     }
 
 

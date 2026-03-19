@@ -8,7 +8,6 @@ const props = defineProps({
 
 const form = useForm({
     name: props.categories.name,
-    offers_level: props.categories.offers_level,
 });
 
 const submit = () => {
@@ -60,22 +59,7 @@ const submit = () => {
                                 </div>
                             </div>
                         </div>
-                        <div>
-                            <label class="inline-flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    v-model="form.offers_level"
-                                    class="w-5 h-5 text-primary form-checkbox" />
-                                <span class="text-lg text-gray-700"
-                                    >Offers different service levels (Standard/Premium)</span
-                                >
-                            </label>
-                            <div
-                                v-if="form.errors.offers_level"
-                                class="text-sm text-red-600">
-                                {{ form.errors.offers_level }}
-                            </div>
-                        </div>
+
                         <div class="w-full pt-2 md:col-span-2">
                             <button
                                 type="submit"

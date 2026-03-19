@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import { format } from 'date-fns';
 import useStatusMessage from '../../Composables/useStatusMessage';
 
@@ -68,13 +68,13 @@ const formatDate = dateStr => {
 </script>
 
 <template>
-    <Head title="discounts Admin" />
+    <Head title="Boardroom Discounts Admin" />
 
     <AuthenticatedLayout>
         <!-- Success Notification -->
 
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Discounts</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardroom Discounts</h2>
         </template>
 
         <div class="py-12">
@@ -84,13 +84,14 @@ const formatDate = dateStr => {
                         {{ messageText }}
                     </div>
                 </template>
+
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
                             :href="route('admin.discount.create')"
                             class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
-                            + Add Discounts
+                            + Add Boardroom Discounts
                         </Link>
                         <div></div>
 

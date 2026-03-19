@@ -357,9 +357,7 @@ const refreshNotifications = () => {
                                                         <DropdownLink :href="route('admin.categories')"
                                                             >Categories</DropdownLink
                                                         >
-                                                        <DropdownLink :href="route('admin.offices_rates')"
-                                                            >Service Levels</DropdownLink
-                                                        >
+
                                                         <DropdownLink :href="route('admin.amenities')"
                                                             >Amenities</DropdownLink
                                                         >
@@ -370,7 +368,7 @@ const refreshNotifications = () => {
                                                             >Parking</DropdownLink
                                                         >
                                                         <DropdownLink :href="route('admin.discounts.index')"
-                                                            >Discounts</DropdownLink
+                                                            >Boardroom Discounts</DropdownLink
                                                         >
                                                     </template>
                                                 </Dropdown>
@@ -745,7 +743,7 @@ const refreshNotifications = () => {
                                     <template #content>
                                         <DropdownLink :href="route('admin.locations')">Locations</DropdownLink>
                                         <DropdownLink :href="route('admin.categories')">Categories</DropdownLink>
-                                        <DropdownLink :href="route('admin.offices_rates')">Service Levels</DropdownLink>
+
                                         <DropdownLink :href="route('admin.amenities')">Amenities</DropdownLink>
                                         <DropdownLink :href="route('admin.extra.index')">Extra's</DropdownLink>
                                         <DropdownLink :href="route('admin.parking.index')">Parking</DropdownLink>

@@ -83,13 +83,12 @@ class CategoriesController extends Controller
     {
 
         $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'offers_level'  => "nullable|boolean",
+            'name'    => 'required|string|max:255',
+           
         ]);
 
         $category = $category->update([
             'name' => ucwords($validated['name']),
-            'offers_level' => $validated['offers_level'] ? $request->boolean('offers_level') : false,
         ]);
 
         return redirect()->route('admin.categories')->with('success', 'Office Rates updated successfully.');

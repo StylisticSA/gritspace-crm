@@ -83,15 +83,12 @@ class BoardroomController extends Controller
             'boardroom_name.unique' => 'A boardroom with this name already exists at the selected location.',
         ]);
 
-
-
         $amenities = $request->input('amenities', []);
 
-        $validated['is_available'] = false;
-        $validated['available_dates'] = null;
-
-        $boardrooms = Boardroom::create($validated);
-
+        $boardroom = Boardroom::create(array_merge($validated, [
+            'is_available'      => true,
+            'available_dates'  => $validated['is_available'],
+        ]));
 
         if (!empty($amenities)) {
             $boardrooms->amenities()->sync($amenities);

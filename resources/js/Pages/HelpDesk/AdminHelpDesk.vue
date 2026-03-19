@@ -80,7 +80,7 @@ const setOffice = id => {
 };
 
 const availabilityText = hotdesk => {
-    const label = hotdesk.is_available ? 'Available From' : 'Unavailable until';
+    const label = hotdesk.is_available ? 'Available' : 'Unavailable until';
     const date = hotdesk.available_dates ? formatDate(hotdesk.available_dates) : 'None';
     return `${label}<br>${date}`;
 };

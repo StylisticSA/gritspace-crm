@@ -93,12 +93,12 @@ const formatDate = dateStr => {
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <Link
+                        <!-- <Link
                             v-if="can['manage settings']"
                             :href="route('admin.hours.create')"
                             class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Add hours
-                        </Link>
+                        </Link> -->
                         <div></div>
 
                         <input

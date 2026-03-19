@@ -8,6 +8,7 @@ import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue
 
 const props = defineProps({
     bookings: Object,
+    discounts: Number,
     filters: Object,
     users: Object,
     can: Object,
@@ -160,7 +161,6 @@ const discountedPrice = computed(() => {
     };
 });
 
-console.log('id', discountedPrice);
 const approveBooking = id => {
     if (!id) return;
 
@@ -263,17 +263,6 @@ const cancelBooking = id => {
         );
     }
 };
-
-const bookingDiscount = computed(() => {
-    if (!showViewModal.value || !selectedBooking.value) return null;
-
-    // find the discount for this office
-    return props.discounts.find(
-        d =>
-            d.location_id === selectedBooking.value.office.location_id &&
-            d.category_id === selectedBooking.value.category_id
-    );
-});
 
 const allBookings = computed(() => {
     const closed = props.approvedClosed.map(b => {
@@ -587,9 +576,7 @@ const allBookings = computed(() => {
                                             class="mb-3 font-medium text-gray-600">
                                             <strong>Boardroom Discount Daily:</strong>
                                         </div>
-                                        <div v-if="selectedBooking.plan === 'daily'">
-                                            {{ bookingDiscount?.discount ?? 0 }} %
-                                        </div>
+                                        <div v-if="selectedBooking.plan === 'daily'">{{ discounts }} %</div>
                                     </div>
                                 </div>
                             </div>

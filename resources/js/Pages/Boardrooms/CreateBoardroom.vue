@@ -2,11 +2,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const form = useForm({
     boardroom_name: '',
     location_id: '',
     seats: '',
+    is_available: useToday(),
     hourly_price: null,
     daily_price: null,
     amenities: [],

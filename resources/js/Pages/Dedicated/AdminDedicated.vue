@@ -91,7 +91,7 @@ const setOffice = id => {
 };
 
 const availabilityText = office => {
-    const label = office.is_available ? 'Available' : 'Un available until';
+    const label = office.is_available ? 'Available' : 'Unavailable until';
     const date = office.available_dates ? formatDate(office.available_dates) : '—';
     return `${label}<br>${date}`;
 };

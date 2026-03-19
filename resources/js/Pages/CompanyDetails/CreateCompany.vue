@@ -61,9 +61,9 @@ const validateStepOne = () => {
         form.errors.company_name = 'Company name is required.';
     }
 
-    if (!form.company_registration_number) {
-        form.errors.company_registration_number = 'Company registration number is required.';
-    }
+    // if (!form.company_registration_number) {
+    //     form.errors.company_registration_number = 'Company registration number is required.';
+    // }
 
     if (!form.identity) {
         form.errors.identity = 'ID upload is required.';

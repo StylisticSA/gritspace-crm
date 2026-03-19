@@ -3,7 +3,6 @@ import { useForm } from '@inertiajs/vue3';
 import { Inertia } from '@inertiajs/inertia';
 import { watch, computed, ref } from 'vue';
 import DatePicker from 'primevue/datepicker';
-import { differenceInCalendarMonths, isBefore } from 'date-fns';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 
 const props = defineProps({
@@ -51,7 +50,6 @@ watch(
         form.end_date = '';
         form.months = 0;
         form.selected_price = 0;
-        form.discount_percentage = 0;
         form.discounted_price = 0;
         selectedDateTimes.value = {};
     }
@@ -80,7 +78,6 @@ watch(
             form.selected_price = unitPrice.value * weekdaysCount.value;
         }
 
-        // ✅ Apply discount calculation
         if (form.discount_percentage > 0) {
             form.discounted_price = form.selected_price - (form.selected_price * form.discount_percentage) / 100;
         } else {
@@ -125,7 +122,7 @@ const submit = () => {
             setTimeout(() => {
                 successMessage.value = null;
                 Inertia.visit(route('bookingboardroom.show'));
-            }, 2000);
+            }, 3000);
         },
     });
 };

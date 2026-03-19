@@ -147,6 +147,8 @@ class CompanyDetailController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request);
+        
         $validated = $request->validate([
             'location_id'                   => 'nullable|exists:locations,id',
             'name'                          => 'required|string|max:255',

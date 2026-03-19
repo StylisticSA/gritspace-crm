@@ -105,9 +105,10 @@ class ClosedOfficeController extends Controller
             'amenities'             => ['array'],
             'amenities.*'           => ['exists:amenities,id'],
         ],[
-            'office_name.unique' => 'This office name already exists for the given location and category.',
+            'office_name.unique'    => 'This office name already exists for the given location and category.',
         ]);
 
+     
 
         $office = Office::create([
             'office_name'           => $validated['office_name'],
@@ -117,8 +118,8 @@ class ClosedOfficeController extends Controller
             'monthly_rate'          => $validated['monthly_rate'],
             'daily_rate'            => $validated['daily_rate'] ?? null,
             'free_boardroom_hours'  => $validated['free_boardroom_hours'] ?? null,
-            'is_available'          => false,
-            'available_dates'       => null,
+            'is_available'          => true,
+            'available_dates'       => $validated['is_available'],
         ]);
 
         if (isset($validated['amenities']) && count($validated['amenities']) > 0) {

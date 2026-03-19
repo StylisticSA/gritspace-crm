@@ -134,7 +134,7 @@ if (flashMessage) {
 
                             <!-- Discounts -->
                             <div class="pt-4 border-t border-gray-200">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
                                     <!-- Second column: Discounts -->
                                     <div
                                         class="md:col-span-2"
@@ -142,19 +142,20 @@ if (flashMessage) {
                                         <h4 class="font-semibold text-gray-800">Boardroom Discount(s)</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
                                             <li v-if="office.free_boardroom_hours">
-                                                Includes <strong>{{ office.free_boardroom_hours }}</strong> free
-                                                boardroom hours per Monthly Package
+                                                Your booking includes
+                                                <strong>{{ office.free_boardroom_hours }}</strong> free boardroom hours
+                                                per Month. Subject to availability
                                             </li>
                                             <li
                                                 v-if="discounts"
                                                 v-for="item in discounts"
                                                 :key="item.id">
-                                                It has <strong>{{ item.discount }}%</strong> discount when you book
+                                                It has <strong>{{ item.discount }}%</strong> discount, when you book
                                                 Daily Package
                                             </li>
                                         </ul>
                                         <p class="py-3 text-sm text-primary">
-                                            NOTE: The discount will be applied upon approval.
+                                            NOTE: Any discount will be applied upon approval.
                                         </p>
                                     </div>
                                     <div v-else>

@@ -47,7 +47,7 @@ class CompanyController extends Controller
         $validated = $request->validate([
                     'company_name' => 'required|string|max:255',
                     'vat_no'       => 'required|string|max:50',
-                    'reg_no'       => 'required|string|max:50',
+                    'reg_no'       => 'nullable|string|max:50',
                     'address'      => 'required|string|max:255',
                     'email'        => 'required|email|max:255|unique:companies,email',
                     'phone'        => 'required|string|regex:/^\+?[0-9]{7,15}$/'

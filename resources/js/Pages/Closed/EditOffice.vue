@@ -186,7 +186,9 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <label class="block text-lg font-medium text-gray-700">Free Discounts (%)</label>
+                            <label class="block text-lg font-medium text-gray-700"
+                                >Free Boardroom hours per month</label
+                            >
                             <input
                                 v-model="form.free_boardroom_hours"
                                 type="number"
