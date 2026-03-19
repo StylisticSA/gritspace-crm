@@ -34,6 +34,12 @@ return new class extends Migration
             $table->decimal('tax_amount', 10, 2)->nullable();
             $table->decimal('tax_rate', 10, 2)->nullable();
             $table->decimal('total_amount', 10, 2);
+            
+            $table->integer('number_of_cups')->nullable();
+            $table->decimal('coffes_total')->nullable();
+
+            $table->integer('printed_page')->nullable();
+            $table->decimal('printing_total')->nullable();
 
             $table->string('currency', 3);
             $table->string('status')->default('pending');
