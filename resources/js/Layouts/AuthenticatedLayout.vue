@@ -56,9 +56,7 @@ const refreshNotifications = () => {
             <nav class="bg-white border-b border-gray-100">
                 <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div class="flex items-center justify-between h-16">
-                        <!-- Left Section -->
                         <div class="flex items-center gap-10">
-                            <!-- Logo -->
                             <Link
                                 v-if="!can['manage settings']"
                                 :href="route('dashboard')"
@@ -679,7 +677,6 @@ const refreshNotifications = () => {
 
                             <!-- admins Settings -->
                             <template v-if="can['manage settings']">
-                                <!-- product settings -->
                                 <Dropdown
                                     nested
                                     align="right"
@@ -727,6 +724,7 @@ const refreshNotifications = () => {
                                         >
                                     </template>
                                 </Dropdown>
+
                                 <!-- System Settings -->
                                 <Dropdown
                                     nested
@@ -797,10 +795,10 @@ const refreshNotifications = () => {
                                     <template #trigger>
                                         <div
                                             v-if="can['view book extras']"
-                                            class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 transition cursor-pointer hover:bg-gray-50">
+                                            class="flex items-center justify-between w-full px-4 py-2 text-base font-medium text-gray-700 transition cursor-pointer hover:bg-gray-50">
                                             Extras
                                             <svg
-                                                class="w-4 h-4"
+                                                class="w-5 h-5"
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20">
                                                 <path
@@ -823,10 +821,10 @@ const refreshNotifications = () => {
                                     <template #trigger>
                                         <div
                                             v-if="can['view book extras']"
-                                            class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 transition cursor-pointer hover:bg-gray-50">
+                                            class="flex items-center justify-between w-full px-4 py-2 text-base font-medium text-gray-700 transition cursor-pointer hover:bg-gray-50">
                                             Hours
                                             <svg
-                                                class="w-4 h-4"
+                                                class="w-5 h-5"
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20">
                                                 <path
@@ -847,6 +845,7 @@ const refreshNotifications = () => {
                                     :href="route('admin.notes.index')"
                                     >Notes</ResponsiveNavLink
                                 >
+
                                 <ResponsiveNavLink
                                     v-if="can['manage settings']"
                                     :href="route('admin.manage.user')"
