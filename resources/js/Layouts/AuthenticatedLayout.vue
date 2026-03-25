@@ -60,7 +60,15 @@ const refreshNotifications = () => {
                         <div class="flex items-center gap-10">
                             <!-- Logo -->
                             <Link
+                                v-if="!can['manage settings']"
                                 :href="route('dashboard')"
+                                class="flex items-center">
+                                <ApplicationLogo class="block w-auto h-12 text-gray-800 fill-current" />
+                            </Link>
+
+                            <Link
+                                v-if="can['manage settings']"
+                                :href="route('admin.dashboard')"
                                 class="flex items-center">
                                 <ApplicationLogo class="block w-auto h-12 text-gray-800 fill-current" />
                             </Link>

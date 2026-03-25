@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Office;
 use App\Models\Category;
@@ -147,7 +146,7 @@ class CompanyDetailController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request);
+        // dd($request);
         
         $validated = $request->validate([
             'location_id'                   => 'nullable|exists:locations,id',
