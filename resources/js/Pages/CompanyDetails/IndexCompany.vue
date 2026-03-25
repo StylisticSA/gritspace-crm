@@ -75,7 +75,7 @@ const showAgreementModal = ref(false);
                             <div>{{ clients.cell_number }}</div>
 
                             <div class="font-semibold text-gray-700">Email Address:</div>
-                            <div>{{ clients.email_address }}</div>
+                            <div class="truncate max-w-full text-gray-900">{{ clients.email_address }}</div>
 
                             <hr class="col-span-2 my-2 border-gray-300" />
 

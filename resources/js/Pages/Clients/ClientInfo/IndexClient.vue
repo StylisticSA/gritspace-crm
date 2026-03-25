@@ -450,11 +450,15 @@ watchEffect(() => {
                                             {{ (companyInfo.approved ?? 0) ? 'Approved' : 'Pending' }}
                                         </span>
                                     </div>
-                                    <hr class="col-span-2 my-4 border-gray-300" />
+                                    <hr
+                                        class="col-span-2 my-4 border-gray-300"
+                                        v-if="groupedRates.length > 0" />
                                 </div>
 
                                 <!-- Client Rates -->
-                                <div class="pt-5">
+                                <div
+                                    class="pt-5"
+                                    v-if="groupedRates.length > 0">
                                     <h2 class="text-xl font-semibold leading-tight text-gray-800">Client Rates</h2>
 
                                     <div

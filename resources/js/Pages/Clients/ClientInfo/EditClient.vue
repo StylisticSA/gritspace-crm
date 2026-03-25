@@ -191,11 +191,20 @@ const submit = () => {
                             <div class="mt-4">
                                 <label class="block text-lg text-gray-700">Upload your ID</label>
 
-                                <img
-                                    v-if="props.clients.identity_path"
-                                    :src="props.clients.identity_path"
-                                    alt="Current ID"
-                                    class="w-48 h-48 mb-2 border rounded" />
+                                <div class="my-3">
+                                    <a
+                                        v-if="clients.identity_path"
+                                        :href="clients.identity_path"
+                                        target="_blank"
+                                        class="underline text-primary">
+                                        View Identity
+                                    </a>
+                                    <span
+                                        v-else
+                                        class="text-gray-500"
+                                        >Not uploaded</span
+                                    >
+                                </div>
 
                                 <input
                                     type="file"
@@ -213,11 +222,20 @@ const submit = () => {
                                 <label class="block text-lg text-gray-700">Proof of Residency</label>
 
                                 <!-- Show existing image if available -->
-                                <img
-                                    v-if="props.clients.residency_path"
-                                    :src="props.clients.residency_path"
-                                    alt="Current Residency"
-                                    class="w-48 h-48 mb-2 border rounded" />
+                                <div class="my-3">
+                                    <a
+                                        v-if="clients.residency_path"
+                                        :href="clients.residency_path"
+                                        target="_blank"
+                                        class="underline text-primary">
+                                        View Residency
+                                    </a>
+                                    <span
+                                        v-else
+                                        class="text-gray-500"
+                                        >Not uploaded</span
+                                    >
+                                </div>
 
                                 <input
                                     type="file"
@@ -234,11 +252,20 @@ const submit = () => {
                             <div class="mt-4">
                                 <label class="block text-lg text-gray-700">Company Registration</label>
 
-                                <img
-                                    v-if="props.clients.company_reg_path"
-                                    :src="props.clients.company_reg_path"
-                                    alt="Company Registration Image"
-                                    class="w-48 h-48 mb-2 border rounded" />
+                                <div class="my-3">
+                                    <a
+                                        v-if="clients.identity_path"
+                                        :href="clients.identity_path"
+                                        target="_blank"
+                                        class="underline text-primary">
+                                        View Company Registration
+                                    </a>
+                                    <span
+                                        v-else
+                                        class="text-gray-500"
+                                        >Not uploaded</span
+                                    >
+                                </div>
 
                                 <input
                                     type="file"

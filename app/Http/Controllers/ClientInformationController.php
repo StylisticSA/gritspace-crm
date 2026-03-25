@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use Inertia\Inertia;
-use App\Models\Office;
 use App\Models\Location;
 use App\Models\ClientRate;
 use Illuminate\Support\Str;
@@ -15,7 +14,6 @@ use Illuminate\Validation\Rule;
 use App\Models\ClientInformation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Notifications\BookingNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\ClientStatusNotification;
 
@@ -39,25 +37,23 @@ class ClientInformationController extends Controller
 
         $users = User::with('roles')
                  ->whereHas('roles', function ($query) {
-                     $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                     $query->whereIn(DB::raw('LOWER(name)'), ['User', 'Users','Admin','Admins','Pending User']);
                  })->select('id', 'name')
                  ->get();
 
 
         $clients->getCollection()->transform(function ($client) {
             $client->identity_path = $client->identity_path
-                ? Storage::url($client->identity_path)
+                ? Storage::disk('google')->url($client->identity_path)
                 : null;
 
             $client->residency_path = $client->residency_path
-                ? Storage::url($client->residency_path)
+                ? Storage::disk('google')->url($client->residency_path)
                 : null;
 
-
             $client->company_reg_path = $client->company_reg_path
-                            ? Storage::url($client->company_reg_path)
-                            : null;
-
+                ? Storage::disk('google')->url($client->company_reg_path)
+                : null;
 
             return $client;
         });
@@ -212,27 +208,27 @@ class ClientInformationController extends Controller
 
         $users = User::with('roles')
                 ->whereHas('roles', function ($query) {
-                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins','Pending User']);
                 })->select('id', 'name')
                 ->get();
 
 
         $locations = Location::select('id', 'name', 'address', 'city')->get();
 
-        // Transform paths into public URLs
+
         $client->identity_path = $client->identity_path
-            ? Storage::url($client->identity_path)
+            ? Storage::disk('google')->url($client->identity_path)
             : null;
 
         $client->residency_path = $client->residency_path
-            ? Storage::url($client->residency_path)
+            ? Storage::disk('google')->url($client->residency_path)
             : null;
 
-
         $client->company_reg_path = $client->company_reg_path
-                ? Storage::url($client->company_reg_path)
-                : null;
+            ? Storage::disk('google')->url($client->company_reg_path)
+            : null;
 
+        // dd($client);
 
         return Inertia::render('Clients/ClientInfo/EditClient', [
                 'clients' => $client->load(['location', 'user']),
