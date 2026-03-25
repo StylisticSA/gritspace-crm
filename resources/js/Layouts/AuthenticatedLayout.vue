@@ -565,7 +565,7 @@ const refreshNotifications = () => {
 
                         <!-- Middle Content (Scrollable Items) -->
                         <div class="flex-grow px-4 py-4 space-y-3 overflow-y-auto">
-                            <div>
+                            <div class="mb-1">
                                 <ResponsiveNavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
