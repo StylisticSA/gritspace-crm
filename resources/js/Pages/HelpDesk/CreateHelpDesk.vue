@@ -145,10 +145,11 @@ const submit = () => {
                                         {{ form.errors.duration }}
                                     </div>
                                 </div>
+                                <!-- hours -->
                                 <div>
                                     <label class="block text-lg font-medium text-gray-700"
-                                        >Free Boardroom hours per month</label
-                                    >
+                                        >Boardroom Discounts (%)
+                                    </label>
                                     <input
                                         v-model="form.free_boardroom_hours"
                                         type="number"
