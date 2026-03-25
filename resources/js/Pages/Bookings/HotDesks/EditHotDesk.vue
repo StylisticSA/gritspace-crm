@@ -25,7 +25,7 @@ interface HelpDesk {
 }
 
 interface Discount {
-    name: string;
+    package: string;
     discount: number;
 }
 

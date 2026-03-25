@@ -128,8 +128,8 @@ const formatDate = dateStr => {
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Price</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Free Hours</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Availability</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700"></th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
                             </thead>
@@ -140,10 +140,11 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ helpdesk.help_desk_name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ helpdesk.location.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ helpdesk.price }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">{{ helpdesk.free_boardroom_hours }}</td>
                                     <td
                                         class="px-6 py-4 text-sm text-gray-800"
                                         v-html="availabilityText(helpdesk)" />
-                                    <td class="px-6 py-4 text-sm text-gray-800"></td>
+
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button

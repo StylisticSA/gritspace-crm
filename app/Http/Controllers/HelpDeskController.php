@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Amenity;
-use App\Models\Discount;
 use App\Models\HelpDesk;
 use App\Models\Location;
 use Illuminate\Http\Request;
@@ -68,12 +67,13 @@ class HelpDeskController extends Controller
                         return $query->where('location_id', $request->location_id);
                     }),
             ],
-            'location_id'     => 'required',
-            'price'           => 'required|numeric',
-            'duration'        => 'required|numeric',
-            'desks'           => 'nullable|numeric',
-            'is_available'    => ['nullable'],
-            'available_dates' => ['nullable'],
+            'location_id'           => 'required',
+            'price'                 => 'required|numeric',
+            'duration'              => 'required|numeric',
+            'desks'                 => 'nullable|numeric',
+            'free_boardroom_hours'  => 'nullable',
+            'is_available'          => ['nullable'],
+            'available_dates'       => ['nullable'],
 
         ]);
 
@@ -130,19 +130,16 @@ class HelpDeskController extends Controller
                                     ->where('location_id', $request->location_id);
                             })
             ],
-           'location_id'       => 'required',
-           'price'             => 'required|numeric',
-           'duration'          => 'required|numeric',
-           'desks'             => 'nullable|numeric',
-           
-           'is_available'    => ['nullable'],
-            'available_dates' => ['nullable'],
+           'location_id'            => 'required',
+           'price'                  => 'required|numeric',
+           'duration'               => 'required|numeric',
+           'desks'                  => 'nullable|numeric',
+           'free_boardroom_hours'   => 'nullable',
+           'is_available'           => ['nullable'],
+           'available_dates'        => ['nullable'],
         ]);
 
         $amenities = $request->input('amenities', []);
-
-        $validated['is_available']    = false;
-        $validated['available_dates'] = null;
 
         $helpDesk->update($validated);
 

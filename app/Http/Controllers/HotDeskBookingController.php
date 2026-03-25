@@ -19,12 +19,18 @@ class HotDeskBookingController extends Controller
     */
     public function edit(HelpDesk $hotDesk)
     {
+        // dd($hotDesk);
+
         $locations = Location::select('id', 'name')->get();
 
         $hotdesks = $hotDesk->load(['location', 'amenities']);
 
-        $discount = Discount::where('help_desk_id',$hotDesk->id)
-                   ->where('office_type', 'hotdesk')->first(['name','discount']);
+        $discount = Discount::where('location_id', $hotDesk->location_id)
+                   ->where('name', 'hotdesk')
+                   ->where('package','daily')
+                   ->first(['package','discount']);
+
+        // dd($discount);
 
         return Inertia::render('Bookings/HotDesks/EditHotDesk', [
             'helpDesks' => $hotdesks,

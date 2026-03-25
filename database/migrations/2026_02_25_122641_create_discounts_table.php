@@ -16,7 +16,8 @@ return new class extends Migration
             
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-
+            
+            $table->string('name');
             $table->string('package');           
             $table->unsignedInteger('discount');
             

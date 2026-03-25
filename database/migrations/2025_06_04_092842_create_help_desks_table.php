@@ -15,8 +15,11 @@ return new class () extends Migration {
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('help_desk_name');
             $table->decimal('price', 8, 2);
+
             $table->string('duration')->nullable();
             $table->integer('desks')->nullable();
+            $table->unsignedInteger('free_boardroom_hours')->nullable();
+
             $table->boolean('is_available')->nullable(false);
             $table->date('available_dates')->nullable();
 
