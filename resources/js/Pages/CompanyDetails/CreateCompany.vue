@@ -289,7 +289,7 @@ const rowFieldErrors = computed(() => {
 
         <div class="py-2">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="p-6 mt-5 space-y-6 bg-white rounded-md shadow mx7auto max-w-8xl">
+                <div class="p-6 mx-5 sm:mx-1 my-5 space-y-6 bg-white rounded-md shadow mx7auto max-w-8xl">
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <h3 class="inline-block py-2 text-xl text-black">Add Company Details</h3>
 
@@ -328,28 +328,27 @@ const rowFieldErrors = computed(() => {
                         class="space-y-6">
                         <!-- Step 1: Always visible -->
                         <div v-show="step === 1">
-                            <div class="mb-5">
-                                <label class="block text-lg text-gray-700">Location</label>
-                                <select
-                                    v-on:focus="form.clearErrors('location_id')"
-                                    v-model="form.location_id"
-                                    class="w-full px-3 py-2 border rounded">
-                                    <option value="">Select Location</option>
-                                    <option
-                                        v-for="loc in locations"
-                                        :key="loc.id"
-                                        :value="loc.id">
-                                        {{ loc.name }}
-                                    </option>
-                                </select>
-                                <div
-                                    v-if="form.errors.location_id"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.location_id }}
-                                </div>
-                            </div>
-
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <label class="block text-lg text-gray-700">Location</label>
+                                    <select
+                                        v-on:focus="form.clearErrors('location_id')"
+                                        v-model="form.location_id"
+                                        class="w-full px-3 py-2 border rounded">
+                                        <option value="">Select Location</option>
+                                        <option
+                                            v-for="loc in locations"
+                                            :key="loc.id"
+                                            :value="loc.id">
+                                            {{ loc.name }}
+                                        </option>
+                                    </select>
+                                    <div
+                                        v-if="form.errors.location_id"
+                                        class="text-sm text-red-600">
+                                        {{ form.errors.location_id }}
+                                    </div>
+                                </div>
                                 <div>
                                     <label class="block text-lg text-gray-700">First Name</label>
                                     <input
