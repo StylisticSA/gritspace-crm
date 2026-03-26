@@ -49,7 +49,7 @@ class PermissionController extends Controller
             'name' => 'required|string|max:255|unique:permissions,name',
         ]);
 
-        $permission = Permission::create(['name' => $validated['name']]);
+        $permission = Permission::create(['name' => strtolower($validated['name']) ] );
 
         $superAdmin = Role::where('name', 'super admin')->first();
     
@@ -80,7 +80,7 @@ class PermissionController extends Controller
             'name' => 'sometimes|string|max:255|unique:permissions,name,' . $permission->id,
         ]);
 
-        $permission->update($validated);
+        $permission->update(['name' =>  strtolower($validated['name'])]);
 
         PermissionRegistrar::class->forgetCachedPermissions();
 

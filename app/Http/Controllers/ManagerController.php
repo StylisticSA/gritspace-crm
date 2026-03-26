@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
+
 use App\Models\User;
 use Inertia\Inertia;
-use App\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
@@ -23,7 +24,6 @@ class ManagerController extends Controller
     public function index(Request $request)
     {
        
-
         $search = $request->input('search');
 
         $users = User::with('roles')
@@ -54,7 +54,6 @@ class ManagerController extends Controller
      */
     public function create()
     {
-      
 
         $roles = Role::with('permissions')
                 ->select('id', 'name')
@@ -104,20 +103,19 @@ class ManagerController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'email_verified_at' => now(), 
         ]);
 
 
-        $roles = Role::whereIn('name', $validated['roles'] ?? [])->get();
-        $user->roles()->sync($roles->pluck('id'));
+         if (!empty($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
 
-        $permissions = Permission::whereIn('name', $validated['permissions'] ?? [])->pluck('id');
-        $user->permissions()->sync($permissions);
+        if (!empty($validated['permissions'])) {
+            $user->syncPermissions($validated['permissions']);
+        }
 
-
-        $admins = User::withRole('Admin')
-                        ->get()
-                        ->merge(User::withRole('Super Admin')->get())
-                        ->unique('id');
+        $admins = User::role(['Admin', 'Super Admin'])->get()->unique('id');
 
         $admins->each(fn ($admin) => $admin->notify(new NewUserRegistered($user)));
 
@@ -162,13 +160,10 @@ class ManagerController extends Controller
     public function update(Request $request, User $user)
     {
 
-
-
-
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'email'         => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password'      => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'password'      => ['nullable', 'confirmed', Password::min(8)->mixedCase()->letters()->numbers(),],
             'roles'         => ['array'],
             'roles.*'       => ['string', 'exists:roles,name'],
         ]);
@@ -182,8 +177,13 @@ class ManagerController extends Controller
 
         $user->save();
 
-        $roles = Role::whereIn('name', $validated['roles'] ?? [])->get();
-        $user->roles()->sync($roles->pluck('id'));
+        if (isset($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
+
+        if (isset($validated['permissions'])) {
+            $user->syncPermissions($validated['permissions']);
+        }
 
         return redirect()->route('admin.manage.user')->with('success', 'User roles and permissions updated.');
     }
@@ -195,13 +195,11 @@ class ManagerController extends Controller
 
     public function destroy(User $user)
     {
-
-        $user->roles()->detach();
-        $user->permissions()->detach();
-
         $user->update(['is_active' => false]);
 
         $user->delete();
+
+        $user->forgetCachedPermissions();
 
         return back()->with('success', 'User has been disabled successfully.');
     }

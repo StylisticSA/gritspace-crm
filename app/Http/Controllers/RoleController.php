@@ -53,7 +53,7 @@ class RoleController extends Controller
             'name'    => 'required|string|max:255',
         ]);
 
-        $role = Role::create($validated);
+        $role = Role::create( ['name' =>  strtolower($validated['name']) ]);
 
         return redirect()->route('admin.roles')->with('success', 'Role created successfully.');
     }
@@ -88,7 +88,7 @@ class RoleController extends Controller
         ]);
 
 
-        $role->update(['name' => $validated['name']]);
+        $role->update(['name' =>  strtolower($validated['name']) ]);
 
         $role->syncPermissions($validated['permissions'] ?? []);
 
