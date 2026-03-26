@@ -5,19 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use Inertia\Inertia;
-use Inertia\Response;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\RedirectResponse;
 use App\Notifications\NewUserRegistered;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 
 class ManagerController extends Controller
 {
@@ -26,7 +22,7 @@ class ManagerController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', User::class);
+       
 
         $search = $request->input('search');
 
@@ -39,11 +35,11 @@ class ManagerController extends Controller
                 ->when($search, function ($query, $search) {
                     $query->where('name', 'like', "%{$search}%");
                 })
-                ->orderByDesc('created_at')
+                ->orderBy('created_at')
                 ->paginate(10)
                 ->withQueryString();
 
-
+        // dd($users);
 
         return Inertia::render('Manage/ManageUsers', [
             'users' => $users,
@@ -58,7 +54,7 @@ class ManagerController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', User::class);
+      
 
         $roles = Role::with('permissions')
                 ->select('id', 'name')
@@ -133,7 +129,7 @@ class ManagerController extends Controller
      */
     public function edit(User $user)
     {
-        $this->authorize('update', $user);
+       
 
 
         $user->load('roles', 'roles.permissions')->makeHidden(['password']);
@@ -167,7 +163,7 @@ class ManagerController extends Controller
     {
 
 
-        $this->authorize('update', $user);
+
 
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
@@ -199,7 +195,6 @@ class ManagerController extends Controller
 
     public function destroy(User $user)
     {
-        $this->authorize('delete', $user);
 
         $user->roles()->detach();
         $user->permissions()->detach();

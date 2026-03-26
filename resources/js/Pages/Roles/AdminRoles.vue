@@ -133,7 +133,6 @@ function getRoleColor(role) {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700 lg:w-[600px]">
                                         Permissions
@@ -145,7 +144,6 @@ function getRoleColor(role) {
                                 <tr
                                     v-for="role in roles.data"
                                     :key="role.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ role.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         {{ role.name }}
                                     </td>

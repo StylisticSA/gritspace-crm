@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use Inertia\Inertia;
-use App\Models\Permission;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionController extends Controller
 {
@@ -50,18 +51,13 @@ class PermissionController extends Controller
 
         $permission = Permission::create(['name' => $validated['name']]);
 
-        $superAdmin = Role::where('name', 'Super Admin')->first();
-        $superAdmin?->permissions()->syncWithoutDetaching([$permission->id]);
+        $superAdmin = Role::where('name', 'super admin')->first();
+    
+        if ($superAdmin) {
+            $superAdmin->givePermissionTo($permission);
+        }
 
         return redirect()->route('admin.permissions')->with('success', 'Permissions created successfully.');
-    }
-
-    /**
-     * Display the resource.
-     */
-    public function show()
-    {
-        //
     }
 
     /**
@@ -86,6 +82,8 @@ class PermissionController extends Controller
 
         $permission->update($validated);
 
+        PermissionRegistrar::class->forgetCachedPermissions();
+
         return redirect()->route('admin.permissions')->with('success', 'Permission updated successfully.');
     }
 
@@ -96,6 +94,8 @@ class PermissionController extends Controller
     {
         $permission->delete();
 
+        PermissionRegistrar::class->forgetCachedPermissions();
+        
         return back()->with('success', 'A permission has been deleted successfully.');
     }
 }

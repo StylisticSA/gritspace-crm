@@ -2,17 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Database\Seeders\UserSeeder;
-use Database\Seeders\OfficeSeeder;
-use Database\Seeders\AmenitySeeder;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\LocationSeeder;
-use Database\Seeders\DailyUsageSeeder;
-use Database\Seeders\OfficePricingSeeder;
-use Database\Seeders\BoardroomBookingsSeeder;
 
 class DatabaseSeeder extends Seeder
 {

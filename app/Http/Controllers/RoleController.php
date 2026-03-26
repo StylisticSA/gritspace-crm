@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use Inertia\Inertia;
-use App\Models\Permission;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -53,18 +53,12 @@ class RoleController extends Controller
             'name'    => 'required|string|max:255',
         ]);
 
-        $role = role::create($validated);
+        $role = Role::create($validated);
 
         return redirect()->route('admin.roles')->with('success', 'Role created successfully.');
     }
 
-    /**
-     * Display the resource.
-     */
-    public function show()
-    {
-        //
-    }
+    
 
     /**
      * Show the form for editing the resource.
@@ -96,8 +90,7 @@ class RoleController extends Controller
 
         $role->update(['name' => $validated['name']]);
 
-        $permissions = Permission::whereIn('name', $validated['permissions'] ?? [])->pluck('id');
-        $role->permissions()->sync($permissions);
+        $role->syncPermissions($validated['permissions'] ?? []);
 
         return redirect()->route('admin.roles')->with('success', 'A role has been updated successfully.');
     }
@@ -107,6 +100,10 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        if ($role->name === 'Super Admin') {
+            return back()->with('error', 'The Super Admin role cannot be deleted.');
+        }
+
         $role->delete();
 
         return back()->with('success', 'A role has been deleted successfully.');
