@@ -185,7 +185,8 @@ const { showWarning } = useInactivityMonitor({
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ agree.location?.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <a
-                                            :href="'/storage/' + agree.agreement"
+                                            v-if="agree.agreement"
+                                            :href="agree.agreement"
                                             target="_blank"
                                             class="underline text-primary">
                                             View User Agreement

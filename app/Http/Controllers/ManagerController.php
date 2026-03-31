@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Models\User;
-use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Notifications\NewUserRegistered;
+use App\Traits\SearchFilter\HasSearchFilter;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use App\Notifications\NewUserRegistered;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 
 class ManagerController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-       
-        $search = $request->input('search');
+        $this->authorize('viewAny', User::class);
+
+        $search = $this->getSearch($request);
 
         $users = User::with('roles')
                 ->when(!auth()->user()->hasRole('super admin'), function ($query) {
@@ -32,14 +34,15 @@ class ManagerController extends Controller
                         $q->where('name', 'super admin');
                     });
                 })
-                ->when($search, function ($query, $search) {
-                    $query->where('name', 'like', "%{$search}%");
+                 ->when($search, function ($query, $search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                    });
                 })
                 ->orderBy('created_at')
                 ->paginate(10)
                 ->withQueryString();
-
-        // dd($users);
 
         return Inertia::render('Manage/ManageUsers', [
             'users' => $users,
@@ -54,6 +57,7 @@ class ManagerController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', User::class);
 
         $roles = Role::with('permissions')
                 ->select('id', 'name')
@@ -81,6 +85,8 @@ class ManagerController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
@@ -127,8 +133,7 @@ class ManagerController extends Controller
      */
     public function edit(User $user)
     {
-       
-
+        $this->authorize('update', User::class);
 
         $user->load('roles', 'roles.permissions')->makeHidden(['password']);
 
@@ -159,6 +164,7 @@ class ManagerController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', User::class);
 
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
@@ -192,9 +198,10 @@ class ManagerController extends Controller
     /**
      * Remove the resource from storage.
      */
-
     public function destroy(User $user)
     {
+        $this->authorize('delete', User::class);
+
         $user->update(['is_active' => false]);
 
         $user->delete();

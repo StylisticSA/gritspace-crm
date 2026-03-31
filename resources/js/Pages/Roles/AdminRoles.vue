@@ -30,7 +30,7 @@ watch(showMessage, msg => {
 
 watch(search, value => {
     router.get(
-        route('admin.role'),
+        route('admin.roles'),
         { search: value },
         {
             preserveState: true,
@@ -103,18 +103,21 @@ function getRoleColor(role) {
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex space-x-2">
                             <Link
+                                v-if="can['create roles']"
                                 :href="route('admin.role.create')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Role
                             </Link>
 
                             <Link
+                                v-if="can['view permissions']"
                                 :href="route('admin.permissions')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Permissions
                             </Link>
 
                             <Link
+                                v-if="can['view users']"
                                 :href="route('admin.manage.user')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-muted hover:bg-bluemain/60">
                                 Manage
@@ -145,7 +148,7 @@ function getRoleColor(role) {
                                     v-for="role in roles.data"
                                     :key="role.id">
                                     <td class="px-6 py-4 text-sm text-gray-800">
-                                        {{ role.name }}
+                                        {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <span

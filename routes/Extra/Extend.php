@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AgrementUploadController;
 use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\BoardroomController;
@@ -19,10 +20,10 @@ use App\Http\Controllers\NotifyController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PrintingController;
-use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', RoleMiddleware::using('admin|super admin')])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -184,7 +185,8 @@ Route::middleware(['web', 'auth', 'verified'])
 
     });
 
-Route::middleware('auth')->group(function () {
+    
+Route::middleware('auth', RoleMiddleware::using('user'))->group(function () {
 
     Route::resource('coffee', CoffeeController::class)->names([
                    'store' => 'coffee.store',
@@ -194,9 +196,7 @@ Route::middleware('auth')->group(function () {
                        'store' => 'printing.store',
                ]);
 
-    Route::resource('agreement-upload', AgrementUploadController::class)->names([
-                        'store' => 'agreement.store',
-                   ]);
+    
 
 
     Route::post('/activity-ping', function () {

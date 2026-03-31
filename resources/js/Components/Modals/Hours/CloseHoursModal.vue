@@ -16,9 +16,6 @@ const props = defineProps({
 const boardroomsFree = ref([]);
 const boardroomsNormal = ref([]);
 
-console.log('tye', props.type);
-
-// Watch for modal open
 watch(
     () => props.show,
     async isOpen => {

@@ -18,7 +18,6 @@ const form = useForm({
     agreement: null,
 });
 
-console.log('id', props.location_id);
 const handleFileUpload = (event, field) => {
     form[field] = event.target.files[0];
 };

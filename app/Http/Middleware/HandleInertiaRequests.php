@@ -2,12 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Booking;
 use Inertia\Middleware;
 use Illuminate\Http\Request;
-use App\Models\HotDeskBooking;
-use App\Models\VirtualBooking;
-use App\Models\BoardroomBooking;
+
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,14 +36,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'can' => $user ? $user->roles
-                ->load('permissions')
-                ->flatMap->permissions
-                ->pluck('name')
-                ->merge($user->permissions->pluck('name'))
-                ->unique()
-                ->mapWithKeys(fn ($name) => [strtolower(trim($name)) => true])
-            : [],
+            'can' => $user ? $user->getAllPermissions()
+                    ->pluck('name')
+                    ->mapWithKeys(fn ($name) => [strtolower(trim($name)) => true])
+                    ->toArray() 
+                    : [],
+            'is_role' => $user ? $user->getRoleNames()
+                        ->mapWithKeys(fn ($name) => [strtolower(trim($name)) => true])
+                    : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),

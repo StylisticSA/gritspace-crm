@@ -40,6 +40,8 @@ const props = defineProps({
     boardrooms: Object,
 });
 
+console.log('can', props.can);
+
 const showNoteModal = ref(false);
 const showHoursModal = ref(false);
 const showHoursCloseModal = ref(false);

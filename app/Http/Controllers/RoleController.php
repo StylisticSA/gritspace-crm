@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Spatie\Permission\Models\Role;
+use App\Traits\SearchFilter\HasSearchFilter;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $this->getSearch($request);
 
         $roles = Role::with('permissions') 
             ->when($search, function ($query, $search) {

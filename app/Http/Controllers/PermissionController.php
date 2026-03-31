@@ -7,15 +7,17 @@ use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use App\Traits\SearchFilter\HasSearchFilter;
 
 class PermissionController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $this->getSearch($request);
 
         $permissions = Permission::when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");

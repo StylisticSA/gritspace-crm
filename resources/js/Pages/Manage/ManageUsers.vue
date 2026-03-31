@@ -31,7 +31,7 @@ watch(showMessage, msg => {
 
 watch(search, value => {
     router.get(
-        route('admin.manage'),
+        route('admin.manage.user'),
         { search: value },
         {
             preserveState: true,
@@ -105,21 +105,21 @@ const getRoleColor = role => {
                     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                             <Link
-                                v-if="can['add users']"
+                                v-if="can['create users']"
                                 :href="route('admin.manage.create')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add User
                             </Link>
 
                             <Link
-                                v-if="can['add roles']"
+                                v-if="can['view roles']"
                                 :href="route('admin.roles')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-bluemain hover:bg-gray-700">
                                 Roles
                             </Link>
 
                             <Link
-                                v-if="can['add permissions']"
+                                v-if="can['view permissions']"
                                 :href="route('admin.permissions')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-muted hover:bg-gray-700">
                                 Permissions

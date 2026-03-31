@@ -9,7 +9,6 @@ use App\Models\Booking;
 use App\Models\ClientInformation;
 use App\Models\ClientRate;
 use App\Models\DailyUsage;
-use App\Models\FreeHours;
 use App\Models\HotDeskBooking;
 use App\Models\Invoice;
 use App\Models\Location;
@@ -18,7 +17,6 @@ use App\Models\Printing;
 use App\Models\User;
 use App\Models\VirtualBooking;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -46,7 +44,6 @@ class DashboardController extends Controller
         $clientEmpty = ClientInformation::where('user_id', auth()->id())->exists();
         $agreementEmpty = AgrementUpload::where('user_id', auth()->id())->exists();
 
-        // Plan User is on
         $closedOfficePlan = Booking::with(['office.location', 'category'])
                             ->where('user_id', auth()->id())
                               ->whereIn('status', ['approved', 'paid'])

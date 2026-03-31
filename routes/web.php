@@ -2,36 +2,35 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\AgrementUploadController;
 use App\Http\Controllers\AmenityController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\ManagerController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CalendarController;
-use App\Http\Controllers\HelpDeskController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\BoardroomController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\ClientRateController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\ClosedOfficeController;
-use App\Http\Controllers\ClosedBookingController;
-use App\Http\Controllers\CompanyDetailController;
-use App\Http\Controllers\DedicatedDeskController;
-use App\Http\Controllers\OfficePricingController;
-use App\Http\Controllers\VirtualOfficeController;
-use App\Http\Controllers\HotDeskBookingController;
-use App\Http\Controllers\VirtualBookingController;
 use App\Http\Controllers\BoardroomBookingController;
-use App\Http\Controllers\DedicatedBookingController;
+use App\Http\Controllers\BoardroomController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ClientInformationController;
+use App\Http\Controllers\ClientRateController;
+use App\Http\Controllers\ClosedBookingController;
+use App\Http\Controllers\ClosedOfficeController;
+use App\Http\Controllers\CompanyDetailController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DedicatedBookingController;
+use App\Http\Controllers\DedicatedDeskController;
+use App\Http\Controllers\HelpDeskController;
+use App\Http\Controllers\HotDeskBookingController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\OfficePricingController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\VirtualBookingController;
+use App\Http\Controllers\VirtualOfficeController;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 require __DIR__.'/auth.php';
-// Frontend of the application
-
-//rates
 require __DIR__.'/Extra/Extend.php';
 
 Route::get('/', function () {
@@ -46,16 +45,20 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/company-details', [CompanyDetailController::class, 'index'])->name('companydetail.index');
+    Route::get('/company-details/create', [CompanyDetailController::class, 'create'])->name('companydetail.create');
+    Route::resource('agreement-upload', AgrementUploadController::class)
+                ->names([
+                        'store' => 'agreement.store',
+                ]);
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', RoleMiddleware::using('user|admin|super admin')])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //company details
-    Route::get('/company-details', [CompanyDetailController::class, 'index'])->name('companydetail.index');
-    Route::get('/company-details/create', [CompanyDetailController::class, 'create'])->name('companydetail.create');
     Route::get('/company-details/rate', [CompanyDetailController::class, 'rate'])->name('companydetail.rate');
     Route::get('/company-details/{client}', [CompanyDetailController::class, 'edit'])->name('companydetail.edit');
     Route::put('/company-details/{client}', [CompanyDetailController::class, 'update'])->name('companydetail.update');
@@ -144,7 +147,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', RoleMiddleware::using('admin|super admin')])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

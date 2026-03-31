@@ -36,6 +36,14 @@ class AgrementUploadController extends Controller
                     ->paginate(10)
                     ->withQueryString();
 
+        $agreements->getCollection()->transform(function ($agreement) {
+
+            $agreement->agreement = $agreement->agreement
+                ? Storage::disk('google')->url($agreement->agreement)
+                : null;
+
+            return $agreement;
+        });
 
         return Inertia::render('Clients/Agreements/AgreementsIndex', [
             'agreements' => $agreements,
