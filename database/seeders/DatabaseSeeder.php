@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             CategorySeeder::class,
             // AmenitySeeder::class,
-            // OfficePricingSeeder::class,
             // OfficeSeeder::class,
             UserSeeder::class,
             RolesAndPermissionsSeeder::class,
