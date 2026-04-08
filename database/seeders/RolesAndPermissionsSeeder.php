@@ -21,7 +21,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // 2. Define and Create Permissions
-        $models = ['closed','dedicated','amenities', 'boardrooms', 'categories', 'hot desks',
+        $models = ['closed offices','dedicated desks','amenities', 'boardrooms', 'categories', 'hot desks',
                    'virtual offices', 'locations', 'roles', 'permissions','users'];
         
         $actions = ['create', 'edit', 'delete', 'view'];
@@ -34,7 +34,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $customPermissions = [
             'manage settings', 'view book offices', 'view book boardrooms', 
-            'view book extras', 'View dashboard'
+            'view book extras', 'view dashboard'
         ];
 
         foreach ($customPermissions as $permName) {

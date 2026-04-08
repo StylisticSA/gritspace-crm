@@ -196,8 +196,6 @@ Route::middleware('auth', RoleMiddleware::using('user'))->group(function () {
                        'store' => 'printing.store',
                ]);
 
-    
-
 
     Route::post('/activity-ping', function () {
         \Log::info('User activity ping', [

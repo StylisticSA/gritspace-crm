@@ -5,49 +5,12 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link, usePage, router } from '@inertiajs/vue3';
-import NotificationDropdown from '@/Components/Modals/Nortifications/NotificationDropdown.vue';
-import axios from 'axios';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
 
 const page = usePage();
 const can = page.props.can || {};
-
-const notificationsSummary = ref(page.props.notificationsSummary || {});
-const adminSummary = ref(page.props.adminSummary || {});
-const notificationsTotal = ref(page.props.notificationsTotal || 0);
-const adminTotal = ref(page.props.adminTotal || 0);
-
-const refreshNotifications = () => {
-    router.reload({
-        only: ['notificationsSummary', 'notificationsTotal', 'adminSummary', 'adminTotal'],
-        preserveScroll: true,
-        onSuccess: () => {
-            notificationsSummary.value = page.props.notificationsSummary || {};
-            adminSummary.value = page.props.adminSummary || {};
-            notificationsTotal.value = page.props.notificationsTotal || 0;
-            adminTotal.value = page.props.adminTotal || 0;
-        },
-    });
-};
-
-// const loadNotifications = async () => {
-//     try {
-//         const { data } = await axios.get(route('admin.notify'));
-//         notificationsSummary.value = data.notificationsSummary;
-//         adminSummary.value = data.adminSummary;
-//         notificationsTotal.value = data.notificationsTotal;
-//         adminTotal.value = data.adminTotal;
-//     } catch (error) {
-//         console.error('Failed to load notifications:', error);
-//     }
-// };
-
-// onMounted(() => {
-//     loadNotifications();
-//     setInterval(loadNotifications, 30000);
-// });
 </script>
 
 <template>
@@ -111,14 +74,6 @@ const refreshNotifications = () => {
                         <!-- Right Section: User Avatar -->
                         <div class="items-center hidden space-x-2 sm:flex">
                             <div class="items-center hidden space-x-6 sm:flex">
-                                <!-- <NotificationDropdown
-                                    :notifications-summary="notificationsSummary"
-                                    :admin-summary="adminSummary"
-                                    :notifications-total="notificationsTotal"
-                                    :admin-total="adminTotal"
-                                    :can="can"
-                                    :officeid="page.props.officeid" /> -->
-
                                 <!-- Calendars -->
                                 <Dropdown
                                     align="right"
@@ -308,12 +263,12 @@ const refreshNotifications = () => {
                                                     </template>
                                                     <template #content>
                                                         <DropdownLink
-                                                            v-if="can['view offices']"
+                                                            v-if="can['view closed offices']"
                                                             :href="route('admin.closedoffices')"
                                                             >Closed Offices</DropdownLink
                                                         >
                                                         <DropdownLink
-                                                            v-if="can['view offices']"
+                                                            v-if="can['view dedicated desks']"
                                                             :href="route('admin.dedicateddesk')"
                                                             >Dedicated Desks</DropdownLink
                                                         >
@@ -698,12 +653,12 @@ const refreshNotifications = () => {
                                     </template>
                                     <template #content>
                                         <DropdownLink
-                                            v-if="can['view offices']"
+                                            v-if="can['view closed offices']"
                                             :href="route('admin.closedoffices')"
                                             >Closed Offices</DropdownLink
                                         >
                                         <DropdownLink
-                                            v-if="can['view offices']"
+                                            v-if="can['view dedicated desks']"
                                             :href="route('admin.dedicateddesk')"
                                             >Dedicated Desks</DropdownLink
                                         >

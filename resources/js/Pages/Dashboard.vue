@@ -41,8 +41,6 @@ const props = defineProps({
     can: Object,
 });
 
-console.log('can', props.can);
-
 const showNoteModal = ref(false);
 const showAgreementModal = ref(false);
 const showPlanModal = ref(false);

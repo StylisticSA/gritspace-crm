@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ManagePolicy
 {
@@ -26,7 +25,7 @@ class ManagePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user): bool
     {
         return $user->hasRole(['admin', 'super admin']);
     }
@@ -34,7 +33,7 @@ class ManagePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): bool
+    public function delete(User $user): bool
     {
         return $user->hasRole(['admin', 'super admin']);
     }
