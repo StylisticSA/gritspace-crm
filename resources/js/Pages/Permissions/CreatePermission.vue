@@ -48,6 +48,9 @@ const props = defineProps({
                                     class="text-sm text-red-600">
                                     {{ form.errors.name }}
                                 </div>
+                                <label class="block py-2 text-sm font-medium text-gray-700"
+                                    ><strong>Hint:</strong> View user</label
+                                >
                             </div>
                         </div>
 
