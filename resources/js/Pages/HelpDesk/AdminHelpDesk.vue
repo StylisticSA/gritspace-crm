@@ -106,7 +106,7 @@ const formatDate = dateStr => {
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
-                            v-if="can['create help desks']"
+                            v-if="can['create hot desks']"
                             :href="route('admin.help-desk.create')"
                             class="inline-block px-3 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Add Hot Desk
@@ -148,6 +148,7 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
+                                                v-if="can['create hot desks']"
                                                 @click="
                                                     setOffice(helpdesk.id);
                                                     showHotModal = true;
@@ -157,13 +158,13 @@ const formatDate = dateStr => {
                                             </button>
 
                                             <button
-                                                v-if="can['edit help desks']"
+                                                v-if="can['edit hot desks']"
                                                 @click="$inertia.visit(route('admin.help-desk.edit', helpdesk.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
-                                                v-if="can['delete help desks']"
+                                                v-if="can['delete hot desks']"
                                                 @click="confirmDelete(helpdesk.id)"
                                                 class="px-2 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete

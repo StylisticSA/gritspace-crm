@@ -273,7 +273,7 @@ const can = page.props.can || {};
                                                             >Dedicated Desks</DropdownLink
                                                         >
                                                         <DropdownLink
-                                                            v-if="can['view help desks']"
+                                                            v-if="can['view hot desks']"
                                                             :href="route('admin.help-desks')"
                                                             >Hot Desks</DropdownLink
                                                         >
@@ -459,14 +459,6 @@ const can = page.props.can || {};
 
                         <!-- Hamburger Menu (Mobile) -->
                         <div class="relative w-full sm:hidden flex items-center justify-end">
-                            <!-- <NotificationDropdown
-                                :notifications-summary="notificationsSummary"
-                                :admin-summary="adminSummary"
-                                :notifications-total="notificationsTotal"
-                                :admin-total="adminTotal"
-                                :can="can"
-                                :officeid="page.props.officeid" /> -->
-
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"
                                 class="p-2 text-gray-400 rounded-md hover:bg-gray-100 hover:text-gray-600 focus:outline-none">
