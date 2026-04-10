@@ -13,6 +13,7 @@ console.log('user', props.user);
 const form = useForm({
     name: props.user.name,
     email: props.user.email,
+    user_type: props.user.user_type,
     password: null,
     password_confirmation: '',
     roles: props.selectedRoles,
@@ -119,6 +120,23 @@ watch(
                                     {{ form.errors.password_confirmation }}
                                 </div>
                             </div>
+
+                            <!-- user type -->
+                            <div>
+                                <label class="block text-lg text-gray-700">User Type</label>
+                                <select
+                                    v-model="form.user_type"
+                                    class="w-full px-3 py-2 border rounded">
+                                    <option value="">Select User Type</option>
+                                    <option value="new">New user</option>
+                                    <option value="existing">Existing user</option>
+                                </select>
+                                <div
+                                    v-if="form.errors.user_type"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.user_type }}
+                                </div>
+                            </div>
                         </div>
                         <!-- Roles -->
                         <div>
@@ -167,7 +185,8 @@ watch(
                                 type="submit"
                                 class="block w-full px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60"
                                 :disabled="form.processing">
-                                Update User
+                                <span v-if="form.processing">Uploading...</span>
+                                <span v-else>Update User</span>
                             </button>
                         </div>
                     </form>

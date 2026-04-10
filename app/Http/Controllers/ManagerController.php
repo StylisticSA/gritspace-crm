@@ -90,6 +90,7 @@ class ManagerController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'user_type' => 'nullable',
             'password' => [
                         'required',
                         'confirmed',
@@ -110,6 +111,7 @@ class ManagerController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'email_verified_at' => now(), 
+            'user_type' => $validated['user_type'],
         ]);
 
 
@@ -138,7 +140,7 @@ class ManagerController extends Controller
         $user->load('roles', 'roles.permissions')->makeHidden(['password']);
 
         return Inertia::render('Manage/EditUser', [
-               'user' => $user->only(['id', 'name', 'email']),
+               'user' => $user->only(['id', 'name', 'email','user_type']),
                'roles' => Role::with('permissions')
                    ->select('id', 'name')
                    ->when(!auth()->user()?->hasRole('super admin'), function ($query) {
@@ -172,10 +174,12 @@ class ManagerController extends Controller
             'password'      => ['nullable', 'confirmed', Password::min(8)->mixedCase()->letters()->numbers(),],
             'roles'         => ['array'],
             'roles.*'       => ['string', 'exists:roles,name'],
+            'user_type'     => ['required'],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        $user->user_type = $validated['user_type'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

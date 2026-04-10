@@ -13,6 +13,7 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
+    user_type: '',
     roles: [],
     permissions: [],
 });
@@ -120,6 +121,23 @@ watch(
                                 </div>
                             </div>
 
+                            <!-- user type -->
+                            <div>
+                                <label class="block text-lg text-gray-700">User Type</label>
+                                <select
+                                    v-model="form.user_type"
+                                    class="w-full px-3 py-2 border rounded">
+                                    <option value="">Select User Type</option>
+                                    <option value="new">New user</option>
+                                    <option value="existing">Existing user</option>
+                                </select>
+                                <div
+                                    v-if="form.errors.user_type"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.user_type }}
+                                </div>
+                            </div>
+
                             <!-- Roles -->
                             <div class="w-full lg:w-full">
                                 <label class="block text-lg font-medium text-gray-700">Assign Roles</label>
@@ -176,7 +194,8 @@ watch(
                                 type="submit"
                                 class="block w-full px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60"
                                 :disabled="form.processing">
-                                Add User
+                                <span v-if="form.processing">Uploading...</span>
+                                <span v-else>Add User</span>
                             </button>
                         </div>
                     </form>
