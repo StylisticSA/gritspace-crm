@@ -48,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/company-details', [CompanyDetailController::class, 'index'])->name('companydetail.index');
     Route::get('/company-details/create', [CompanyDetailController::class, 'create'])->name('companydetail.create');
     Route::post('/company-details', [CompanyDetailController::class, 'store'])->name('companydetail.store');
+    Route::get('/company-details/{client}', [CompanyDetailController::class, 'edit'])->name('companydetail.edit');
+    Route::put('/company-details/{client}', [CompanyDetailController::class, 'update'])->name('companydetail.update');
+
     Route::resource('agreement-upload', AgrementUploadController::class)
                 ->names([
                         'store' => 'agreement.store',
@@ -61,9 +64,6 @@ Route::middleware(['auth', RoleMiddleware::using('user|admin|super admin')])->gr
 
     //company details
     Route::get('/company-details/rate', [CompanyDetailController::class, 'rate'])->name('companydetail.rate');
-    Route::get('/company-details/{client}', [CompanyDetailController::class, 'edit'])->name('companydetail.edit');
-    Route::put('/company-details/{client}', [CompanyDetailController::class, 'update'])->name('companydetail.update');
-
     Route::delete('/company-details/{client}', [CompanyDetailController::class, 'destroy'])->name('companydetail.destroy');
 
     Route::get('/client-rates-information/{clientRate}', [ClientRateController::class, 'editCompany'])->name('clientrates.editCompany');
@@ -154,7 +154,7 @@ Route::middleware(['web', 'auth', 'verified', RoleMiddleware::using('admin|super
     ->group(function () {
 
 
-        Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
         Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 

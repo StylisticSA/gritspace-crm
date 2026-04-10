@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
@@ -34,17 +34,21 @@ const confirmDelete = id => {
     agreeToDelete.value = id;
 };
 
-const deleteagree = () => {
+const deleteFile = () => {
     if (agreeToDelete.value) {
         router.delete(route('admin.agreement.destroy', agreeToDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
                 message.value = 'An agree has been deleted successfully.';
-                status.value = 'deleted';
+                status.value = 'success';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
+            onError: errors => {
+                message.value = Object.values(errors).join('\n');
+                status.value = 'deleted';
+                showModal.value = true;
+            },
             onFinish: () => {
-                showModal.value = false;
                 agreeToDelete.value = null;
             },
         });
@@ -75,12 +79,13 @@ const approve = () => {
     router.put(route('admin.agreement.approve', id), payload, {
         preserveScroll: true,
         onSuccess: () => {
-            message.value = 'Agreement approved successfully.';
+            message.value = 'Agreement Approved successfully.';
             status.value = 'success';
 
             setTimeout(() => {
                 showApproveModal.value = false;
-            }, 1500);
+                window.reload();
+            }, 2000);
         },
         onError: () => {
             message.value = 'Failed to approve booking.';
@@ -104,7 +109,7 @@ const pending = () => {
             status.value = 'pending';
             setTimeout(() => {
                 showApproveModal.value = false;
-            }, 1500);
+            }, 2000);
         },
         onError: () => {
             message.value = 'Failed to approve booking.';
@@ -112,23 +117,16 @@ const pending = () => {
         },
     });
 };
-
-import useInactivityMonitor from '../../../Composables/useActivityMonitor';
-
-const { showWarning } = useInactivityMonitor({
-    timeoutMs: 600000,
-    warnMs: 540000,
-});
 </script>
 
 <template>
     <Head title="Agreements Uploads" />
 
     <AuthenticatedLayout>
-        <!-- Success Notification -->
-
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Agreements Uploads</h2>
+            <div class="flex items-center justify-between space-x-5">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Agreements Uploads</h2>
+            </div>
         </template>
 
         <div class="py-12">
@@ -142,10 +140,10 @@ const { showWarning } = useInactivityMonitor({
                 <div class="p-2">
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
+                        <div class="space-x-2">
                             <Link
                                 v-if="can['create agreements']"
-                                :href="route('admin.agreements.create')"
+                                :href="route('admin.agreement.create')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Agreements Uploads
                             </Link>
@@ -168,7 +166,6 @@ const { showWarning } = useInactivityMonitor({
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Username</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Location</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">File</th>
@@ -180,7 +177,6 @@ const { showWarning } = useInactivityMonitor({
                                 <tr
                                     v-for="agree in agreements.data"
                                     :key="agree.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ agree.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ agree.user?.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ agree.location?.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
@@ -206,18 +202,19 @@ const { showWarning } = useInactivityMonitor({
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
-                                                v-if="can['manage settings']"
+                                                v-if="can['create agreements']"
                                                 @click="approveModal(agree)"
                                                 class="px-2 py-1 text-sm text-white rounded bg-primary hover:bg-primary/60">
                                                 Action
                                             </button>
                                             <button
+                                                v-if="can['edit agreements']"
                                                 @click="$inertia.visit(route('admin.agreement.edit', agree.id))"
                                                 class="px-3 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
-                                                v-if="can['manage settings']"
+                                                v-if="can['delete agreements']"
                                                 @click="confirmDelete(agree.id)"
                                                 class="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete
@@ -260,9 +257,16 @@ const { showWarning } = useInactivityMonitor({
                 </div>
 
                 <template v-if="showModal">
-                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-3">
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
-                            <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
+                            <h2 class="mb-4 text-lg font-semibold">Confirm Deleted</h2>
+
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
+
                             <p class="mb-6">
                                 Are you sure you want to delete this agree? This action cannot be undone.
                             </p>
@@ -273,7 +277,7 @@ const { showWarning } = useInactivityMonitor({
                                     Cancel
                                 </button>
                                 <button
-                                    @click="deleteagree"
+                                    @click="deleteFile"
                                     class="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700">
                                     Delete
                                 </button>
@@ -298,7 +302,6 @@ const { showWarning } = useInactivityMonitor({
                             <hr class="my-5 border-gray-300" />
 
                             <div class="flex justify-between space-x-3">
-                                <!--  @click="deleteagree" -->
                                 <div class="space-x-2">
                                     <button
                                         v-if="can['manage settings']"

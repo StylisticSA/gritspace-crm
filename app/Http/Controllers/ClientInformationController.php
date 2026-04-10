@@ -370,11 +370,15 @@ class ClientInformationController extends Controller
         try {
 
             if ($client->identity_path) {
-                Storage::disk('public')->delete($client->identity_path);
+                Storage::disk('google')->delete($client->identity_path);
             }
 
             if ($client->residency_path) {
-                Storage::disk('public')->delete($client->residency_path);
+                Storage::disk('google')->delete($client->residency_path);
+            }
+
+            if ($client->company_reg_path) {
+                Storage::disk('google')->delete($client->company_reg_path);
             }
 
             ClientRate::where('client_information_id', $client->id)->delete();

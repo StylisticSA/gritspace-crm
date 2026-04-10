@@ -36,11 +36,19 @@ class AgrementUploadController extends Controller
                     ->paginate(10)
                     ->withQueryString();
 
-        $agreements->getCollection()->transform(function ($agreement) {
+        
 
-            $agreement->agreement = $agreement->agreement
-                ? Storage::disk('google')->url($agreement->agreement)
-                : null;
+        $agreements->getCollection()->transform(function ($agreement) {
+          
+            if ($agreement->agreement) {
+                $disk = Storage::disk('google');
+                
+                $agreement->agreement = $disk->exists($agreement->agreement) 
+                    ? $disk->url($agreement->agreement) 
+                    : null;
+            } else {
+                $agreement->agreement = null;
+            }
 
             return $agreement;
         });
@@ -61,7 +69,16 @@ class AgrementUploadController extends Controller
      */
     public function create()
     {
-        //
+        $users = User::whereDoesntHave('roles', function($query){
+            $query->whereIn('name', ['admin', 'super admin']);
+        })->get();
+
+        $locations = Location::select(['id','name'])->get();
+      
+        return Inertia::render('Clients/Agreements/AgreementsCreate', [
+            'users' => $users,
+            'locations' => $locations,
+        ]);
     }
 
     /**
@@ -129,15 +146,22 @@ class AgrementUploadController extends Controller
 
     public function store(Request $request)
     {
+        
+
         $validated = $request->validate([
             'user_id'     => 'nullable',
             'location_id' => 'required|exists:locations,id',
             'agreement'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
 
-        $validated['user_id'] = Auth::id();
+        if($request->user_id){
+            $clientInfo = ClientInformation::where('user_id', $request->user_id)->first();
+        } else {
 
-        $clientInfo = ClientInformation::where('user_id', $validated['user_id'])->first();
+            $validated['user_id'] = Auth::id();
+      
+            $clientInfo = ClientInformation::where('user_id', $validated['user_id'])->first();
+        }
 
         if (!$clientInfo) {
             return back()->withErrors([
@@ -145,7 +169,11 @@ class AgrementUploadController extends Controller
             ]);
         }
 
-        $existing = AgrementUpload::where('user_id', $validated['user_id'])->first();
+         if($request->user_id){
+            $existing = AgrementUpload::where('user_id', $request->user_id)->first();
+         } else {
+            $existing = AgrementUpload::where('user_id', $validated['user_id'])->first();
+         }
 
         if ($existing?->agreement && $request->hasFile('agreement')) {
             return back()->withErrors([
@@ -163,14 +191,18 @@ class AgrementUploadController extends Controller
                 $originalName = pathinfo($agreementFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $extension = $agreementFile->getClientOriginalExtension();
 
-                $user = User::select('id', 'name')->where('id', Auth::id())->first();
+                if($request->user_id){  
+                    $user = User::select('id', 'name')->where('id', $request->user_id)->first();
+                } else {
+                    $user = User::select('id', 'name')->where('id', Auth::id())->first();
+                }
+
                 $location = Location::select('id', 'name')->where('id', $validated['location_id'])->first();
 
                 $fileName = Str::slug($user->name) . '_' .
                     Str::slug($location->name) . '_' .
                     Str::uuid() . '.' . $extension;
 
-                // Save to Google Drive inside "agreements" folder
                 $agreementPath = Storage::disk('google')->putFileAs('agreements', $agreementFile, $fileName);
 
                 if (!$agreementPath) {
@@ -191,7 +223,6 @@ class AgrementUploadController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Clean up uploaded file if transaction fails
             if (!empty($agreementPath)) {
                 Storage::disk('google')->delete($agreementPath);
             }
@@ -213,14 +244,29 @@ class AgrementUploadController extends Controller
      */
     public function edit(AgrementUpload $agrementUpload, $id)
     {
+        $users = User::whereDoesntHave('roles', function($query){
+            $query->whereIn('name', ['admin', 'super admin']);
+        })->get();
 
         $locations = Location::select('id', 'name')->get();
 
-        $record = AgrementUpload::where('id', $id)->first();
+        $agreements = AgrementUpload::where('id', $id)->first();
+        
+        if ($agreements->agreement) {
+       
+            $disk = Storage::disk('google');
+            
+            $agreements->agreement = $disk->exists($agreements->agreement) 
+                ? $disk->url($agreements->agreement) 
+                : null;
+        } else {
+            $agreements->agreement = null;
+        }
 
         return Inertia::render('Clients/Agreements/AgreementEdit', [
-                    'agreement' => $record,
+                    'agreement' => $agreements,
                     'locations' => $locations,
+                    'users' => $users,
 
                 ]);
 
@@ -238,29 +284,32 @@ class AgrementUploadController extends Controller
             'agreement'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $user = User::select('id', 'name')->where('id', $validated['user_id'])->first();
+        if($request->user_id){
+
+            $user = User::select('id', 'name')->where('id', $request->user_id)->first();
+        } else {
+            $user = User::select('id', 'name')->where('id', $validated['user_id'])->first();
+        }
+
         $location = Location::select('id', 'name')->where('id', $validated['location_id'])->first();
 
-        // dd($request->hasFile('agreement'));
-
         if ($request->hasFile('agreement')) {
-            if ($agreement->agreement && Storage::disk('public')->exists($agreement->agreement)) {
 
-                Storage::disk('public')->delete($agreement->agreement);
+            if ($agreement->agreement && Storage::disk('google')->exists($agreement->agreement)) {
+                Storage::disk('google')->delete($agreement->agreement);
             }
 
             $agreementFile = $request->file('agreement');
-            $originalName = pathinfo($agreementFile->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $agreementFile->getClientOriginalExtension();
 
             $fileName = Str::slug($user->name) . '_' .
                         Str::slug($location->name) . '_' .
                         Str::uuid() . '.' . $extension;
 
-            $agreementPath = $agreementFile->storeAs('uploads/agreements', $fileName, 'public');
+            $agreementPath = Storage::disk('google')->putFileAs('agreements', $agreementFile, $fileName);
 
             if (!$agreementPath) {
-                throw new \Exception('Failed to store agreement document.');
+                return back()->withErrors(['error' => 'Failed to upload to Google Drive.']);
             }
 
             $agreement->agreement = $agreementPath;
@@ -277,18 +326,37 @@ class AgrementUploadController extends Controller
      */
     public function destroy(AgrementUpload $agreement)
     {
-
+        
+        // dd($agreement);
         if ($agreement->status === 'approved') {
 
             return back()->withErrors([
-                            'error' => 'You can not delete this file, put it to pending first.'
+                            'error' => 'You can not delete this file, change the status to Pending first.'
                         ]);
 
         }
 
-        $agreement->delete();
+        DB::beginTransaction();
 
-        return redirect()->back()->with('success', 'Agreement file deleted Successfully');
+        try {
+
+            if ($agreement->agreement && Storage::disk('google')->exists($agreement->agreement)) {
+                Storage::disk('google')->delete($agreement->agreement);
+            }
+
+            $agreement->user()->detach(); 
+
+            $agreement->delete();
+
+            DB::commit();
+
+            return back()->with('success', 'Agreement file deleted Successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->withErrors(['error' => 'Failed to delete the agreement file: ' . $e->getMessage()]);
+        }
+
 
     }
 
@@ -302,7 +370,7 @@ class AgrementUploadController extends Controller
             'status' => 'approved',
         ]);
 
-        return redirect()->back()->with('success', 'Agreement file Approved');
+        return redirect()->back()->with('success');
     }
 
     /**

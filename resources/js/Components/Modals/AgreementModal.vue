@@ -92,16 +92,20 @@ const submit = () => {
                 <div class="grid grid-cols-1 gap-6 mb-5">
                     <div>
                         <label class="block mb-2 text-lg font-medium">Upload the Document</label>
-                        <input
-                            type="file"
-                            @change="handleFileUpload($event, 'agreement')"
-                            class="w-full px-3 py-2 border rounded" />
-                        <progress
+                        <div class="relative">
+                            <input
+                                type="file"
+                                @change="handleFileUpload($event, 'agreement')"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-bluemain/10 file:text-bluemain hover:file:bg-bluemain/20 border rounded-lg p-2" />
+                        </div>
+                        <div
                             v-if="form.progress"
-                            :value="form.progress.percentage"
-                            max="100">
-                            {{ form.progress.percentage }}%
-                        </progress>
+                            class="w-full mt-3 bg-gray-200 rounded-full h-2.5">
+                            <div
+                                class="bg-bluemain h-2.5 rounded-full transition-all duration-300"
+                                :style="{ width: form.progress.percentage + '%' }"></div>
+                            <p class="mt-1 text-xs text-right text-gray-500">{{ form.progress.percentage }}%</p>
+                        </div>
                         <div
                             v-if="form.errors.agreement"
                             class="text-sm text-red-600">
@@ -117,7 +121,8 @@ const submit = () => {
                         type="submit"
                         class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                         :disabled="form.processing">
-                        Upload Agreement
+                        <span v-if="form.processing">Uploading...</span>
+                        <span v-else>Upload Agreement</span>
                     </button>
                 </div>
             </form>

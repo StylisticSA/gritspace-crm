@@ -302,10 +302,12 @@ watch(
 
                             <div class="w-full pt-4 md:col-span-2">
                                 <button
+                                    v-if="can['create client details']"
                                     type="submit"
                                     class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                     :disabled="form.processing">
-                                    Add Client
+                                    <span v-if="form.processing">Uploading...</span>
+                                    <span v-else> Add Client</span>
                                 </button>
                             </div>
                         </div>

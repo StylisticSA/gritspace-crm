@@ -22,7 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 2. Define and Create Permissions
         $models = ['closed offices','dedicated desks','amenities', 'boardrooms', 'categories', 'hot desks',
-                   'virtual offices', 'locations', 'roles', 'permissions','users'];
+                   'virtual offices', 'locations', 'roles', 'permissions','users', 'agreements','client details'];
         
         $actions = ['create', 'edit', 'delete', 'view'];
         
