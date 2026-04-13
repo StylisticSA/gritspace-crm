@@ -69,9 +69,11 @@ class AgrementUploadController extends Controller
      */
     public function create()
     {
-        $users = User::whereDoesntHave('roles', function($query){
-            $query->whereIn('name', ['admin', 'super admin']);
-        })->get();
+        $users = User::with('roles')
+                ->whereHas('roles', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users']);
+                })->select('id', 'name')
+                ->get();
 
         $locations = Location::select(['id','name'])->get();
       
@@ -84,66 +86,6 @@ class AgrementUploadController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-
-    // public function store(Request $request)
-    // {
-    //     // dd($request);
-
-    //     $validated = $request->validate([
-    //         'user_id'     => 'nullable',
-    //         'location_id' => 'required|exists:locations,id',
-    //         'agreement'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
-    //     ]);
-
-    //     $validated['user_id'] = Auth::id();
-
-    //     $clientInfo = ClientInformation::where('user_id', $validated['user_id'])->first();
-
-    //     if (!$clientInfo) {
-    //         return back()->withErrors([
-    //             'agreement' => 'There is no user in the system, please fill in your company information.',
-    //         ]);
-    //     }
-
-    //     $existing = AgrementUpload::where('user_id', $validated['user_id'])->first();
-
-    //     if ($existing?->agreement && $request->hasFile('agreement')) {
-    //         return back()->withErrors([
-    //             'agreement' => 'An agreement document already exists for this user.',
-    //         ]);
-    //     }
-
-    //     $agreementPath = null;
-
-    //     if ($request->hasFile('agreement') && empty($existing?->agreement_path)) {
-    //         $agreementFile = $request->file('agreement');
-    //         $originalName = pathinfo($agreementFile->getClientOriginalName(), PATHINFO_FILENAME);
-    //         $extension = $agreementFile->getClientOriginalExtension();
-
-    //         $user = User::select('id', 'name')->where('id', Auth::id())->first();
-    //         $location = Location::select('id', 'name')->where('id', $validated['location_id'])->first();
-
-    //         $fileName = Str::slug($user->name) . '_' .
-    //             Str::slug($location->name) . '_' .
-    //             Str::uuid() . '.' . $extension;
-
-    //         $agreementPath = $agreementFile->storeAs('agreements', $fileName, 'public');
-
-    //         if (!$agreementPath) {
-    //             throw new \Exception('Failed to store agreement document.');
-    //         }
-    //     }
-
-    //     AgrementUpload::create([
-    //         'user_id'       => $validated['user_id'],
-    //         'location_id'   => $validated['location_id'],
-    //         'agreement'     => $agreementPath,
-    //         'status'        => 'pending'
-    //     ]);
-
-    //     return redirect()->back()->with('success', 'The file uploaded Successfully!');
-    // }
-
     public function store(Request $request)
     {
         
@@ -151,7 +93,7 @@ class AgrementUploadController extends Controller
         $validated = $request->validate([
             'user_id'     => 'nullable',
             'location_id' => 'required|exists:locations,id',
-            'agreement'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'agreement'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:5000'
         ]);
 
         if($request->user_id){
@@ -281,7 +223,7 @@ class AgrementUploadController extends Controller
         $validated = $request->validate([
             'user_id' => 'required',
             'location_id' => 'required|exists:locations,id',
-            'agreement'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'agreement'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
         ]);
 
         if($request->user_id){
@@ -378,7 +320,7 @@ class AgrementUploadController extends Controller
     */
     public function pending(Request $request, AgrementUpload $agreement)
     {
-        // dd($agreement);
+       
         $agreement->update([
             'status' => 'pending',
         ]);

@@ -192,7 +192,6 @@ watchEffect(() => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700 md:hidden">
                                         SurName
@@ -209,7 +208,6 @@ watchEffect(() => {
                                 <tr
                                     v-for="client in clients.data"
                                     :key="client.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ client.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ client.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800 sm:hidden">{{ client.surname }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ client.email_address }}</td>
@@ -345,11 +343,6 @@ watchEffect(() => {
                                         {{ messageText }}
                                     </div>
                                 </template>
-                                <!-- <div
-                                    v-if="props.errors?.available"
-                                    class="p-3 text-red-800 bg-red-100 rounded">
-                                    {{ props.errors.available }}
-                                </div> -->
 
                                 <!-- Client Info Grid -->
                                 <div class="grid grid-cols-2 mt-10 gap-x-4 gap-y-2">

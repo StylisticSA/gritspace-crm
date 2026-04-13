@@ -140,9 +140,9 @@ class CompanyDetailController extends Controller
             'email_address'                 => 'required|email|max:255|unique:client_information,email_address',
             'company_name'                  => 'nullable|string|max:255',
             'company_registration_number'   => 'nullable|string|max:100',
-            'identity_path'                 => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'residency_path'                => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'company_reg_path'              => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'identity_path'                 => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
+            'residency_path'                => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
+            'company_reg_path'              => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
             'agreement'                     => 'required'
         ]);
 

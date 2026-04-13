@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import useStatusMessage from './../../../Composables/useStatusMessage';
 
 const props = defineProps({
     clients: Object,
@@ -8,6 +9,8 @@ const props = defineProps({
     can: Object,
     users: Array,
 });
+
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const form = useForm({
     user_id: props.clients.user_id,
@@ -19,28 +22,80 @@ const form = useForm({
     company_name: props.clients.company_name,
     company_registration_number: props.clients.company_registration_number,
     agreement: !!props.clients?.agreement,
-    identity: null,
-    residency: null,
+    identity_path: null,
+    residency_path: null,
     company_reg_path: null,
     _method: 'PUT',
 });
 
+const validateCellNumber = () => {
+    const pattern = /^\d{3}\s\d{3}\s\d{4}$/;
+
+    if (!form.cell_number) {
+        form.errors.cell_number = 'Cell number is required.';
+    } else if (!pattern.test(form.cell_number)) {
+        form.errors.cell_number = 'Enter a valid South African cell number (e.g. 089 897 1234).';
+    } else {
+        delete form.errors.cell_number;
+    }
+};
+
+const validateEmail = () => {
+    const pattern = /^[^@]+@[^@]+\.[a-zA-Z]{2,6}$/;
+
+    if (!form.email_address) {
+        form.errors.email_address = 'Email address is required.';
+    } else if (!pattern.test(form.email_address)) {
+        form.errors.email_address = 'Enter a valid email address (e.g. simple@domain.com).';
+    } else {
+        delete form.errors.email_address;
+    }
+};
+
 const handleFileUpload = (event, field) => {
-    form[field] = event.target.files[0];
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+
+    if (!allowedTypes.includes(file.type)) {
+        form.errors[field] = 'Only PDF, JPEG, JPG, or PNG files are allowed.';
+        form[field] = null;
+        return;
+    }
+
+    if (file.size > maxSize) {
+        form.errors[field] = 'File size must not exceed 5 MB.';
+        form[field] = null;
+        return;
+    }
+
+    // Valid file
+    form.errors[field] = null;
+    form[field] = file;
 };
 
 const submit = () => {
+    validateCellNumber();
+    validateEmail();
+
+    if (form.errors.cell_number) return;
+
     form.post(route('admin.clientinfor.update', props.clients.id), {
         preserveScroll: true,
         forceFormData: true,
-        onError: errors => {
-            bookingConflict.value = errors.booking_conflict ?? null;
-        },
         onSuccess: () => {
+            message.value = 'Client Information Updated successfully!';
+            status.value = 'success';
+
             setTimeout(() => {
-                successMessage.value = null;
-                Inertia.visit(route('companydetails.index'));
-            }, 1500);
+                router.visit(route('admin.clientinfor.index'));
+            }, 3000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
         },
     });
 };
@@ -141,6 +196,9 @@ const submit = () => {
                                 <input
                                     type="text"
                                     v-model="form.cell_number"
+                                    @blur="validateCellNumber"
+                                    v-mask="'### ### ####'"
+                                    placeholder="### ### ####"
                                     class="w-full px-3 py-2 border rounded" />
                                 <div
                                     v-if="form.errors.cell_number"
@@ -154,6 +212,9 @@ const submit = () => {
                                 <input
                                     type="email"
                                     v-model="form.email_address"
+                                    @blur="validateEmail"
+                                    v-on:focus="form.clearErrors('email_address')"
+                                    placeholder="example@domain.com"
                                     class="w-full px-3 py-2 border rounded" />
                                 <div
                                     v-if="form.errors.email_address"
@@ -208,13 +269,13 @@ const submit = () => {
 
                                 <input
                                     type="file"
-                                    @change="handleFileUpload($event, 'identity')"
+                                    @change="handleFileUpload($event, 'identity_path')"
                                     class="w-full px-3 py-2 border rounded" />
 
                                 <div
-                                    v-if="form.errors.identity"
+                                    v-if="form.errors.identity_path"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.identity }}
+                                    {{ form.errors.identity_path }}
                                 </div>
                             </div>
 
@@ -239,13 +300,13 @@ const submit = () => {
 
                                 <input
                                     type="file"
-                                    @change="handleFileUpload($event, 'residency')"
+                                    @change="handleFileUpload($event, 'residency_path')"
                                     class="w-full px-3 py-2 border rounded" />
 
                                 <div
-                                    v-if="form.errors.residency"
+                                    v-if="form.errors.residency_path"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.residency }}
+                                    {{ form.errors.residency_path }}
                                 </div>
                             </div>
 
@@ -294,7 +355,8 @@ const submit = () => {
                                     type="submit"
                                     class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                     :disabled="form.processing">
-                                    Update Client
+                                    <span v-if="form.processing">Uploading...</span>
+                                    <span v-else>Update Client</span>
                                 </button>
                             </div>
                         </div>

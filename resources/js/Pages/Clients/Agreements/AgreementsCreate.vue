@@ -125,13 +125,13 @@ const submit = () => {
                             <input
                                 type="file"
                                 @change="handleFileUpload($event, 'agreement')"
-                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-bluemain/10 file:text-bluemain hover:file:bg-bluemain/20 border rounded-lg p-2" />
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-bluemain/10 file:text-bluemain hover:file:bg-bluemain/20 border rounded p-2" />
                         </div>
                         <div
                             v-if="form.progress"
                             class="w-full mt-3 bg-gray-200 rounded-full h-2.5">
                             <div
-                                class="bg-bluemain h-2.5 rounded-full transition-all duration-300"
+                                class="bg-bluemain h-2.5 rounded transition-all duration-300"
                                 :style="{ width: form.progress.percentage + '%' }"></div>
                             <p class="mt-1 text-xs text-right text-gray-500">{{ form.progress.percentage }}%</p>
                         </div>
