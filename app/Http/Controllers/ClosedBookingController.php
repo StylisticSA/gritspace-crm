@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Extra;
-use App\Models\Office;
 use App\Models\Amenity;
 use App\Models\Booking;
-use App\Models\Parking;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Location;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Office;
 use App\Models\OfficePricing;
-use Illuminate\Support\Facades\DB;
+use App\Models\Parking;
+use App\Models\User;
 use App\Notifications\BookingNotification;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
-class ClosedBookingController extends Controller
+   class ClosedBookingController extends Controller
 {
     /**
      * Display the specified resource.
      */
     public function show(Office $Office, Request $request)
     {
+     
         $user = auth()->user();
 
         $search = $request->input('search');
@@ -35,9 +36,14 @@ class ClosedBookingController extends Controller
                 })->select('id', 'name')
                 ->get();
 
+        
+        $discounts = Discount::where('package','daily')->get(['id', 'package', 'discount']);
+
+        // dd($discounts->first()->discount);
+
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
-           $bookings = Booking::with(['user', 'office.location', 'category'])
+            $bookings = Booking::with(['user', 'office.location', 'category'])
                         ->whereHas('category', function ($query) {
                             $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
                         })
@@ -56,10 +62,10 @@ class ClosedBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
-                        // dd(!empty($search));
+                       
+
 
         } else {
-
             $bookings = Booking::with(['office','office.location', 'category'])
                 ->whereHas('category', function ($query) {
                     $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
@@ -68,11 +74,27 @@ class ClosedBookingController extends Controller
                 ->latest()
                 ->paginate(10);
 
+               
+
+        
+            
         }
 
+        $approvedClosed = Booking::with(['office','office.location', 'category'])
+                       ->whereHas('category', function ($query) {
+                           $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                       })
+                       ->where('user_id', auth()->id())
+                       ->where('status', 'approved')
+                       ->get();
+
+        
+
         return Inertia::render('Bookings/Closed/ShowClosed', [
-            'bookings' => $bookings,
-            'users' => $users,
+            'bookings'              => $bookings,
+            'users'                 => $users,
+            'approvedClosed'        => $approvedClosed,
+            'discounts'             => $discounts->first()->discount ?? 0,
             'filters' => [
                 'search' => $search,
             ]
@@ -162,7 +184,7 @@ class ClosedBookingController extends Controller
 
         $admins->each(fn ($user) => $user->notify(new BookingNotification($bookingData, 'created', 'admin')));
 
-        return back()->with('success', 'Booking created successfully!');
+        return back()->with('success', 'Thank you for your enquiry. We will get back to you shortly');
     }
 
 
@@ -171,6 +193,8 @@ class ClosedBookingController extends Controller
      */
     public function edit(Office $closed)
     {
+        // dd($closed);
+
         $locations = Location::select('id', 'name')->get();
 
         $pricings = OfficePricing::select('id', 'category_name', 'pricing_type', 'rate')
@@ -227,6 +251,11 @@ class ClosedBookingController extends Controller
                     ->where('is_available', 1)->get();
 
 
+        $discounts = Discount::where('location_id', $closed->location_id)
+                ->where('category_id', $closed->category_id)
+                ->get(['id', 'package', 'discount']);
+
+
 
         return Inertia::render('Bookings/Closed/EditClosed', [
             'office' => $closed->load(['location', 'pricing', 'amenities']),
@@ -236,6 +265,8 @@ class ClosedBookingController extends Controller
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
             'parking' => $parking,
+            'discounts' => $discounts
+            
         ]);
     }
 
@@ -283,12 +314,15 @@ class ClosedBookingController extends Controller
      */
     public function approve(Request $request, Booking $closed)
     {
-        // dd($request, $closed);
+        // dd($request);
+
 
         $closed->update([
             'status' => 'approved',
+            'boardroom_discounted_percent' => $closed->plan === 'daily' 
+                                            ? $request->discount_percent 
+                                            : null,
         ]);
-
 
         $office = Office::findOrFail($closed->office_id);
 

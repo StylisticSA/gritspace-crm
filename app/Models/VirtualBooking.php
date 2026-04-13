@@ -37,6 +37,7 @@ class VirtualBooking extends Model
         return $this->morphMany(Note::class, 'module');
     }
 
+   
 
 
 }

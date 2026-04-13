@@ -26,10 +26,12 @@ class DailyUsage extends Model
     {
 
         $prices = Extra::select('name', 'price')
-            ->where('location_id', $locationId)
-            ->where('name', $name)
-            ->get()
-            ->keyBy('name');
+                ->where('location_id', $locationId)
+                ->where('name', $name)
+                ->get()
+                ->keyBy('name');
+                
+        dd($prices);
 
         return [
             'total_cost' => ($prices['Coffee']->price ?? 0) * $Amount,

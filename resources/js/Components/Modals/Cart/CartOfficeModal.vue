@@ -12,12 +12,15 @@ const props = defineProps<{
         months?: number;
         monthly_rate?: number;
         daily_rate?: number;
+        discount_percentage?: number;
     }[];
     show: Boolean;
     onClose: () => void;
     can: object;
     routeName: string;
 }>();
+
+console.log('ca', props.cart);
 
 function proceedToCheckout() {
     router.post(props.routeName, {
@@ -43,10 +46,10 @@ useBodyScrollLock(() => props.show);
     <div
         v-if="show"
         class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black/70">
-        <div class="w-full max-w-4xl bg-white rounded shadow-lg sm:p-6 flex flex-col max-h-[90vh]">
+        <div class="w-full max-w-4xl bg-white rounded shadow-lg sm:p-5 flex flex-col max-h-[90vh]">
             <!-- Sticky Header -->
             <div class="sticky top-0 z-10 pt-4 pb-2 bg-white sm:pt-6 sm:pb-4">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between px-3 sm:p-0">
                     <h2 class="text-2xl">Shopping Cart</h2>
                     <button
                         @click="onClose"
@@ -83,13 +86,16 @@ useBodyScrollLock(() => props.show);
                                     <span class="font-semibold">Office Type:</span><span>{{ item.type }}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="font-semibold">Plan:</span><span>{{ item.plan }}</span>
+                                    <span class="font-semibold">Plan:</span
+                                    ><span>{{ item.plan.charAt(0).toUpperCase() + item.plan.slice(1) }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="font-semibold">Total Cost:</span
                                     ><span>{{ formatCurrency(item.price) }}</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div
+                                    class="flex justify-between"
+                                    v-if="item.monthly_rate">
                                     <span class="font-semibold">Monthly Cost:</span
                                     ><span>{{ formatCurrency(item.monthly_rate) }}</span>
                                 </div>
@@ -102,7 +108,7 @@ useBodyScrollLock(() => props.show);
                             <!-- Desktop layout -->
                             <div class="hidden sm:grid sm:grid-cols-4">
                                 <div class="pr-2 font-medium">{{ item.name }}</div>
-                                <div class="pr-2 text-gray-500">{{ item.type }}</div>
+                                <div class="pr-2">{{ item.type }}</div>
                                 <div class="pl-3">{{ capitalize(item.plan) }}</div>
                                 <div class="pl-3">{{ formatCurrency(item.price) }}</div>
                             </div>

@@ -2,25 +2,27 @@
 
 namespace App\Models;
 
-use App\Models\Role;
-use App\Models\Printing;
-use App\Models\Permission;
 use App\Models\AgrementUpload;
-use App\Models\HotDeskBooking;
-use App\Models\VirtualBooking;
 use App\Models\BoardroomBooking;
-use App\Models\ClosedOfficeRate;
 use App\Models\ClientInformation;
-use Illuminate\Notifications\Notifiable;
+use App\Models\ClosedOfficeRate;
+use App\Models\FreeHours;
+use App\Models\HotDeskBooking;
+use App\Models\Permission;
+use App\Models\Printing;
+use App\Models\VirtualBooking;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use Notifiable;
+    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -31,6 +33,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'user_type',
+        'email_verified_at', 
     ];
 
     /**
@@ -54,6 +58,11 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'user_id');
     }
 
     public function companyDetails()
@@ -86,56 +95,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ClosedOfficeRate::class);
     }
 
-    public function roles()
+    public function hours()
     {
-        return $this->belongsToMany(Role::class);
-    }
-
-    public function permissions()
-    {
-        return $this->belongsToMany(Permission::class);
-    }
-
-    public function hasRole($role)
-    {
-        $this->loadMissing('roles');
-
-        $userRoles = $this->roles->pluck('name')->map(fn ($role) => strtolower($role));
-
-        $roles = collect((array) $role)->map(fn ($r) => strtolower($r));
-
-        return $userRoles->intersect($roles)->isNotEmpty();
-    }
-
-    public function hasPermission($permission)
-    {
-        $normalized = fn ($name) => strtolower(trim($name));
-
-        $rolePermissions = $this->roles
-            ->flatMap->permissions
-            ->pluck('name')
-            ->map($normalized);
-
-        $directPermissions = $this->permissions
-            ->pluck('name')
-            ->map($normalized);
-
-        return $rolePermissions
-            ->merge($directPermissions)
-            ->unique()
-            ->contains($normalized($permission));
+        return $this->hasMany(FreeHours::class);
     }
 
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    public function scopeWithRole($query, $role)
-    {
-        return $query->whereHas('roles', function ($q) use ($role) {
-            $q->where('name', strtolower($role));
-        });
     }
 
     public function printing()
@@ -148,5 +115,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(AgrementUpload::class);
     }
 
-
+    public function freeHours()
+    {
+        return $this->hasMany(FreeHours::class);
+    }
 }

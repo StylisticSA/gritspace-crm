@@ -22,6 +22,7 @@ class Office extends Model
         'category_id',
         'price_premium',
         'price_standard',
+        'free_boardroom_hours',
         'is_available',
         'available_dates',
     ];
@@ -53,6 +54,11 @@ class Office extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'office_id');
+    }
+
+    public function freehours()
+    {
+        return $this->hasMany(FreeHours::class, 'office_id');
     }
 
     public function payments()

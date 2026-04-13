@@ -1,30 +1,35 @@
 <?php
 
-use App\Http\Controllers\NoteController;
-use App\Http\Controllers\ExtraController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AgrementUploadController;
+use App\Http\Controllers\BankingDetailController;
+use App\Http\Controllers\BoardroomController;
+use App\Http\Controllers\BoardroomHoursController;
+use App\Http\Controllers\ClosedOfficeController;
+use App\Http\Controllers\ClosedOfficeRateController;
 use App\Http\Controllers\CoffeeController;
 use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\ParkingController;
-use App\Http\Controllers\HelpDeskController;
-use App\Http\Controllers\PrintingController;
-use App\Http\Controllers\BoardroomController;
-use App\Http\Controllers\ClosedOfficeController;
-use App\Http\Controllers\BankingDetailController;
-use App\Http\Controllers\BoardroomRateController;
 use App\Http\Controllers\DedicatedDeskController;
-use App\Http\Controllers\HotOfficeRateController;
-use App\Http\Controllers\AgrementUploadController;
+use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\ExtraController;
+use App\Http\Controllers\FreeHoursController;
+use App\Http\Controllers\HelpDeskController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\NotifyController;
+use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\PaymentGatewayController;
-use App\Http\Controllers\ClosedOfficeRateController;
-use App\Http\Controllers\VirtualOfficeRateController;
-use App\Http\Controllers\DedicatedOfficeRateController;
+use App\Http\Controllers\PrintingController;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
-Route::middleware(['web', 'auth', 'verified'])
+
+Route::middleware(['web', 'auth', 'verified', RoleMiddleware::using('admin|super admin')])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
+        Route::get('notify', [NotifyController::class, 'index'])->name('notify');
+        
         Route::resource('closed-office-rates', ClosedOfficeRateController::class)->names([
                         'index' => 'closedrate.index',
                         'create' => 'closedrate.create',
@@ -67,6 +72,16 @@ Route::middleware(['web', 'auth', 'verified'])
                 'destroy' => 'invoices.destroy',
         ]);
 
+        Route::resource('discounts', DiscountController::class)->names([
+                'index' => 'discounts.index',
+                'create' => 'discount.create',
+                'store' => 'discounts.store',
+                'show' => 'discount.show',
+                'edit' => 'discount.edit',
+                'update' => 'discount.update',
+                'destroy' => 'discount.destroy',
+        ]);
+
         Route::post('/invoice/send-invoice', [InvoiceController::class, 'sendInvoice'])->name('invoice.send-invoice');
         Route::put('/invoice/{invoice}/paid', [InvoiceController::class, 'paid'])->name('invoice.paid');
         Route::put('/invoice/{invoice}/pending', [InvoiceController::class, 'pending'])->name('invoice.pending');
@@ -91,7 +106,33 @@ Route::middleware(['web', 'auth', 'verified'])
                         'update' => 'coffee.update',
                         'destroy' => 'coffee.destroy',
                 ]);
+        
+        Route::resource('hours', FreeHoursController::class)->names([
+                        'index' => 'hours.index',
+                        'create' => 'hours.create',
+                        'edit' => 'hours.edit',
+                        'update' => 'hours.update',
+                        'destroy' => 'hours.destroy',
+                        
+                ]);
 
+        Route::get('hour-search-inprogress', [FreeHoursController::class, 'searchProgress'])->name('hours.user');
+        Route::get('hour-search-closed', [FreeHoursController::class, 'searchClosed'])->name('hours.closed');
+        Route::put('boardroom-hours-free/{freeHours}', [FreeHoursController::class, 'freeClose'])->name('free_hours.update');
+
+
+        Route::resource('boardroom_hours', BoardroomHoursController::class)->names([
+                        'index' => 'boardroom_hours.index',
+                        'create' => 'boardroom_hours.create',
+                        'edit' => 'boardroom_hours.edit',
+                        'update' => 'boardroom_hours.update',
+                        'destroy' => 'boardroom_hours.destroy',
+                        
+                ]);
+
+        Route::get('boardroom-hours-search', [BoardroomHoursController::class, 'searchProgress'])->name('boardroom_hours.inprogres');
+        Route::get('boardroom-hours-closed', [BoardroomHoursController::class, 'searchClosed'])->name('boardroom_hours.closed');
+        Route::put('boardroom-hours-normal/{boardroomHours}', [BoardroomHoursController::class, 'normalClose'])->name('normal_hours.update');
 
         Route::resource('printing-admin', PrintingController::class)->names([
                         'index' => 'printing.index',
@@ -144,7 +185,8 @@ Route::middleware(['web', 'auth', 'verified'])
 
     });
 
-Route::middleware('auth')->group(function () {
+    
+Route::middleware('auth', RoleMiddleware::using('user'))->group(function () {
 
     Route::resource('coffee', CoffeeController::class)->names([
                    'store' => 'coffee.store',
@@ -153,10 +195,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('printing', PrintingController::class)->names([
                        'store' => 'printing.store',
                ]);
-
-    Route::resource('agreement-upload', AgrementUploadController::class)->names([
-                        'store' => 'agreement.store',
-                   ]);
 
 
     Route::post('/activity-ping', function () {

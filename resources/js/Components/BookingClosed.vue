@@ -40,8 +40,6 @@ const form = useForm({
     category_id: props.categoryId,
 });
 
-console.log('loc', props.location);
-
 const unitPrice = computed(() => props.pricingOptions[form.plan] || 0);
 
 const weekdaysCount = computed(
@@ -113,7 +111,7 @@ const submit = () => {
             bookingConflict.value = errors.booking_conflict ?? null;
         },
         onSuccess: () => {
-            successMessage.value = 'Closed Office booked successfully!';
+            successMessage.value = 'Thank you for your enquiry. We will get back to you shortly';
             bookingConflict.value = null;
 
             setTimeout(() => {

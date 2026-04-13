@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const props = defineProps({
     locations: Array,
@@ -14,6 +15,8 @@ const form = useForm({
     price: '',
     duration: '',
     discount: '',
+    free_boardroom_hours: '',
+    is_available: useToday(),
     amenities: [],
 });
 
@@ -140,6 +143,24 @@ const submit = () => {
                                         v-if="form.errors.duration"
                                         class="text-sm text-red-600">
                                         {{ form.errors.duration }}
+                                    </div>
+                                </div>
+                                <!-- hours -->
+                                <div>
+                                    <label class="block text-lg font-medium text-gray-700"
+                                        >Boardroom Discounts (%)
+                                    </label>
+                                    <input
+                                        v-model="form.free_boardroom_hours"
+                                        type="number"
+                                        step="1"
+                                        min="0"
+                                        class="w-full px-3 py-2 border rounded"
+                                        placeholder="2%" />
+                                    <div
+                                        v-if="form.errors.free_boardroom_hours"
+                                        class="text-sm text-red-600">
+                                        {{ form.errors.free_boardroom_hours }}
                                     </div>
                                 </div>
                             </div>

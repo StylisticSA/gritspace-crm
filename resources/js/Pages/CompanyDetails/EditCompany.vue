@@ -30,13 +30,14 @@ const form = useForm({
 });
 
 const validateCellNumber = () => {
-    const pattern = /^\+?\d{10,15}$/;
+    const pattern = /^\d{3}\s\d{3}\s\d{4}$/;
+
     if (!form.cell_number) {
         form.errors.cell_number = 'Cell number is required.';
     } else if (!pattern.test(form.cell_number)) {
-        form.errors.cell_number = 'Enter a valid cell number.';
+        form.errors.cell_number = 'Enter a valid South African cell number (e.g. 089 897 1234).';
     } else {
-        form.errors.cell_number = null;
+        delete form.errors.cell_number;
     }
 };
 
@@ -212,15 +213,17 @@ const submit = () => {
                             </div>
 
                             <div class="mt-4">
-                                <label class="block text-lg text-gray-700">Upload your ID</label>
+                                <label class="block mb-3 text-lg text-gray-700"
+                                    >Upload your ID
 
-                                <!-- Show existing image if available -->
-                                <img
-                                    v-if="props.clients.identity_path"
-                                    :src="props.clients.identity_path"
-                                    alt="Current ID"
-                                    class="w-48 h-48 mb-2 border rounded" />
-
+                                    <a
+                                        v-if="clients.identity_path"
+                                        :href="clients.identity_path"
+                                        target="_blank"
+                                        class="pl-5 underline text-primary">
+                                        View Residency
+                                    </a>
+                                </label>
                                 <input
                                     type="file"
                                     @change="handleFileUpload($event, 'identity')"
@@ -234,14 +237,17 @@ const submit = () => {
                             </div>
 
                             <div class="mt-4">
-                                <label class="block text-lg text-gray-700">Proof of Residency</label>
+                                <label class="block mb-3 text-lg text-gray-700"
+                                    >Proof of Residency
 
-                                <!-- Show existing image if available -->
-                                <img
-                                    v-if="props.clients.residency_path"
-                                    :src="props.clients.residency_path"
-                                    alt="Current Residency"
-                                    class="w-48 h-48 mb-2 border rounded" />
+                                    <a
+                                        v-if="clients.residency_path"
+                                        :href="clients.residency_path"
+                                        target="_blank"
+                                        class="pl-5 underline text-primary">
+                                        View Residency
+                                    </a>
+                                </label>
 
                                 <input
                                     type="file"
@@ -256,15 +262,17 @@ const submit = () => {
                             </div>
 
                             <div class="mt-4">
-                                <label class="block text-lg text-gray-700">Company Registration</label>
+                                <label class="block mb-3 text-lg text-gray-700"
+                                    >View Company Registration
 
-                                <!-- Show existing image if available -->
-                                <img
-                                    v-if="props.clients.company_reg_path"
-                                    :src="props.clients.company_reg_path"
-                                    alt="Current Residency"
-                                    class="w-48 h-48 mb-2 border rounded" />
-
+                                    <a
+                                        v-if="clients.company_reg_path"
+                                        :href="clients.company_reg_path"
+                                        target="_blank"
+                                        class="pl-5 underline text-primary">
+                                        Company Registration
+                                    </a>
+                                </label>
                                 <input
                                     type="file"
                                     @change="handleFileUpload($event, 'company_reg_path')"
@@ -292,7 +300,8 @@ const submit = () => {
                                 type="submit"
                                 class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                 :disabled="form.processing">
-                                Update Company Details
+                                <span v-if="form.processing">Uploading...</span>
+                                <span v-else>Update Company Details</span>
                             </button>
                         </div>
                     </form>

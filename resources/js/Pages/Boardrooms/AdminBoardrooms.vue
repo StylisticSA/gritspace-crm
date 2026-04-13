@@ -79,7 +79,7 @@ const setOffice = id => {
     showBoardroomModal.value = true;
 };
 const availabilityText = boardroom => {
-    const label = boardroom.is_available ? 'Available' : 'Un available until';
+    const label = boardroom.is_available ? 'Available' : 'Unavailable until';
     const date = boardroom.available_dates ? formatDate(boardroom.available_dates) : 'None';
     return `${label}<br>${date}`;
 };

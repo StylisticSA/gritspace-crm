@@ -5,21 +5,30 @@ import { computed, ref, watch } from 'vue';
 import { eachDayOfInterval } from 'date-fns';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
     filters: Object,
     users: Object,
     can: Object,
+    approvedDedicated: Object,
 });
 
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+const pendingCount = computed(() => props.approvedDedicated?.length ?? 0);
 
-const isLoading = ref(false);
-const showNoteModal = ref(false);
-
-const showDatesModal = ref(false);
 const selectedDates = ref(null);
+const isLoading = ref(false);
+const bookingToDelete = ref(null);
+const search = ref(props.filters?.search ?? '');
+const selectedBooking = ref(null);
+
+const showNoteModal = ref(false);
+const showAvailModal = ref(false);
+const showDatesModal = ref(false);
+const showModal = ref(false);
+const showViewModal = ref(false);
 
 const viewDatesModal = booking => {
     selectedDates.value = booking;
@@ -32,7 +41,6 @@ const closeDateModal = () => {
     selectedDates.value = null;
 };
 
-const search = ref(props.filters?.search ?? '');
 watch(search, value => {
     router.get(
         route('bookingdedicated.show'),
@@ -45,9 +53,6 @@ watch(search, value => {
         }
     );
 });
-
-const showModal = ref(false);
-const bookingToDelete = ref(null);
 
 const deleteBooking = () => {
     if (bookingToDelete.value) {
@@ -63,9 +68,6 @@ const deleteBooking = () => {
         });
     }
 };
-
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
 
 const openViewModal = booking => {
     selectedBooking.value = booking;
@@ -202,6 +204,18 @@ function groupByMonth(dates) {
     });
     return grouped;
 }
+
+const allBookings = computed(() => {
+    const dedicated = props.approvedDedicated.map(b => ({
+        name: b.office.office_name,
+        type: 'Dedicated Desk',
+        plan: b.plan,
+        price: b.total_price,
+        id: b.office_id,
+    }));
+
+    return [...dedicated];
+});
 </script>
 
 <template>
@@ -209,14 +223,25 @@ function groupByMonth(dates) {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Dedicated Desks</h2>
+                <!-- Action buttons -->
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                    <button
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -377,7 +402,7 @@ function groupByMonth(dates) {
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                        <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
+                        <div class="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
                             <!-- Modal Header -->
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-bold text-gray-800">Booking Details</h2>
@@ -395,7 +420,7 @@ function groupByMonth(dates) {
                             </template>
 
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-2 text-sm text-gray-700">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
                                 <!-- General Info Table Style -->
                                 <div class="space-y-2">
                                     <div class="grid items-start grid-cols-2 gap-x-1">
@@ -445,6 +470,49 @@ function groupByMonth(dates) {
                                                 }">
                                                 {{ selectedBooking.status ?? 'N/A' }}
                                             </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Discounts -->
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-x-1 items-start mb-10">
+                                        <div class="mb-3 font-medium text-gray-600">
+                                            <strong>Parking:</strong>
+                                        </div>
+                                        <div class="mb-3 text-right">
+                                            {{
+                                                selectedBooking.parking_price === '0.00'
+                                                    ? 'None'
+                                                    : 'R ' + selectedBooking.parking_price
+                                            }}
+                                        </div>
+                                        <div class="col-span-2 my-3">
+                                            <hr />
+                                        </div>
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
+                                        <div class="mb-3 text-right">R {{ selectedBooking.total_price ?? '0.00' }}</div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'premium'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Premium:</strong>
+                                        </div>
+                                        <div
+                                            v-if="selectedBooking.plan === 'premium'"
+                                            class="text-right">
+                                            {{ selectedBooking.office?.free_boardroom_hours }} Hours
+                                        </div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'standard'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Standard:</strong>
+                                        </div>
+                                        <div
+                                            v-if="selectedBooking.plan === 'standard'"
+                                            class="text-right">
+                                            {{ bookingDiscount?.discount ?? 0 }} %
                                         </div>
                                     </div>
                                 </div>
@@ -562,6 +630,13 @@ function groupByMonth(dates) {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

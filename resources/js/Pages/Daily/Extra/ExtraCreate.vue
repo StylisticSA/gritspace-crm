@@ -14,9 +14,9 @@ const form = useForm({
 });
 
 const names = ref([
-    { id: 2, name: 'Black & White A4 Printing' },
-    { id: 3, name: 'Brean-to-Cup coffee' },
-    { id: 1, name: 'Color A4 Printing' },
+    { id: 2, name: 'A4 Printing - Black & White' },
+    { id: 3, name: 'Bean-to-Cup Coffee' },
+    { id: 1, name: 'A4 Printing - Colour' },
 ]);
 </script>
 

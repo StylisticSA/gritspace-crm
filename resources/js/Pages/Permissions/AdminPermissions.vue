@@ -108,18 +108,21 @@ function capitalize(str) {
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex space-x-2">
                             <Link
+                                v-if="can['create permissions']"
                                 :href="route('admin.permission.create')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Permissions
                             </Link>
 
                             <Link
+                                v-if="can['view roles']"
                                 :href="route('admin.roles')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Roles
                             </Link>
 
                             <Link
+                                v-if="can['view users']"
                                 :href="route('admin.manage.user')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-muted hover:bg-bluemain/60">
                                 Manage
@@ -138,7 +141,6 @@ function capitalize(str) {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Action</th>
                                 </tr>
@@ -147,8 +149,6 @@ function capitalize(str) {
                                 <tr
                                     v-for="permission in permissions.data"
                                     :key="permission.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ permission.id }}</td>
-
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         {{ capitalize(permission.name) }}
                                     </td>

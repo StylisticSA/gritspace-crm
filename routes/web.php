@@ -1,67 +1,42 @@
 <?php
 
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\AboutController;
-use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\AgrementUploadController;
 use App\Http\Controllers\AmenityController;
-use App\Http\Controllers\BookingController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\ManagerController;
-use App\Http\Controllers\PricingController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\CalendarController;
-use App\Http\Controllers\HelpDeskController;
-use App\Http\Controllers\LocationController;
-use App\Http\Controllers\BoardroomController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\ClientRateController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\UserAccessController;
-use App\Http\Controllers\ClosedOfficeController;
-use App\Http\Controllers\ClosedBookingController;
-use App\Http\Controllers\CompanyDetailController;
-use App\Http\Controllers\DedicatedDeskController;
-use App\Http\Controllers\OfficePricingController;
-use App\Http\Controllers\VirtualOfficeController;
-use App\Http\Controllers\HotDeskBookingController;
-use App\Http\Controllers\VirtualBookingController;
 use App\Http\Controllers\BoardroomBookingController;
-use App\Http\Controllers\DedicatedBookingController;
+use App\Http\Controllers\BoardroomController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ClientInformationController;
+use App\Http\Controllers\ClientRateController;
+use App\Http\Controllers\ClosedBookingController;
+use App\Http\Controllers\ClosedOfficeController;
+use App\Http\Controllers\CompanyDetailController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DedicatedBookingController;
+use App\Http\Controllers\DedicatedDeskController;
+use App\Http\Controllers\HelpDeskController;
+use App\Http\Controllers\HotDeskBookingController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\OfficePricingController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\VirtualBookingController;
+use App\Http\Controllers\VirtualOfficeController;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 require __DIR__.'/auth.php';
-// Frontend of the application
-
-//rates
 require __DIR__.'/Extra/Extend.php';
 
 Route::get('/', function () {
     //     return Inertia::render('Welcome');
     return redirect('/login');
 });
-
-Route::get('/clear-cache', function () {
-    Artisan::call('cache:clear');
-    Artisan::call('route:clear');
-    Artisan::call('config:clear');
-    Artisan::call('view:clear');
-
-    return 'All caches cleared!';
-});
-
-
-// Route::get('/run-storage-link', function () {
-
-//     Artisan::call('storage:link');
-
-//     return 'Storage link created successfully!';
-// });
-
 
 
 // Route::get('/dashboard', function () {
@@ -70,20 +45,25 @@ Route::get('/clear-cache', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/company-details', [CompanyDetailController::class, 'index'])->name('companydetail.index');
+    Route::get('/company-details/create', [CompanyDetailController::class, 'create'])->name('companydetail.create');
+    Route::post('/company-details', [CompanyDetailController::class, 'store'])->name('companydetail.store');
+    Route::get('/company-details/{client}', [CompanyDetailController::class, 'edit'])->name('companydetail.edit');
+    Route::put('/company-details/{client}', [CompanyDetailController::class, 'update'])->name('companydetail.update');
+
+    Route::resource('agreement-upload', AgrementUploadController::class)
+                ->names([
+                        'store' => 'agreement.store',
+                ]);
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', RoleMiddleware::using('user|admin|super admin')])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //company details
-    Route::get('/company-details', [CompanyDetailController::class, 'index'])->name('companydetail.index');
-    Route::get('/company-details/create', [CompanyDetailController::class, 'create'])->name('companydetail.create');
     Route::get('/company-details/rate', [CompanyDetailController::class, 'rate'])->name('companydetail.rate');
-    Route::get('/company-details/{client}', [CompanyDetailController::class, 'edit'])->name('companydetail.edit');
-    Route::put('/company-details/{client}', [CompanyDetailController::class, 'update'])->name('companydetail.update');
-    Route::post('/company-details', [CompanyDetailController::class, 'store'])->name('companydetail.store');
     Route::delete('/company-details/{client}', [CompanyDetailController::class, 'destroy'])->name('companydetail.destroy');
 
     Route::get('/client-rates-information/{clientRate}', [ClientRateController::class, 'editCompany'])->name('clientrates.editCompany');
@@ -168,13 +148,13 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::middleware(['web', 'auth', 'verified'])
+Route::middleware(['web', 'auth', 'verified', RoleMiddleware::using('admin|super admin')])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
 
-        Route::get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
 
         Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
@@ -225,7 +205,7 @@ Route::middleware(['web', 'auth', 'verified'])
             ->name('closedoffices.destroy');
 
  
-        Route::get('/dedicated-offices', [DedicatedDeskController::class, 'adminIndex'])->name('dedicateddesk');
+        Route::get('/dedicated-offices', [DedicatedDeskController::class, 'index'])->name('dedicateddesk');
         Route::get('/dedicated-offices/create', [DedicatedDeskController::class, 'create'])->name('dedicateddesk.create');
         Route::post('/dedicated-offices', [DedicatedDeskController::class, 'store'])->name('dedicateddesk.store');
         Route::get('/dedicated-offices/{Office}/edit', [DedicatedDeskController::class, 'edit'])->name('dedicateddesk.edit');
@@ -274,13 +254,13 @@ Route::middleware(['web', 'auth', 'verified'])
         Route::delete('/virtual-office/{virtualoffice}', [VirtualOfficeController::class, 'destroy'])
                 ->name('virtual-office.destroy');
 
-        Route::get('/help-desks', [HelpDeskController::class, 'index'])->name('help-desks');
-        Route::get('/help-desk/create', [HelpDeskController::class, 'create'])->name('help-desk.create');
-        Route::post('/help-desk', [HelpDeskController::class, 'store'])->name('help-desk.store');
-        Route::get('/help-desk/{helpDesk}/edit', [HelpDeskController::class, 'edit'])->name('help-desk.edit');
-        Route::put('/help-desk/{helpDesk}', [HelpDeskController::class, 'update'])->name('help-desk.update');
-        Route::delete('/help-desk/{helpDesk}', [HelpDeskController::class, 'destroy'])
-                ->name('help-desk.destroy');
+        Route::get('/hot-desks', [HelpDeskController::class, 'index'])->name('help-desks');
+        Route::get('/hot-desk/create', [HelpDeskController::class, 'create'])->name('help-desk.create');
+        Route::post('/hot-desk', [HelpDeskController::class, 'store'])->name('help-desk.store');
+        Route::get('/hot-desk/{helpDesk}/edit', [HelpDeskController::class, 'edit'])->name('help-desk.edit');
+        Route::put('/hot-desk/{helpDesk}', [HelpDeskController::class, 'update'])->name('help-desk.update');
+        Route::delete('/hot-desk/{helpDesk}', [HelpDeskController::class, 'destroy'])
+                ->name('hot-desk.destroy');
 
      
         Route::get('/locations', [LocationController::class, 'index'])->name('locations');

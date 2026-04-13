@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { watch, computed } from 'vue';
+import { watch } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const form = useForm({
     office_name: '',
@@ -12,8 +13,10 @@ const form = useForm({
     monthly_rate: '',
     daily_rate: '',
     pricing_id: '',
+    is_available: useToday(),
     amenities: [],
     pricing_type: [],
+    free_boardroom_hours: '',
 });
 
 const props = defineProps({
@@ -29,11 +32,6 @@ const { message, status, showMessage, messageText, messageClass } = useStatusMes
 if (props.categories.length === 1 && !form.category_id) {
     form.category_id = props.categories[0].id;
 }
-
-const isDedicatedDesk = computed(() => {
-    const selected = props.categories.find(c => c.id === form.category_id);
-    return selected?.name?.toLowerCase().includes('dedicated desk');
-});
 
 watch(
     () => form.category_id,
@@ -140,8 +138,8 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div v-if="!isDedicatedDesk">
-                                <label class="block text-lg font-medium text-gray-700">Monthly Rate</label>
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Premium Monthly Rate</label>
                                 <input
                                     v-model="form.monthly_rate"
                                     type="number"
@@ -156,40 +154,8 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div v-if="isDedicatedDesk">
-                                <label class="block text-lg font-medium text-gray-700">Available Service Levels</label>
-                                <div class="flex flex-col space-y-2">
-                                    <div
-                                        v-for="pricing in pricings"
-                                        :key="pricing.id"
-                                        class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            v-model="form.pricing_type"
-                                            :value="pricing.rate"
-                                            :id="pricing.id"
-                                            class="border-gray-300 rounded shadow-sm text-primary focus:ring-bluemain/60 form-checkbox" />
-                                        <label
-                                            :for="pricing.id"
-                                            class="ml-2 text-sm">
-                                            {{ pricing.category_name }} - {{ pricing.pricing_type }} -
-                                            {{
-                                                pricing.rate
-                                                    ? `R ${Number(pricing.rate).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                    : 'None'
-                                            }}
-                                        </label>
-                                    </div>
-                                </div>
-                                <div
-                                    v-if="form.errors.pricing_type"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.pricing_type }}
-                                </div>
-                            </div>
-
-                            <div v-if="!isDedicatedDesk">
-                                <label class="block text-lg font-medium text-gray-700">Daily Rate</label>
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Standard Monthly Rate</label>
                                 <input
                                     v-model="form.daily_rate"
                                     type="number"
@@ -201,6 +167,21 @@ const submit = () => {
                                     v-if="form.errors.daily_rate"
                                     class="text-sm text-red-600">
                                     {{ form.errors.daily_rate }}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Boardroom Discounts (%)</label>
+                                <input
+                                    v-model="form.free_boardroom_hours"
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="2%" />
+                                <div
+                                    v-if="form.errors.free_boardroom_hours"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
                             </div>
                         </div>

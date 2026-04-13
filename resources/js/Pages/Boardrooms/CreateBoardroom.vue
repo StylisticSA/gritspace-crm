@@ -1,11 +1,14 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const form = useForm({
     boardroom_name: '',
     location_id: '',
     seats: '',
+    is_available: useToday(),
     hourly_price: null,
     daily_price: null,
     amenities: [],
@@ -16,12 +19,34 @@ const props = defineProps({
     amenities: Array,
 });
 
-const currentDate = new Date();
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
+const currentDate = new Date();
 const currentYear = currentDate.getFullYear();
 const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
 
 const minDate = `${currentYear}-${currentMonth}-01`;
+
+const submit = () => {
+    form.post(route('admin.boardrooms.store'), {
+        onSuccess: () => {
+            message.value = 'A boardroom has been created successfully.';
+            status.value = 'success';
+
+            setTimeout(() => {
+                router.visit(route('admin.boardrooms'), {
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+                router.reload({ preserveScroll: true });
+            }, 3000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
+        },
+    });
+};
 </script>
 
 <template>
@@ -45,8 +70,14 @@ const minDate = `${currentYear}-${currentMonth}-01`;
                         </Link>
                     </div>
 
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
+
                     <form
-                        @submit.prevent="form.post(route('admin.boardrooms.store'))"
+                        @submit.prevent="submit"
                         class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Boardroom Name -->

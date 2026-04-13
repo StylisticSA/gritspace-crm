@@ -167,12 +167,13 @@ watchEffect(() => {
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex space-x-2">
                             <Link
-                                v-if="can['add users']"
+                                v-if="can['create client details']"
                                 :href="route('admin.clientinfor.create')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Client
                             </Link>
                             <Link
+                                v-if="can['create agreements']"
                                 :href="route('admin.agreement.index')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Agreements
@@ -191,7 +192,6 @@ watchEffect(() => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700 md:hidden">
                                         SurName
@@ -208,7 +208,6 @@ watchEffect(() => {
                                 <tr
                                     v-for="client in clients.data"
                                     :key="client.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ client.id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ client.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800 sm:hidden">{{ client.surname }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ client.email_address }}</td>
@@ -290,6 +289,11 @@ watchEffect(() => {
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                         <div class="w-full max-w-md p-6 bg-white rounded shadow">
                             <h2 class="mb-4 text-lg font-semibold">Confirm Delete</h2>
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
                             <p class="mb-6">
                                 Are you sure you want to delete this client? This action cannot be undone.
                             </p>
@@ -339,11 +343,6 @@ watchEffect(() => {
                                         {{ messageText }}
                                     </div>
                                 </template>
-                                <!-- <div
-                                    v-if="props.errors?.available"
-                                    class="p-3 text-red-800 bg-red-100 rounded">
-                                    {{ props.errors.available }}
-                                </div> -->
 
                                 <!-- Client Info Grid -->
                                 <div class="grid grid-cols-2 mt-10 gap-x-4 gap-y-2">
@@ -450,11 +449,15 @@ watchEffect(() => {
                                             {{ (companyInfo.approved ?? 0) ? 'Approved' : 'Pending' }}
                                         </span>
                                     </div>
-                                    <hr class="col-span-2 my-4 border-gray-300" />
+                                    <hr
+                                        class="col-span-2 my-4 border-gray-300"
+                                        v-if="groupedRates.length > 0" />
                                 </div>
 
                                 <!-- Client Rates -->
-                                <div class="pt-5">
+                                <div
+                                    class="pt-5"
+                                    v-if="groupedRates.length > 0">
                                     <h2 class="text-xl font-semibold leading-tight text-gray-800">Client Rates</h2>
 
                                     <div

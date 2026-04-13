@@ -22,6 +22,9 @@ return new class extends Migration
             $table->decimal('selected_price', 10, 2);
             $table->json('selected_dates')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'paid'])->default('pending');
+            
+            $table->integer('boardroom_discounted_percent')->nullable()->default(0);
+
             $table->timestamps();
 
             $table->softDeletes();

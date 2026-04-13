@@ -18,14 +18,16 @@ class UserSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'admin@admin.com',
             'password' => Hash::make('superadmin'),
-            'is_active' => true
+            'is_active' => '1'
+            
         ]);
 
         User::create([
             'name' => 'User',
             'email' => 'user@user.com',
             'password' => Hash::make('password'),
-            'is_active' => true
+            'is_active' => '1',
+            'user_type' => 'new'
         ]);
     }
 }

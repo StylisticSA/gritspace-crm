@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Note;
-use App\Models\User;
-use Inertia\Inertia;
+use App\Models\AgrementUpload;
+use App\Models\Boardroom;
+use App\Models\BoardroomBooking;
 use App\Models\Booking;
-use App\Models\Invoice;
-use App\Models\Location;
-use App\Models\Printing;
+use App\Models\ClientInformation;
 use App\Models\ClientRate;
 use App\Models\DailyUsage;
-use Illuminate\Http\Request;
-use App\Models\AgrementUpload;
 use App\Models\HotDeskBooking;
+use App\Models\Invoice;
+use App\Models\Location;
+use App\Models\Note;
+use App\Models\Printing;
+use App\Models\User;
 use App\Models\VirtualBooking;
-use App\Models\BoardroomBooking;
-use App\Models\ClientInformation;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -44,9 +44,6 @@ class DashboardController extends Controller
         $clientEmpty = ClientInformation::where('user_id', auth()->id())->exists();
         $agreementEmpty = AgrementUpload::where('user_id', auth()->id())->exists();
 
-
-
-        // Plan User is on
         $closedOfficePlan = Booking::with(['office.location', 'category'])
                             ->where('user_id', auth()->id())
                               ->whereIn('status', ['approved', 'paid'])
@@ -145,7 +142,6 @@ class DashboardController extends Controller
                     ->limit(6)
                     ->get();
 
-                    // dd($invoices);
      
         return Inertia::render('Dashboard', [
             'notes'                 => $notes,
@@ -306,14 +302,31 @@ class DashboardController extends Controller
 
         $notes = Note::with('user')->latest('created_at')->take(4)->get()->reverse()->values();
 
-
-
         $today = Carbon::today();
 
         $invoiceCounts = Invoice::where('issued_due_date', '>=', $today)
                             ->select('status', DB::raw('COUNT(*) as total'))
                             ->groupBy('status')
                             ->pluck('total', 'status');
+
+        
+        $statusCounts = DB::table('free_hours')
+                        ->where('status', 'in_progress')
+                        ->whereDate('created_at', Carbon::today())
+                        ->groupBy('status')
+                        ->select('status', DB::raw('COUNT(DISTINCT boardroom_id) as total'))
+                        ->pluck('total', 'status');
+
+        $statusBoardCount = DB::table('boardroom_hours')
+                        ->where('status', 'in_progress')
+                        ->whereDate('created_at', Carbon::today())
+                        ->distinct('boardroom_id')
+                        ->count('boardroom_id');
+
+
+        $boardrooms = Boardroom::with('location')
+                    ->orderBy('boardroom_name')
+                    ->get(['id', 'boardroom_name', 'location_id']);
 
 
         return Inertia::render('Admin/AdminDashboard', [
@@ -335,6 +348,11 @@ class DashboardController extends Controller
 
             'locationsWithStats'    => $locationsWithStats,
             'invoiceCounts'         => $invoiceCounts,
+
+            'inProgressCount'       => $statusCounts['in_progress'] ?? 0,
+            'normalCount'           => $statusBoardCount,
+            'boardrooms'            => $boardrooms,
+
         ]);
 
     }

@@ -33,6 +33,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+    
         $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -66,8 +67,7 @@ class AuthenticatedSessionController extends Controller
 
         }
 
-
-
+        return redirect()->route('dashboard');
 
     }
 

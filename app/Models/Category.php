@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Booking;
 use App\Models\Category;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -29,5 +30,6 @@ class Category extends Model
         return $this->hasMany(Booking::class);
     }
 
+ 
 
 }

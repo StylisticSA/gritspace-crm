@@ -31,7 +31,7 @@ watch(showMessage, msg => {
 
 watch(search, value => {
     router.get(
-        route('admin.manage'),
+        route('admin.manage.user'),
         { search: value },
         {
             preserveState: true,
@@ -68,15 +68,17 @@ const formatLabel = label => {
 };
 
 const getRoleColor = role => {
+    const lowerRole = role.toLowerCase();
+
     const roleMap = {
-        Admin: 'bg-yellow-100 text-yellow-800',
-        'Super Admin': 'bg-green-100 text-green-800',
-        User: 'bg-gray-200 text-gray-700',
-        'Pending User': 'bg-red-100 text-red-700',
-        Manager: 'bg-red-100 text-brown-700',
+        admin: 'bg-yellow-100 text-yellow-800',
+        'super admin': 'bg-green-100 text-green-800',
+        user: 'bg-gray-200 text-gray-700',
+        'pending user': 'bg-red-100 text-red-700',
+        manager: 'bg-red-100 text-brown-700',
     };
 
-    return roleMap[role] || 'bg-gray-100 text-gray-800';
+    return roleMap[lowerRole] || 'bg-gray-100 text-gray-800';
 };
 </script>
 
@@ -103,21 +105,21 @@ const getRoleColor = role => {
                     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                             <Link
-                                v-if="can['add users']"
+                                v-if="can['create users']"
                                 :href="route('admin.manage.create')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add User
                             </Link>
 
                             <Link
-                                v-if="can['add roles']"
+                                v-if="can['view roles']"
                                 :href="route('admin.roles')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-bluemain hover:bg-gray-700">
                                 Roles
                             </Link>
 
                             <Link
-                                v-if="can['add permissions']"
+                                v-if="can['view permissions']"
                                 :href="route('admin.permissions')"
                                 class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-muted hover:bg-gray-700">
                                 Permissions
@@ -136,11 +138,10 @@ const getRoleColor = role => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Email</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Roles</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Date Created</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Created On</th>
 
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
                                 </tr>
@@ -149,8 +150,9 @@ const getRoleColor = role => {
                                 <tr
                                     v-for="user in users.data"
                                     :key="user.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ user.id }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ user.name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        {{ user.name.charAt(0).toUpperCase() + user.name.slice(1) }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ user.email }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <span

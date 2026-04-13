@@ -2,19 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\BoardroomBooking;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
-class BoardroomBookingsSeeder extends Seeder
+class FreeHoursSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-
-        BoardroomBooking::factory()->count(1)->create();
-
+        //
     }
 }

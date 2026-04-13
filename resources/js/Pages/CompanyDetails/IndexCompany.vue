@@ -75,7 +75,7 @@ const showAgreementModal = ref(false);
                             <div>{{ clients.cell_number }}</div>
 
                             <div class="font-semibold text-gray-700">Email Address:</div>
-                            <div>{{ clients.email_address }}</div>
+                            <div class="truncate max-w-full text-gray-900">{{ clients.email_address }}</div>
 
                             <hr class="col-span-2 my-2 border-gray-300" />
 
@@ -168,7 +168,7 @@ const showAgreementModal = ref(false);
                             <hr class="col-span-2 my-4 border-gray-300" />
 
                             <div class="font-semibold text-gray-700">Status:</div>
-                            <div>
+                            <div class="mb-3">
                                 <span
                                     :class="
                                         (clients.approved ?? 0)
@@ -179,8 +179,8 @@ const showAgreementModal = ref(false);
                                 </span>
                             </div>
                         </div>
-
-                        <div class="w-full pt-5 mt-3 md:col-span-2">
+                        <hr class="col-span-2 my-4 border-gray-300" />
+                        <div class="w-full pt-5 mt-5 md:col-span-2">
                             <Link
                                 v-if="!clients.approved"
                                 :href="route('companydetail.edit', clients.id)"
@@ -191,7 +191,9 @@ const showAgreementModal = ref(false);
                     </div>
 
                     <!-- Right column: Existing content / form or other info -->
-                    <div class="p-4 bg-white shadow sm:rounded-lg sm:p-8">
+                    <div
+                        class="p-4 bg-white shadow sm:rounded-lg sm:p-8"
+                        v-if="!props.clients?.rates">
                         <h3 class="mb-10 text-2xl text-bold">Client Rates</h3>
 
                         <div
@@ -238,6 +240,7 @@ const showAgreementModal = ref(false);
             </div>
 
             <AgreementModal
+                :location_id="clients.location?.id"
                 :locations="locations"
                 :agreement="agreement"
                 :show="showAgreementModal"

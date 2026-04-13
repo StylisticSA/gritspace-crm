@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Inertia\Inertia;
 use App\Models\Amenity;
-use App\Models\Location;
 use App\Models\Boardroom;
-use Illuminate\Http\Request;
 use App\Models\BoardroomBooking;
-use Illuminate\Support\Facades\DB;
+use App\Models\Booking;
+use App\Models\Discount;
+use App\Models\Location;
+use App\Models\User;
 use App\Notifications\BoardroomBookingNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class BoardroomBookingController extends Controller
 {
@@ -32,7 +34,7 @@ class BoardroomBookingController extends Controller
         return Inertia::render('Bookings/Boardrooms/IndexBoardrooms', [
             'boardrooms'        => $boardrooms,
             'locations'         => $locations,
-            'approvedBoardrooms' =>  $approvedBoardrooms,
+            'approvedBoardrooms'    =>  $approvedBoardrooms,
         ]);
 
     }
@@ -65,16 +67,62 @@ class BoardroomBookingController extends Controller
      */
     public function edit(Boardroom $bookedboardroom)
     {
-
+        
         $locations = Location::select('id', 'name')->get();
         $amenities = Amenity::select('id', 'amenity_name')->get();
         $boardroom = $bookedboardroom->load(['location', 'amenities']);
 
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin') && !$user->hasRole('super admin')) {
+            $closed = Booking::with([
+                    'office:id,office_name,free_boardroom_hours',
+                    'office.location:id,name',
+                    'category:id,name'
+                ])
+                ->whereHas('category', function ($query) {
+                    $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices', 'dedicated desks', 'dedicated desk')");
+                })
+                ->where('user_id', auth()->id())
+                ->where('status', 'paid')
+                ->get();
+
+            $dailyOffice    = $closed->firstWhere('plan', 'daily');
+            $standardOffice = $closed->firstWhere('plan', 'standard');
+
+            if ($dailyOffice) {
+                $selectedOffice = $dailyOffice;
+            } elseif ($standardOffice) {
+                $selectedOffice = $standardOffice;
+            } else {
+                $selectedOffice = null;
+            }
+
+            $closedFiltered = $selectedOffice ? collect([$selectedOffice]) : collect();
+
+            if ($selectedOffice) {
+                $discounts = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->where('category_id', $selectedOffice->category_id)
+                    ->get(['id', 'package', 'discount']);
+          
+
+                $discountPercent = optional($discounts->first())->discount ?? 0;
+            } else {
+                $discounts = collect();
+                $discountPercent = 0;
+            }
+        }
+
         return Inertia::render('Bookings/Boardrooms/EditBoardroom', [
-            'boardroom' => $boardroom,
-            'locations' => $locations,
-            'amenities' => $amenities
+            'boardroom'   => $boardroom,
+            'locations'   => $locations,
+            'amenities'   => $amenities,
+            'discounts'   => $discounts ?? 0,
+            'closed'      => $closedFiltered ?? 0,   
+            'closedFirst' => $discountPercent ?? 0,
         ]);
+
+        
     }
 
     /**
@@ -82,6 +130,9 @@ class BoardroomBookingController extends Controller
      */
     public function store(Request $request)
     {
+       
+        // dd($request);
+        
 
         $validated = $request->validate([
            'boardroom_id'          => 'required|exists:boardrooms,id',
@@ -95,10 +146,16 @@ class BoardroomBookingController extends Controller
                'array',
            ],
 
-           'months'                => 'required|integer|min:1',
-           'selected_price'        => 'required|numeric|min:0',
+           'months'                 => 'required|integer|min:1',
+           'selected_price'         => 'required|numeric|min:0',
+
+            'discounted_price'      => 'nullable|numeric|min:0',
+            'discount_percentage'   => 'nullable|integer|min:0|max:100',
+
 
         ]);
+
+        // dd($validated);
 
         $office = Boardroom::findOrFail($validated['boardroom_id']);
 
@@ -137,6 +194,8 @@ class BoardroomBookingController extends Controller
             ])->withInput();
         }
 
+
+
         $booking = BoardroomBooking::create([
             'user_id'         => auth()->id(),
             'boardroom_id'    => $office->id,
@@ -145,6 +204,8 @@ class BoardroomBookingController extends Controller
             'selected_times'  => $validated['selected_times'] ?? null,
             'months'          => $validated['months'] ?? null,
             'selected_price'  => $validated['selected_price'],
+            'discounted_price'    => $validated['discounted_price'],     
+            'discount_percentage' => $validated['discount_percentage'],
             'status'          => 'pending',
         ]);
 
@@ -176,6 +237,7 @@ class BoardroomBookingController extends Controller
     {
 
         $user = auth()->user();
+      
         $search = $request->input('search');
 
         $users = User::with('roles')
@@ -214,15 +276,24 @@ class BoardroomBookingController extends Controller
                         ->latest()
                         ->paginate(10);
 
+                        
         }
 
+        $approvedBoardrooms = BoardroomBooking::with('boardroom.location')
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->get();
+
+        // dd($approvedBoardrooms);
 
         return Inertia::render('Bookings/Boardrooms/ShowBoardrooms', [
-            'bookings' => $bookings,
-            'users' => $users,
-             'filters' => [
-                'search' => $search,
-            ]
+            'bookings'              => $bookings,
+            'approvedBoardrooms'    => $approvedBoardrooms,
+            'users'                 => $users,
+            'filters'               => [
+                                        'search' => $search,
+                                    ],
+            
         ]);
     }
 

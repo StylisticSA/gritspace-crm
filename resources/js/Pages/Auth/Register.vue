@@ -9,6 +9,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { ref } from 'vue';
 
 const form = useForm({
+    user_type: '',
     name: '',
     email: '',
     password: '',
@@ -40,6 +41,39 @@ const submit = () => {
                 <form
                     @submit.prevent="submit"
                     class="space-y-4">
+                    <hr />
+
+                    <!-- User Type -->
+                    <div>
+                        <InputLabel
+                            for="user_type"
+                            value="User Type" />
+                        <div class="flex space-x-6 mt-1">
+                            <label class="flex items-center w-full border rounded px-3 py-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="user_type"
+                                    value="new"
+                                    v-model="form.user_type"
+                                    class="form-radio text-primary"
+                                    required />
+                                <span class="ml-2">New User</span>
+                            </label>
+                            <label class="flex items-center w-full border rounded px-3 py-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="user_type"
+                                    value="existing"
+                                    v-model="form.user_type"
+                                    class="form-radio text-primary" />
+                                <span class="ml-2">Existing User</span>
+                            </label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.user_type" />
+                    </div>
+                    <hr />
                     <!-- Name -->
                     <div>
                         <InputLabel

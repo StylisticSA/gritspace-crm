@@ -13,7 +13,7 @@ const amenitiesSelected = props.virtualoffices.amenities ? props.virtualoffices.
 const form = useForm({
     virtualoffice_name: props.virtualoffices.virtualoffice_name,
     location_id: props.virtualoffices.location_id,
-
+    free_boardroom_hours: props.free_boardroom_hours,
     price: props.virtualoffices.price,
     amenities: amenitiesSelected,
 });
@@ -101,6 +101,22 @@ const submit = () => {
                                     v-if="form.errors.price"
                                     class="text-sm text-red-600">
                                     {{ form.errors.price }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700">Boardroom Discounts (%)</label>
+                                <input
+                                    v-model="form.free_boardroom_hours"
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="0 %" />
+                                <div
+                                    v-if="form.errors.free_boardroom_hours"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
                             </div>
                         </div>

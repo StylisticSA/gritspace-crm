@@ -70,8 +70,6 @@ function goToVirtual(id?: number) {
     if (id) router.visit(`/virtual-booking/${id}`);
 }
 
-// payment
-
 const showAvailModal = ref(false);
 
 const pendingCount = computed(() => props.approvedVirtuals?.length ?? 0);

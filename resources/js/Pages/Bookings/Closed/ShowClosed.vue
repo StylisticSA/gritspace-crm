@@ -4,25 +4,36 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
+import cartOfficeModal from '../../../Components/Modals/Cart/CartOfficeModal.vue';
 
 const props = defineProps({
     bookings: Object,
+    discounts: Number,
     filters: Object,
     users: Object,
     can: Object,
+    approvedClosed: Object,
 });
 
-const showNoteModal = ref(false);
 const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
 
+const showNoteModal = ref(false);
+const showDiscountModal = ref(false);
 const showDatesModal = ref(false);
+const showAvailModal = ref(false);
 const selectedDates = ref(null);
+const showModal = ref(false);
+const bookingToDelete = ref(null);
+const showViewModal = ref(false);
 
 const monthDuration = ref(null);
 const showMonths = ref(false);
+const selectedBooking = ref(null);
+
+const pendingCount = computed(() => props.approvedClosed?.length ?? 0);
 
 const viewDatesModal = booking => {
     if (booking.plan === 'daily') {
@@ -82,9 +93,6 @@ watch(search, value => {
     );
 });
 
-const showModal = ref(false);
-const bookingToDelete = ref(null);
-
 const deleteBooking = () => {
     if (bookingToDelete.value) {
         router.delete(route('admin.bookings.destroy', bookingToDelete.value), {
@@ -102,9 +110,6 @@ const deleteBooking = () => {
         });
     }
 };
-
-const showViewModal = ref(false);
-const selectedBooking = ref(null);
 
 const openViewModal = booking => {
     selectedBooking.value = booking;
@@ -138,25 +143,49 @@ function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+const discountedPrice = computed(() => {
+    if (!selectedBooking.value || !bookingDiscount.value) {
+        return selectedBooking.value?.total_price ?? 0;
+    }
+
+    const total = Number(selectedBooking.value.total_price);
+    const discountPercent = Number(bookingDiscount.value.discount);
+
+    const discountAmount = total * (discountPercent / 100);
+    const finalTotal = total - discountAmount;
+
+    return {
+        finalTotal,
+        discountPercent,
+        discountAmount,
+    };
+});
+
 const approveBooking = id => {
     if (!id) return;
 
     if (confirm('Are you sure you want to change to Approved?')) {
-        router.put(route('bookingclosed.approve', id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                message.value = 'Office status changed to Approved';
-                status.value = 'success';
+        router.put(
+            route('bookingclosed.approve', id),
+            {
+                discount_percent: discountedPrice.value.discountPercent,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    message.value = 'Office status changed to Approved';
+                    status.value = 'success';
 
-                setTimeout(() => {
-                    router.reload({ preserveScroll: true });
-                }, 2000);
-            },
-            onError: () => {
-                message.value = 'Failed to change to approved.';
-                status.value = 'deleted';
-            },
-        });
+                    setTimeout(() => {
+                        router.reload({ preserveScroll: true });
+                    }, 2000);
+                },
+                onError: () => {
+                    message.value = 'Failed to change to approved.';
+                    status.value = 'deleted';
+                },
+            }
+        );
     }
 };
 
@@ -234,6 +263,24 @@ const cancelBooking = id => {
         );
     }
 };
+
+const allBookings = computed(() => {
+    const closed = props.approvedClosed.map(b => {
+        return {
+            name: b.office.office_name,
+            type: 'Closed Office',
+            price: b.total_price,
+            plan: b.plan,
+            id: b.office_id,
+            months: b.months,
+            monthly_rate: Number(b.office.monthly_rate),
+            daily_rate: Number(b.office.daily_rate),
+            location: b.office.location?.name,
+        };
+    });
+
+    return closed;
+});
 </script>
 
 <template>
@@ -241,14 +288,25 @@ const cancelBooking = id => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between space-x-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Booked Closed Offices</h2>
 
-                <button
-                    @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
-                    Add Note
-                </button>
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                    <div v-if="pendingCount > 0">
+                        <button
+                            @click="showAvailModal = true"
+                            type="button"
+                            class="w-full sm:w-auto px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
+                            Payment Pending ({{ pendingCount }})
+                        </button>
+                    </div>
+                    <button
+                        v-if="can['manage settings']"
+                        @click="showNoteModal = true"
+                        class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                        Add Note
+                    </button>
+                </div>
             </div>
         </template>
 
@@ -414,9 +472,10 @@ const cancelBooking = id => {
                 <!-- View the Booking -->
                 <template v-if="showViewModal && selectedBooking">
                     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-5">
-                        <div class="w-full max-w-xl p-6 bg-white rounded-lg shadow-lg">
+                        <!-- Modal container -->
+                        <div class="w-full max-w-4xl p-2 bg-white rounded-lg shadow-lg overflow-y-auto max-h-screen">
                             <!-- Modal Header -->
-                            <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center justify-between mb-4 p-3">
                                 <h2 class="text-lg font-bold text-gray-800">
                                     {{ selectedBooking.office?.office_name ?? '—' }} -
                                     {{ capitalizeFirst(selectedBooking.plan) ?? '—' }}
@@ -428,17 +487,11 @@ const cancelBooking = id => {
                                 </button>
                             </div>
 
-                            <template v-if="showMessage">
-                                <div :class="messageClass">
-                                    {{ messageText }}
-                                </div>
-                            </template>
-
                             <!-- Modal Content -->
-                            <div class="grid grid-cols-1 gap-3 m-5 text-sm text-gray-700">
-                                <!-- General Info Table Style -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
+                                <!-- General Info -->
                                 <div class="space-y-2">
-                                    <div class="grid grid-cols-[140px_1fr] gap-x-2 items-start">
+                                    <div class="grid grid-cols-2 gap-x-2 items-start">
                                         <div
                                             v-if="can['manage settings']"
                                             class="mb-3 font-medium text-gray-600">
@@ -462,9 +515,7 @@ const cancelBooking = id => {
                                         <div class="mb-3 font-medium text-gray-600"><strong>End Date:</strong></div>
                                         <div class="mb-2">{{ formatDate(selectedBooking.end_date) }}</div>
 
-                                        <div class="mb-3 font-medium text-gray-600">
-                                            <strong>Duration:</strong>
-                                        </div>
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Duration:</strong></div>
                                         <div class="mb-2">
                                             {{
                                                 selectedBooking.plan === 'daily'
@@ -472,9 +523,6 @@ const cancelBooking = id => {
                                                     : (selectedBooking.months + ' Months' ?? '—')
                                             }}
                                         </div>
-
-                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
-                                        <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
 
                                         <div class="mb-3 font-medium text-gray-600"><strong>Status: </strong></div>
                                         <div>
@@ -493,26 +541,83 @@ const cancelBooking = id => {
                                             </span>
                                         </div>
                                     </div>
-                                    <div>
-                                        <hr v-if="selectedBooking.parking_price !== '0.00'" />
-                                        <div
-                                            class="grid grid-cols-[140px_1fr] gap-x-2 items-start pt-5"
-                                            v-if="selectedBooking.parking_price !== '0.00'">
-                                            <div class="mb-3 font-medium text-gray-600"><strong>Parking:</strong></div>
-                                            <div class="mb-3">
-                                                {{
-                                                    selectedBooking.parking_price === '0.00'
-                                                        ? 'None'
-                                                        : 'R ' + selectedBooking.parking_price
-                                                }}
-                                            </div>
+                                </div>
+
+                                <!-- Discounts -->
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-x-1 items-start mb-10">
+                                        <div class="mb-3 font-medium text-gray-600">
+                                            <strong>Parking:</strong>
                                         </div>
+                                        <div class="mb-3">
+                                            {{
+                                                selectedBooking.parking_price === '0.00'
+                                                    ? 'None'
+                                                    : 'R ' + selectedBooking.parking_price
+                                            }}
+                                        </div>
+                                        <div class="col-span-2 my-2">
+                                            <hr />
+                                        </div>
+                                        <div class="mb-3 font-medium text-gray-600"><strong>Total Price:</strong></div>
+                                        <div class="mb-3">R {{ selectedBooking.total_price ?? '0.00' }}</div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'monthly'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Monthly:</strong>
+                                        </div>
+                                        <div v-if="selectedBooking.plan === 'monthly'">
+                                            {{ selectedBooking.office?.free_boardroom_hours }} Hours
+                                        </div>
+
+                                        <div
+                                            v-if="selectedBooking.plan === 'daily'"
+                                            class="mb-3 font-medium text-gray-600">
+                                            <strong>Boardroom Discount Daily:</strong>
+                                        </div>
+                                        <div v-if="selectedBooking.plan === 'daily'">{{ discounts }} %</div>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Inline form section -->
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4"
+                                v-if="ndumi">
+                                <div>
+                                    <!-- Second column content -->
+                                </div>
+                                <form
+                                    @submit.prevent="submitForm"
+                                    class="w-full">
+                                    <div>
+                                        <label class="block text-md font-medium text-gray-700"
+                                            >Update Discount (%)</label
+                                        >
+                                        <input
+                                            v-model="form.discount"
+                                            type="number"
+                                            class="w-full px-3 py-1 border rounded" />
+                                        <div
+                                            v-if="form.errors.discount"
+                                            class="text-sm text-red-600">
+                                            {{ form.errors.discount }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <button
+                                            v-if="can['manage settings']"
+                                            class="w-full px-4 py-1 text-xs text-white bg-bluemain rounded hover:bg-bluemain/60">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
                             <!-- Modal Footer -->
                             <div class="flex flex-col gap-3 mt-6 sm:flex-row sm:justify-between sm:gap-4">
+                                <hr />
                                 <button
                                     v-if="can['manage settings']"
                                     @click="paidBooking(selectedBooking.id)"
@@ -634,6 +739,18 @@ const cancelBooking = id => {
                     :users="users"
                     :show="showNoteModal"
                     :onClose="() => (showNoteModal = false)" />
+
+                <GlobalNoteModal
+                    :users="users"
+                    :show="showDiscountModal"
+                    :onClose="() => (showDiscountModal = false)" />
+
+                <cartOfficeModal
+                    :show="showAvailModal"
+                    :can="can"
+                    :cart="allBookings"
+                    route-name="/receive/cart"
+                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

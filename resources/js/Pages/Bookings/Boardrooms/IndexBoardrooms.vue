@@ -34,6 +34,8 @@ interface approvedBoardrooms {
     selected_times: string[];
     is_available: boolean;
     available_dates: Date;
+    discount_percentage: number;
+    discounted_price: number;
 
     boardroom: Boardroom;
 }
@@ -90,7 +92,7 @@ const allBookings = computed(() => {
     const boardroom = props.approvedBoardrooms.map(b => ({
         name: b.boardroom.boardroom_name,
         type: 'Boardrooms',
-        price: Number(b.selected_price),
+        price: Number(b.discount_percentage) > 0 ? Number(b.discounted_price) : Number(b.selected_price),
         plan: b.plan,
         id: b.boardroom_id,
         months: Number(b.months),
@@ -114,7 +116,7 @@ const allBookings = computed(() => {
                     <button
                         @click="showAvailModal = true"
                         type="button"
-                        class="px-4 py-2 text-sm font-medium text-white border border-solid rounded-sm bg-primary hover:bg-bluemain/60 focus:outline-none">
+                        class="px-4 py-2 text-sm sm:text-lg text-white border border-solid rounded bg-primary hover:bg-bluemain/60 focus:outline-none">
                         Payment Pending ({{ pendingCount }})
                     </button>
                 </div>

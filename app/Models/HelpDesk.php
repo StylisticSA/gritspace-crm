@@ -19,7 +19,7 @@ class HelpDesk extends Model
 
     public function hotdeskbookings()
     {
-        return $this->hasMany(HotDeskBooking::class);
+        return $this->hasMany(HotDeskBooking::class, 'helpdesk_id');
     }
 
     public function amenities()

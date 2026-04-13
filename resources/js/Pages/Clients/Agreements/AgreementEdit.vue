@@ -5,6 +5,7 @@ import { ref, computed, watch } from 'vue';
 import useStatusMessage from '../../../Composables/useStatusMessage';
 
 const props = defineProps({
+    users: Array,
     agreement: Object,
     locations: Array,
     can: Object,
@@ -73,6 +74,25 @@ const submit = () => {
                         @submit.prevent="submit"
                         class="space-y-6">
                         <!-- User Details -->
+                        <div>
+                            <label class="block text-lg text-gray-700">User</label>
+                            <select
+                                v-model="form.user_id"
+                                class="w-full px-3 py-2 border rounded">
+                                <option value="">Select User</option>
+                                <option
+                                    v-for="user in users"
+                                    :key="user.id"
+                                    :value="user.id">
+                                    {{ user.name }}
+                                </option>
+                            </select>
+                            <div
+                                v-if="form.errors.location_id"
+                                class="text-sm text-red-600">
+                                {{ form.errors.location_id }}
+                            </div>
+                        </div>
 
                         <div>
                             <label class="block text-lg text-gray-700">Location</label>
@@ -95,22 +115,35 @@ const submit = () => {
                         </div>
 
                         <div class="mt-4">
-                            <label class="block mb-3 text-lg text-gray-700">Upload your ID</label>
+                            <label class="block mb-3 text-lg text-gray-700"
+                                >Upload your ID
 
-                            <img
-                                v-if="props.agreement.agreement"
-                                :src="'/storage/' + props.agreement.agreement"
-                                alt="Current ID"
-                                class="w-48 h-48 mb-2 border rounded" />
-
-                            <input
-                                type="file"
-                                @change="handleFileUpload($event, 'agreement')"
-                                class="w-full px-3 py-2 bg-white border rounded" />
+                                <a
+                                    v-if="agreement.agreement"
+                                    :href="agreement.agreement"
+                                    target="_blank"
+                                    class="pl-5 underline text-primary">
+                                    View Agreement
+                                </a>
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="file"
+                                    @change="handleFileUpload($event, 'agreement')"
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-bluemain/10 file:text-bluemain hover:file:bg-bluemain/20 border rounded-lg p-2" />
+                            </div>
+                            <div
+                                v-if="form.progress"
+                                class="w-full mt-3 bg-gray-200 rounded-full h-2.5">
+                                <div
+                                    class="bg-bluemain h-2.5 rounded-full transition-all duration-300"
+                                    :style="{ width: form.progress.percentage + '%' }"></div>
+                                <p class="mt-1 text-xs text-right text-gray-500">{{ form.progress.percentage }}%</p>
+                            </div>
 
                             <div
                                 v-if="form.errors.agreement"
-                                class="text-sm text-red-600">
+                                class="mt-1 text-sm text-red-600">
                                 {{ form.errors.agreement }}
                             </div>
                         </div>
@@ -124,7 +157,8 @@ const submit = () => {
                                 type="submit"
                                 class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                 :disabled="form.processing">
-                                Update Agreement
+                                <span v-if="form.processing">Uploading...</span>
+                                <span v-else>Update Agreement</span>
                             </button>
                         </div>
                     </form>

@@ -28,13 +28,20 @@ interface Office {
     daily_rate?: number;
     price_premium?: number;
     price_standard?: number;
+    free_boardroom_hours: number;
     amenities?: Amenity[];
 }
 
+interface Discounts {
+    id: number;
+    package: string;
+    discount: number;
+}
 const props = defineProps<{
     office: Office;
     categories: Category[];
     bookedDates: string[];
+    discounts: Discounts[];
 }>();
 
 const { props: pageProps } = usePage();
@@ -48,8 +55,8 @@ const normalizedCategory = categoryName?.toLowerCase().trim();
 const pricingOptions = {
     ...(normalizedCategory === 'dedicated desk' || normalizedCategory === 'dedicated desks'
         ? {
-              premium: props.office.price_premium,
-              standard: props.office.price_standard,
+              premium: props.office.monthly_rate,
+              standard: props.office.daily_rate,
           }
         : {}),
 };
@@ -104,46 +111,70 @@ if (flashMessage) {
                                     <p><strong>Category:</strong> {{ categoryName || 'N/A' }}</p>
                                 </div>
 
-                                <div v-if="office.amenities?.length">
-                                    <p><strong>Amenities:</strong></p>
-                                    <div class="flex flex-wrap gap-2 mt-1">
-                                        <span
-                                            v-for="(a, index) in office.amenities"
-                                            :key="a.id"
-                                            :style="{
-                                                backgroundColor: [
-                                                    '#b99456',
-                                                    '#8a920e',
-                                                    '#8895a6',
-                                                    '#5c732b',
-                                                    '#323c44',
-                                                    '#c56641',
-                                                ][index % 6],
-                                            }"
-                                            class="px-2 py-1 text-xs text-white rounded">
-                                            {{ a.amenity_name }}
-                                        </span>
+                                <div>
+                                    <p><strong>Premium Monthly Rate:</strong> R{{ office.monthly_rate }}</p>
+
+                                    <p><strong>Standard Monthly Rate: </strong>R{{ office.daily_rate }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Discounts -->
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                    <div
+                                        class="md:col-span-2"
+                                        v-if="discounts">
+                                        <h4 class="font-semibold text-gray-800">Boardroom Discount(s)</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li v-if="office.free_boardroom_hours">
+                                                Includes <strong>{{ office.free_boardroom_hours }}</strong> free
+                                                boardroom hours per Premium Package
+                                            </li>
+                                            <li
+                                                v-if="discounts"
+                                                v-for="item in discounts"
+                                                :key="item.id">
+                                                It has <strong>{{ item.discount }}%</strong> discount when you book
+                                                Standard Package
+                                            </li>
+                                        </ul>
+                                        <p class="py-3 text-sm text-primary">
+                                            NOTE: The discount will be applied upon approval.
+                                        </p>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-primary">No discounts.</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Pricing Summary -->
-                            <div class="pt-4 border-t border-gray-200">
-                                <h4 class="font-semibold text-gray-800">Pricing Options</h4>
-                                <ul class="mt-2 space-y-1 text-sm text-gray-700">
-                                    <li v-if="office.monthly_rate">
-                                        Monthly: <strong>R{{ office.monthly_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.daily_rate">
-                                        Daily: <strong>R{{ office.daily_rate }}</strong>
-                                    </li>
-                                    <li v-if="office.price_premium">
-                                        Premium: <strong>R{{ office.price_premium }}</strong>
-                                    </li>
-                                    <li v-if="office.price_standard">
-                                        Standard: <strong>R{{ office.price_standard }}</strong>
-                                    </li>
-                                </ul>
+                            <div class="space-y-3 border-t border-gray-200">
+                                <div class="grid grid-col-1 gap-3 mt-5">
+                                    <div v-if="office.amenities?.length">
+                                        <p><strong>Amenities:</strong></p>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            <span
+                                                v-for="(a, index) in office.amenities"
+                                                :key="a.id"
+                                                :style="{
+                                                    backgroundColor: [
+                                                        '#b99456',
+                                                        '#8a920e',
+                                                        '#8895a6',
+                                                        '#5c732b',
+                                                        '#323c44',
+                                                        '#c56641',
+                                                    ][index % 6],
+                                                }"
+                                                class="px-2 py-1 text-xs text-white rounded">
+                                                {{ a.amenity_name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-primary">No amnenities.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

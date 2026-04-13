@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Office;
+use App\Models\Discount;
 use App\Models\HelpDesk;
-use App\Models\Location;
-use Illuminate\Http\Request;
 use App\Models\HotDeskBooking;
-use Illuminate\Support\Facades\DB;
+use App\Models\Location;
+use App\Models\User;
 use App\Notifications\HotDeskBookingNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class HotDeskBookingController extends Controller
 {
@@ -19,15 +19,23 @@ class HotDeskBookingController extends Controller
     */
     public function edit(HelpDesk $hotDesk)
     {
+        // dd($hotDesk);
+
         $locations = Location::select('id', 'name')->get();
 
         $hotdesks = $hotDesk->load(['location', 'amenities']);
 
-        // dd($hotdesks);
+        $discount = Discount::where('location_id', $hotDesk->location_id)
+                   ->where('name', 'hotdesk')
+                   ->where('package','daily')
+                   ->first(['package','discount']);
+
+        // dd($discount);
 
         return Inertia::render('Bookings/HotDesks/EditHotDesk', [
-             'helpDesks' => $hotdesks,
-             'locations' => $locations,
+            'helpDesks' => $hotdesks,
+            'locations' => $locations,
+            'discount' => $discount,
         ]);
 
     }
@@ -153,15 +161,15 @@ class HotDeskBookingController extends Controller
 
         $search = $request->input('search');
 
-              
+        $users = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
+            })->select('id', 'name')
+            ->get();
 
+            
         if ($user->hasRole('admin') || $user->hasRole('super admin')) {
 
-            $users = User::with('roles')
-                ->whereHas('roles', function ($query) {
-                    $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','admin','admins']);
-                })->select('id', 'name')
-                ->get();
 
             $bookings = HotDeskBooking::with(['user', 'helpdesk'])
                         ->when($search, function ($query) use ($search) {
@@ -200,10 +208,15 @@ class HotDeskBookingController extends Controller
 
         }
 
+        $approvedHotDesk = HotDeskBooking::with('helpdesk')
+                    ->where('user_id', auth()->id())
+                    ->where('status', 'approved')
+                    ->get();
 
         return Inertia::render('Bookings/HotDesks/ShowHotDesks', [
-            'bookings' => $bookings,
-            'users' => $users,
+            'bookings'          => $bookings,
+            'users'             => $users,
+            'approvedHotDesk'   => $approvedHotDesk,
             'filters' => [
                 'search' => $search,
             ]

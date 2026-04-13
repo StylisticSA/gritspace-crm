@@ -1,8 +1,7 @@
 <script setup>
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Inertia } from '@inertiajs/inertia';
 import { ref, watch } from 'vue';
-import StatusFeedback from '@/Components/StatusFeedback.vue';
+import useStatusMessage from './../../../Composables/useStatusMessage';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import GlobalNoteModal from '@/Components/Modals/NoteModal.vue';
 
@@ -12,10 +11,8 @@ const props = defineProps({
     can: Object,
 });
 
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
 const showNoteModal = ref(false);
-
-const successMessage = ref(null);
-const bookingConflict = ref(null);
 
 const form = useForm({
     user_id: '',
@@ -26,48 +23,80 @@ const form = useForm({
     email_address: '',
     company_name: '',
     company_registration_number: '',
-    identity: null,
-    residency: null,
-    agreement: true,
+    identity_path: null,
+    residency_path: null,
     company_reg_path: null,
+    agreement: true,
 });
 
 const validateCellNumber = () => {
-    // Require +27 followed by exactly 9 digits
-    const pattern = /^\+\d{1,3}\d{7,12}$/;
+    const pattern = /^\d{3}\s\d{3}\s\d{4}$/;
 
     if (!form.cell_number) {
         form.errors.cell_number = 'Cell number is required.';
     } else if (!pattern.test(form.cell_number)) {
-        form.errors.cell_number = 'Enter a valid South African cell number (e.g. +27-).';
+        form.errors.cell_number = 'Enter a valid South African cell number (e.g. 089 897 1234).';
     } else {
-        form.errors.cell_number = null;
+        delete form.errors.cell_number;
+    }
+};
+
+const validateEmail = () => {
+    const pattern = /^[^@]+@[^@]+\.[a-zA-Z]{2,6}$/;
+
+    if (!form.email_address) {
+        form.errors.email_address = 'Email address is required.';
+    } else if (!pattern.test(form.email_address)) {
+        form.errors.email_address = 'Enter a valid email address (e.g. simple@domain.com).';
+    } else {
+        delete form.errors.email_address;
     }
 };
 
 const handleFileUpload = (event, field) => {
-    form[field] = event.target.files[0];
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+
+    if (!allowedTypes.includes(file.type)) {
+        form.errors[field] = 'Only PDF, JPEG, JPG, or PNG files are allowed.';
+        form[field] = null;
+        return;
+    }
+
+    if (file.size > maxSize) {
+        form.errors[field] = 'File size must not exceed 5 MB.';
+        form[field] = null;
+        return;
+    }
+
+    // Valid file
+    form.errors[field] = null;
+    form[field] = file;
 };
 
 const submit = () => {
     validateCellNumber();
+    validateEmail();
 
     if (form.errors.cell_number) return;
 
     form.post(route('admin.clientinfor.store'), {
         preserveScroll: true,
         forceFormData: true,
-        onError: errors => {
-            bookingConflict.value = errors.booking_conflict ?? null;
-        },
         onSuccess: () => {
-            successMessage.value = 'Closed Office booked successfully!';
-            bookingConflict.value = null;
+            message.value = 'Client Information Saved successfully!';
+            status.value = 'success';
 
             setTimeout(() => {
-                successMessage.value = null;
-                Inertia.visit(route('admin.clientinfor.index'));
-            }, 1500);
+                router.visit(route('admin.clientinfor.index'));
+            }, 3000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
         },
     });
 };
@@ -115,27 +144,11 @@ watch(
                         </Link>
                     </div>
 
-                    <StatusFeedback
-                        :conflict="bookingConflict"
-                        :success="successMessage" />
-
-                    <div
-                        v-if="form.errors.residency"
-                        class="mt-1 text-sm text-red-600">
-                        {{ form.errors.residency }}
-                    </div>
-
-                    <div
-                        v-if="form.errors.identity"
-                        class="mt-1 text-sm text-red-600">
-                        {{ form.errors.identity }}
-                    </div>
-
-                    <div
-                        v-if="showError"
-                        class="p-3 text-white bg-red-600">
-                        {{ form.errors.available }}
-                    </div>
+                    <template v-if="showMessage">
+                        <div :class="messageClass">
+                            {{ messageText }}
+                        </div>
+                    </template>
 
                     <form
                         @submit.prevent="submit"
@@ -212,8 +225,9 @@ watch(
                                     type="text"
                                     v-model="form.cell_number"
                                     @blur="validateCellNumber"
+                                    v-mask="'### ### ####'"
+                                    placeholder="### ### ####"
                                     class="w-full px-3 py-2 border rounded" />
-
                                 <div
                                     v-if="form.errors.cell_number"
                                     class="text-sm text-red-600">
@@ -226,6 +240,9 @@ watch(
                                 <input
                                     type="email"
                                     v-model="form.email_address"
+                                    @blur="validateEmail"
+                                    v-on:focus="form.clearErrors('email_address')"
+                                    placeholder="example@domain.com"
                                     class="w-full px-3 py-2 border rounded" />
                                 <div
                                     v-if="form.errors.email_address"
@@ -261,28 +278,16 @@ watch(
                             </div>
 
                             <div>
-                                <label class="block text-lg text-gray-700">Upload Client ID</label>
+                                <label class="block text-lg text-gray-700">Upload your ID</label>
                                 <input
                                     type="file"
-                                    @change="handleFileUpload($event, 'identity')"
+                                    @change="handleFileUpload($event, 'identity_path')"
+                                    v-on:focus="form.clearErrors('identity_path')"
                                     class="w-full px-3 py-2 border rounded" />
                                 <div
-                                    v-if="form.errors.indentity"
+                                    v-if="form.errors.identity_path"
                                     class="text-sm text-red-600">
-                                    {{ form.errors.indentity }}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-lg text-gray-700">Upload Client Proof of Residence</label>
-                                <input
-                                    type="file"
-                                    @change="handleFileUpload($event, 'residency')"
-                                    class="w-full px-3 py-2 border rounded" />
-                                <div
-                                    v-if="form.errors.residency"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.residency }}
+                                    {{ form.errors.identity_path }}
                                 </div>
                             </div>
 
@@ -300,12 +305,28 @@ watch(
                                 </div>
                             </div>
 
+                            <div>
+                                <label class="block text-lg text-gray-700">Proof of Residency</label>
+                                <input
+                                    type="file"
+                                    @change="handleFileUpload($event, 'residency_path')"
+                                    v-on:focus="form.clearErrors('residency_path')"
+                                    class="w-full px-3 py-2 border rounded" />
+                                <div
+                                    v-if="form.errors.residency_path"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.residency_path }}
+                                </div>
+                            </div>
+
                             <div class="w-full pt-4 md:col-span-2">
                                 <button
+                                    v-if="can['create client details']"
                                     type="submit"
                                     class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                     :disabled="form.processing">
-                                    Add Client
+                                    <span v-if="form.processing">Uploading...</span>
+                                    <span v-else> Add Client</span>
                                 </button>
                             </div>
                         </div>

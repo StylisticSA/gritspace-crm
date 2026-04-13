@@ -79,8 +79,14 @@ function goTo(model) {
 
             <!-- Badge -->
             <span
+                v-if="can['manage settings'] && adminTotal > 0"
                 class="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-600 rounded-full">
-                {{ notificationsTotal + adminTotal }}
+                {{ adminTotal }}
+            </span>
+            <span
+                v-else-if="notificationsTotal > 0"
+                class="absolute top-1 right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-600 rounded-full">
+                {{ notificationsTotal }}
             </span>
         </button>
 

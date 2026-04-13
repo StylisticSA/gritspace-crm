@@ -3,73 +3,56 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Role;
-use App\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use App\Models\User;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
     public function run()
     {
-        if (Role::count() || Permission::count()) {
-            echo "Roles or permissions already exist. Skipping seeder.\n";
-            return;
-        }
+        // Reset cached roles and permissions (Spatie specific)
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Define roles
-        $roles = ['Super Admin', 'Admin', 'Manager', 'User', 'Pending User'];
+        // 1. Create Roles
+        $roles = ['super admin', 'admin', 'user', 'pending user'];
         foreach ($roles as $roleName) {
-            Role::create(['name' => $roleName]);
+            Role::findOrCreate($roleName, 'web');
         }
 
-        // Define models and actions
-        $models = [
-            'offices', 'amenities', 'boardrooms', 'categories',
-            'help desks', 'office pricing', 'virtual offices',
-            'locations', 'office rates'
-        ];
+        // 2. Define and Create Permissions
+        $models = ['closed offices','dedicated desks','amenities', 'boardrooms', 'categories', 'hot desks',
+                   'virtual offices', 'locations', 'roles', 'permissions','users', 'agreements','client details'];
+        
         $actions = ['create', 'edit', 'delete', 'view'];
-
-        $allPermissions = [];
-
-        // Create model-based CRUD permissions
+        
         foreach ($models as $model) {
             foreach ($actions as $action) {
-                $perm = Permission::create(['name' => "{$action} {$model}"]);
-                $allPermissions[] = $perm->id;
+                Permission::findOrCreate("{$action} {$model}", 'web');
             }
         }
 
-        // Custom permissions (menu/UI logic)
         $customPermissions = [
-            'manage settings',
-            'view book offices',
-            'view book boardrooms',
-            'view book extras',
-            'add users',
-            'add roles',
-            'add permissions',
-            'edit bookings',
-            'delete bookings',
+            'manage settings', 'view book offices', 'view book boardrooms', 
+            'view book extras', 'view dashboard'
         ];
 
         foreach ($customPermissions as $permName) {
-            $perm = Permission::create(['name' => $permName]);
-            $allPermissions[] = $perm->id;
+            Permission::findOrCreate($permName, 'web');
         }
 
-        // Assign all permissions to Super Admin
-        $superAdmin = Role::where('name', 'Super Admin')->first();
-        $superAdmin->permissions()->sync($allPermissions);
+        // 3. Assign Permissions to Roles
+        $superAdmin = Role::findByName('Super Admin');
+        $superAdmin->syncPermissions(Permission::all());
 
-        // Assign Super Admin role to the default user
+        // 4. Assign Role to User
         $user = User::firstOrCreate(['email' => 'admin@admin.com'], [
             'name' => 'Super Admin',
             'password' => bcrypt('superadmin'),
         ]);
-        $user->roles()->syncWithoutDetaching([$superAdmin->id]);
+        
+        $user->assignRole($superAdmin);
 
-
-        echo "Roles and permissions seeded successfully.\n";
+        $this->command->info("Roles and permissions seeded successfully.");
     }
 }

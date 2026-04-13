@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Amenity;
 use App\Models\HelpDesk;
 use App\Models\Location;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class HelpDeskController extends Controller
 {
@@ -54,6 +54,8 @@ class HelpDeskController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
+
         $validated = $request->validate([
             'help_desk_name' => [
                 'required',
@@ -65,21 +67,22 @@ class HelpDeskController extends Controller
                         return $query->where('location_id', $request->location_id);
                     }),
             ],
-            'location_id'     => 'required',
-            'price'           => 'required|numeric',
-            'duration'        => 'required|numeric',
-            'desks'           => 'nullable|numeric',
-            'is_available'    => ['nullable'],
-            'available_dates' => ['nullable'],
+            'location_id'           => 'required',
+            'price'                 => 'required|numeric',
+            'duration'              => 'required|numeric',
+            'desks'                 => 'nullable|numeric',
+            'free_boardroom_hours'  => 'nullable',
+            'is_available'          => ['nullable'],
+            'available_dates'       => ['nullable'],
 
         ]);
 
         $amenities = $request->input('amenities', []);
 
-        $validated['is_available']    = false;
-        $validated['available_dates'] = null;
-
-        $helpDesk = HelpDesk::create($validated);
+        $helpDesk = HelpDesk::create(array_merge($validated, [
+            'is_available'      => true,
+            'available_dates'   => $validated['is_available'],
+        ]));
 
         if (!empty($amenities)) {
             $helpDesk->amenities()->sync($amenities);
@@ -100,10 +103,12 @@ class HelpDeskController extends Controller
 
         $helpDesks = $helpDesk->load(['amenities']);
 
+     
         return Inertia::render('HelpDesk/EditHelpDesk', [
             'helpDesks' => $helpDesks,
             'locations' => $locations,
             'amenities' => $amenities,
+           
         ]);
     }
 
@@ -125,19 +130,16 @@ class HelpDeskController extends Controller
                                     ->where('location_id', $request->location_id);
                             })
             ],
-           'location_id'       => 'required',
-           'price'             => 'required|numeric',
-           'duration'          => 'required|numeric',
-           'desks'             => 'nullable|numeric',
-           
-           'is_available'    => ['nullable'],
-            'available_dates' => ['nullable'],
+           'location_id'            => 'required',
+           'price'                  => 'required|numeric',
+           'duration'               => 'required|numeric',
+           'desks'                  => 'nullable|numeric',
+           'free_boardroom_hours'   => 'nullable',
+           'is_available'           => ['nullable'],
+           'available_dates'        => ['nullable'],
         ]);
 
         $amenities = $request->input('amenities', []);
-
-        $validated['is_available']    = false;
-        $validated['available_dates'] = null;
 
         $helpDesk->update($validated);
 

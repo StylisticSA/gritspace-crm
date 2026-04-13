@@ -4,7 +4,6 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     name: '',
-    offers_level: '',
 });
 </script>
 
@@ -47,22 +46,7 @@ const form = useForm({
                                 </div>
                             </div>
                         </div>
-                        <div>
-                            <label class="inline-flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    v-model="form.offers_level"
-                                    class="w-5 h-5 text-primary form-checkbox" />
-                                <span class="text-lg text-gray-700"
-                                    >Offers different Service Levels (Standard/Premium)</span
-                                >
-                            </label>
-                            <div
-                                v-if="form.errors.offers_level"
-                                class="text-sm text-red-600">
-                                {{ form.errors.offers_level }}
-                            </div>
-                        </div>
+
                         <div class="w-full pt-4 md:col-span-2">
                             <button
                                 type="submit"

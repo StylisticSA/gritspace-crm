@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Office;
 use App\Models\Amenity;
 use App\Models\Booking;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Location;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Office;
 use App\Models\OfficePricing;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
 use App\Notifications\BookingNotification;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class DedicatedBookingController extends Controller
 {
@@ -61,13 +62,20 @@ class DedicatedBookingController extends Controller
                 ->where('user_id', $user->id)
                 ->latest()
                 ->paginate(10);
-        }
-
-   
+            }
+                
+                $approvedDedicated = Booking::with(['office', 'office.location', 'category'])
+                            ->whereHas('category', function ($query) {
+                                $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
+                            })
+                            ->where('user_id', auth()->id())
+                            ->where('status', 'approved')
+                            ->get();   
 
         return Inertia::render('Bookings/Dedicated/ShowDedicated', [
             'bookings' => $bookings,
             'users' => $users ?? null,
+            'approvedDedicated'    => $approvedDedicated, 
             'filters' => [
                 'search' => $search,
             ]
@@ -259,6 +267,13 @@ class DedicatedBookingController extends Controller
             ->unique()
             ->values();
 
+        $discounts = Discount::where('location_id', $dedicated->location_id)
+                ->where('category_id', $dedicated->category_id)
+                ->get(['id', 'package', 'discount']);
+
+
+
+
         return Inertia::render('Bookings/Dedicated/EditDedicated', [
             'office' => $dedicated->load(['location', 'pricing', 'amenities']),
             'locations' => $locations,
@@ -266,6 +281,8 @@ class DedicatedBookingController extends Controller
             'amenities' => $amenities,
             'categories' => $categories,
             'bookedDates' => $allBookedDates,
+            'discounts' => $discounts,
+           
         ]);
     }
 

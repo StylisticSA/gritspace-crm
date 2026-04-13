@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use Inertia\Inertia;
-use App\Models\Permission;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+use App\Traits\SearchFilter\HasSearchFilter;
 
 class PermissionController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $this->getSearch($request);
 
         $permissions = Permission::when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
@@ -48,20 +51,15 @@ class PermissionController extends Controller
             'name' => 'required|string|max:255|unique:permissions,name',
         ]);
 
-        $permission = Permission::create(['name' => $validated['name']]);
+        $permission = Permission::create(['name' => strtolower($validated['name']) ] );
 
-        $superAdmin = Role::where('name', 'Super Admin')->first();
-        $superAdmin?->permissions()->syncWithoutDetaching([$permission->id]);
+        $superAdmin = Role::where('name', 'super admin')->first();
+    
+        if ($superAdmin) {
+            $superAdmin->givePermissionTo($permission);
+        }
 
         return redirect()->route('admin.permissions')->with('success', 'Permissions created successfully.');
-    }
-
-    /**
-     * Display the resource.
-     */
-    public function show()
-    {
-        //
     }
 
     /**
@@ -84,7 +82,9 @@ class PermissionController extends Controller
             'name' => 'sometimes|string|max:255|unique:permissions,name,' . $permission->id,
         ]);
 
-        $permission->update($validated);
+        $permission->update(['name' =>  strtolower($validated['name'])]);
+
+        PermissionRegistrar::class->forgetCachedPermissions();
 
         return redirect()->route('admin.permissions')->with('success', 'Permission updated successfully.');
     }
@@ -96,6 +96,8 @@ class PermissionController extends Controller
     {
         $permission->delete();
 
+        PermissionRegistrar::class->forgetCachedPermissions();
+        
         return back()->with('success', 'A permission has been deleted successfully.');
     }
 }

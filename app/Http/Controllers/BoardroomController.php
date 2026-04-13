@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use Inertia\Inertia;
 use App\Models\Amenity;
-use App\Models\Location;
 use App\Models\Boardroom;
+use App\Models\Location;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class BoardroomController extends Controller
 {
@@ -63,35 +64,38 @@ class BoardroomController extends Controller
         $this->authorize('create', Boardroom::class);
 
         $validated = $request->validate([
-            'boardroom_name'        => 'required|string|max:255',
-            'location_id'           => 'required',
-            'seats'                 => 'required|numeric',
-            'hourly_price'          => 'required|numeric|min:0',
-            'daily_price'           => 'required|numeric|min:0',
-            // 'amenities'             => ['array'],
-            // 'amenities.*'           => ['exists:amenities,id'],
-
+            'boardroom_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('boardrooms')
+                    ->where(function ($query) use ($request) {
+                        return $query->where('location_id', $request->location_id);
+                    }),
+            ],
+            'location_id'     => 'required|exists:locations,id',
+            'seats'           => 'required|numeric',
+            'hourly_price'    => 'required|numeric|min:0',
+            'daily_price'     => 'required|numeric|min:0',
             'is_available'    => ['nullable'],
             'available_dates' => ['nullable'],
-
+        ], [
+            'boardroom_name.unique' => 'A boardroom with this name already exists at the selected location.',
         ]);
-
 
         $amenities = $request->input('amenities', []);
 
-        $validated['is_available'] = false;
-        $validated['available_dates'] = null;
-        // dd($validated);
-
-        $boardrooms = Boardroom::create($validated);
-
+        $boardroom = Boardroom::create(array_merge($validated, [
+            'is_available'      => true,
+            'available_dates'  => $validated['is_available'],
+        ]));
 
         if (!empty($amenities)) {
             $boardrooms->amenities()->sync($amenities);
         }
 
+        return redirect()->back()->with('success', 'A boardroom has been created successfully.');
 
-        return redirect()->route('admin.boardrooms')->with('success', 'A boardroom has been created successfully.');
     }
 
     /**
@@ -130,14 +134,24 @@ class BoardroomController extends Controller
         $this->authorize('update', $boardroom);
 
         $validated = $request->validate([
-            'boardroom_name'        => 'required|string|max:255',
-            'location_id'           => 'required',
-            'seats'                 => 'required|numeric',
-            'hourly_price'          => 'required|numeric|min:0',
-            'daily_price'           => 'required|numeric|min:0',
-            // 'amenities'             => ['array'],
-            // 'amenities.*'           => ['exists:amenities,id'],
-
+            'boardroom_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('boardrooms')
+                    ->ignore($boardroom->id) 
+                    ->where(function ($query) use ($request) {
+                        return $query->where('location_id', $request->location_id);
+                    }),
+            ],
+            'location_id'     => 'required|exists:locations,id',
+            'seats'           => 'required|numeric',
+            'hourly_price'    => 'required|numeric|min:0',
+            'daily_price'     => 'required|numeric|min:0',
+            'is_available'    => ['nullable'],
+            'available_dates' => ['nullable'],
+        ], [
+            'boardroom_name.unique' => 'A boardroom with this name already exists at the selected location.',
         ]);
 
 

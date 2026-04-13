@@ -77,7 +77,7 @@ class CoffeeController extends Controller
             if (!$client) {
 
                 return back()->withErrors([
-                    'success' => 'The user client information should is not complete.',
+                    'success' => 'The user client information is not complete.',
                 ]);
 
             }
@@ -93,10 +93,13 @@ class CoffeeController extends Controller
             $validated['amount'],
             'Coffee'
         );
-
+        
+        dd($costs);
+        
         $validated['total_cost'] = $costs['total_cost'];
 
         $user = User::where('id', $validated['user_id'])->first();
+
 
         if ($user) {
             DailyUsage::create($validated);

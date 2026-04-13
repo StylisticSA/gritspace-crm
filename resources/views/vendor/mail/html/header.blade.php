@@ -2,11 +2,11 @@
 <tr>
     <td class="header">
         <a href="{{ $url }}" style="display: inline-block;">
-            @if (trim($slot) === 'Laravel')
-                <img src="{{ asset('files_grits/gritspace.svg') }}" class="logo" alt="Laravel Logo">
+            <img src="{{ asset('files_grits/gritspace_logo.png') }}" class="logo" alt="grit space Logo">
+            {{-- @if (trim($slot) === 'Laravel')
             @else
                 {!! $slot !!}
-            @endif
+            @endif --}}
         </a>
     </td>
 </tr>

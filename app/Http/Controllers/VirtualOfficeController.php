@@ -6,7 +6,6 @@ use Inertia\Inertia;
 use App\Models\Amenity;
 use App\Models\Location;
 use Illuminate\Http\Request;
-use App\Models\OfficePricing;
 use App\Models\VirtualOffice;
 
 class VirtualOfficeController extends Controller
@@ -56,16 +55,13 @@ class VirtualOfficeController extends Controller
     public function store(Request $request)
     {
 
-
         $validated = $request->validate([
             'virtualoffice_name'        => 'required|string|max:255',
             'location_id'               => 'required|numeric',
-
+            'free_boardroom'            => 'nullable|numeric',
             'price'                     => 'required|numeric',
             'amenities'                 => ['array'],
             'amenities.*'               => ['exists:amenities,id'],
-
-            
 
         ]);
 
@@ -79,8 +75,6 @@ class VirtualOfficeController extends Controller
                 'virtualoffice_name' => 'This virtual office name already exists at the selected location.',
             ])->withInput();
         }
-
-
 
         $virtualoffice = VirtualOffice::create([
             'virtualoffice_name'        => $validated['virtualoffice_name'],
@@ -125,17 +119,16 @@ class VirtualOfficeController extends Controller
         $validated = $request->validate([
             'virtualoffice_name'  => 'required|string|max:255',
             'location_id'         => 'required|numeric',
-
+            'free_boardroom'      => 'nullable|numeric',
             'price'               => 'required|numeric',
             'amenities'           => ['array'],
             'amenities.*'         => ['exists:amenities,id'],
-
         ]);
 
 
         $exists = VirtualOffice::where('virtualoffice_name', $validated['virtualoffice_name'])
             ->where('location_id', $validated['location_id'])
-            ->where('id', '!=', $virtualoffice->id) // exclude current record
+            ->where('id', '!=', $virtualoffice->id) 
             ->exists();
 
         if ($exists) {
@@ -143,9 +136,6 @@ class VirtualOfficeController extends Controller
                 'virtualoffice_name' => 'This virtual office name already exists at the selected location.',
             ])->withInput();
         }
-
-
-
 
         $virtualoffice->update([
             'virtualoffice_name'        => $validated['virtualoffice_name'],

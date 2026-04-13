@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use Inertia\Inertia;
-use App\Models\Permission;
+use App\Traits\SearchFilter\HasSearchFilter;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $this->getSearch($request);
 
         $roles = Role::with('permissions') 
             ->when($search, function ($query, $search) {
@@ -53,18 +55,12 @@ class RoleController extends Controller
             'name'    => 'required|string|max:255',
         ]);
 
-        $role = role::create($validated);
+        $role = Role::create( ['name' =>  strtolower($validated['name']) ]);
 
         return redirect()->route('admin.roles')->with('success', 'Role created successfully.');
     }
 
-    /**
-     * Display the resource.
-     */
-    public function show()
-    {
-        //
-    }
+    
 
     /**
      * Show the form for editing the resource.
@@ -94,10 +90,9 @@ class RoleController extends Controller
         ]);
 
 
-        $role->update(['name' => $validated['name']]);
+        $role->update(['name' =>  strtolower($validated['name']) ]);
 
-        $permissions = Permission::whereIn('name', $validated['permissions'] ?? [])->pluck('id');
-        $role->permissions()->sync($permissions);
+        $role->syncPermissions($validated['permissions'] ?? []);
 
         return redirect()->route('admin.roles')->with('success', 'A role has been updated successfully.');
     }
@@ -107,6 +102,10 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        if ($role->name === 'Super Admin') {
+            return back()->with('error', 'The Super Admin role cannot be deleted.');
+        }
+
         $role->delete();
 
         return back()->with('success', 'A role has been deleted successfully.');

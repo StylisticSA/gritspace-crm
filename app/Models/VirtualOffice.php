@@ -20,7 +20,7 @@ class VirtualOffice extends Model
 
     public function bookings()
     {
-        return $this->hasMany(VirtualBooking::class);
+        return $this->hasMany(VirtualBooking::class, 'virtual_office_id');
     }
 
     public function amenities()

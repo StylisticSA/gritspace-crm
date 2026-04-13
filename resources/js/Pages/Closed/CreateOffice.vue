@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { watch, computed } from 'vue';
 import useStatusMessage from '../../Composables/useStatusMessage';
+import useToday from '@/Composables/useTodaay';
 
 const form = useForm({
     office_name: '',
@@ -11,6 +12,8 @@ const form = useForm({
     seats: '',
     monthly_rate: '',
     daily_rate: '',
+    free_boardroom_hours: '',
+    is_available: useToday(),
     pricing_id: '',
     amenities: [],
     pricing_type: [],
@@ -49,6 +52,10 @@ const submit = () => {
                 router.visit(route('admin.closedoffices'));
                 router.reload({ preserveScroll: true });
             }, 2000);
+        },
+        onError: errors => {
+            message.value = Object.values(errors).join('\n');
+            status.value = 'deleted';
         },
     });
 };
@@ -170,39 +177,7 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div v-if="isDedicatedDesk">
-                                <label class="block text-lg font-medium text-gray-700">Pricing Type</label>
-                                <div class="flex flex-col space-y-2">
-                                    <div
-                                        v-for="pricing in pricings"
-                                        :key="pricing.id"
-                                        class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            v-model="form.pricing_type"
-                                            :value="pricing.rate"
-                                            :id="pricing.id"
-                                            class="border-gray-300 rounded shadow-sm text-primary focus:ring-bluemain/60 form-checkbox" />
-                                        <label
-                                            :for="pricing.id"
-                                            class="ml-2 text-sm">
-                                            {{ pricing.category_name }} - {{ pricing.pricing_type }} -
-                                            {{
-                                                pricing.rate
-                                                    ? `R ${Number(pricing.rate).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                                    : 'None'
-                                            }}
-                                        </label>
-                                    </div>
-                                </div>
-                                <div
-                                    v-if="form.errors.pricing_type"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.pricing_type }}
-                                </div>
-                            </div>
-
-                            <div v-if="!isDedicatedDesk">
+                            <div>
                                 <label class="block text-lg font-medium text-gray-700">Daily Rate</label>
                                 <input
                                     v-model="form.daily_rate"
@@ -215,6 +190,24 @@ const submit = () => {
                                     v-if="form.errors.daily_rate"
                                     class="text-sm text-red-600">
                                     {{ form.errors.daily_rate }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-lg font-medium text-gray-700"
+                                    >Free Boardroom hours per month</label
+                                >
+                                <input
+                                    v-model="form.free_boardroom_hours"
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    class="w-full px-3 py-2 border rounded"
+                                    placeholder="2%" />
+                                <div
+                                    v-if="form.errors.free_boardroom_hours"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.free_boardroom_hours }}
                                 </div>
                             </div>
                         </div>

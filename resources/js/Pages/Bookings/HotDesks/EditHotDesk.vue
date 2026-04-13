@@ -24,9 +24,15 @@ interface HelpDesk {
     amenities?: Amenity[];
 }
 
+interface Discount {
+    package: string;
+    discount: number;
+}
+
 const props = defineProps<{
     helpDesks: HelpDesk;
     locations: Location;
+    discount: Discount;
 }>();
 
 const viewMode = ref<'form' | 'calendar' | null>(null);
@@ -59,42 +65,66 @@ const pricingOptions = {
                         </div>
 
                         <!-- Details -->
-                        <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
-                            <div class="space-y-2">
-                                <p><strong>Location:</strong> {{ helpDesks.location?.name || 'N/A' }}</p>
-                                <p>
-                                    <strong>Duration:</strong>
-                                    {{
-                                        helpDesks.duration === '0.5'
-                                            ? 'Half-Day'
-                                            : helpDesks.duration
-                                              ? helpDesks.duration + ' Days'
-                                              : 'N/A'
-                                    }}
-                                </p>
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <p><strong>Location:</strong> {{ helpDesks.location?.name || 'N/A' }}</p>
+                                    <p>
+                                        <strong>Duration:</strong>
+                                        {{
+                                            helpDesks.duration === '0.5'
+                                                ? 'Half-Day'
+                                                : helpDesks.duration
+                                                  ? helpDesks.duration + ' Days'
+                                                  : 'N/A'
+                                        }}
+                                    </p>
+                                </div>
 
-                                <p><strong>Price: </strong>R{{ helpDesks.price ?? '0.00' }}</p>
+                                <div v-if="helpDesks.amenities?.length">
+                                    <p><strong>Amenities:</strong></p>
+                                    <div class="flex flex-wrap gap-2 mt-1">
+                                        <span
+                                            v-for="(a, index) in helpDesks.amenities"
+                                            :key="a.id"
+                                            :style="{
+                                                backgroundColor: [
+                                                    '#b99456',
+                                                    '#8a920e',
+                                                    '#8895a6',
+                                                    '#5c732b',
+                                                    '#323c44',
+                                                    '#c56641',
+                                                ][index % 6],
+                                            }"
+                                            class="px-2 py-1 text-xs text-white rounded">
+                                            {{ a.amenity_name }}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                    <!-- First column: Pricing Options -->
+                                    <div class="md:col-span-1">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
+                                        <ul class="space-y-1 text-sm text-gray-700">
+                                            <li v-if="helpDesks.price">
+                                                Price: <strong>R{{ helpDesks.price ?? '0.00' }}</strong>
+                                            </li>
+                                        </ul>
+                                    </div>
 
-                            <div v-if="helpDesks.amenities?.length">
-                                <p><strong>Amenities:</strong></p>
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    <span
-                                        v-for="(a, index) in helpDesks.amenities"
-                                        :key="a.id"
-                                        :style="{
-                                            backgroundColor: [
-                                                '#b99456',
-                                                '#8a920e',
-                                                '#8895a6',
-                                                '#5c732b',
-                                                '#323c44',
-                                                '#c56641',
-                                            ][index % 6],
-                                        }"
-                                        class="px-2 py-1 text-xs text-white rounded">
-                                        {{ a.amenity_name }}
-                                    </span>
+                                    <!-- Second column: Discounts -->
+                                    <div class="md:col-span-2">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                            <li v-if="props.discount && props.discount?.discount">
+                                                It has <strong>{{ props.discount?.discount }}%</strong> discount on
+                                                boardrooms.
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>

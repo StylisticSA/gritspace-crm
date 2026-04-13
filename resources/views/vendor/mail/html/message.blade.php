@@ -3,7 +3,8 @@
     <x-slot:header>
         <x-mail::header :url="config('app.url')">
             {{-- {{ config('app.name') }} --}}
-            <h1>Grit Space</h1>
+             <img src="{{ asset('files_grits/gritspace.svg') }}" alt="Logo" style="height: 50px;">
+            {{-- <h1>Grit Space</h1> --}}
         </x-mail::header>
     </x-slot:header>
 

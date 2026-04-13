@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->timestamps();
 
+            $table->integer('boardroom_discounted_percent')->nullable()->default(0);
+
             $table->softDeletes();
 
         });

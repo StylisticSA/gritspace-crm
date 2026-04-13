@@ -2,25 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use App\Models\User;
-use Inertia\Inertia;
-use Inertia\Response;
-use App\Models\Permission;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Notifications\NewUserRegistered;
+use App\Traits\SearchFilter\HasSearchFilter;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\RedirectResponse;
-use App\Notifications\NewUserRegistered;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
 
 class ManagerController extends Controller
 {
+    use HasSearchFilter; 
     /**
      * Display a listing of the resource.
      */
@@ -28,7 +26,7 @@ class ManagerController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $search = $request->input('search');
+        $search = $this->getSearch($request);
 
         $users = User::with('roles')
                 ->when(!auth()->user()->hasRole('super admin'), function ($query) {
@@ -36,14 +34,15 @@ class ManagerController extends Controller
                         $q->where('name', 'super admin');
                     });
                 })
-                ->when($search, function ($query, $search) {
-                    $query->where('name', 'like', "%{$search}%");
+                 ->when($search, function ($query, $search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                    });
                 })
-                ->orderByDesc('created_at')
+                ->orderBy('created_at')
                 ->paginate(10)
                 ->withQueryString();
-
-
 
         return Inertia::render('Manage/ManageUsers', [
             'users' => $users,
@@ -86,9 +85,12 @@ class ManagerController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'user_type' => 'nullable',
             'password' => [
                         'required',
                         'confirmed',
@@ -108,20 +110,20 @@ class ManagerController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'email_verified_at' => now(), 
+            'user_type' => $validated['user_type'],
         ]);
 
 
-        $roles = Role::whereIn('name', $validated['roles'] ?? [])->get();
-        $user->roles()->sync($roles->pluck('id'));
+         if (!empty($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
 
-        $permissions = Permission::whereIn('name', $validated['permissions'] ?? [])->pluck('id');
-        $user->permissions()->sync($permissions);
+        if (!empty($validated['permissions'])) {
+            $user->syncPermissions($validated['permissions']);
+        }
 
-
-        $admins = User::withRole('Admin')
-                        ->get()
-                        ->merge(User::withRole('Super Admin')->get())
-                        ->unique('id');
+        $admins = User::role(['Admin', 'Super Admin'])->get()->unique('id');
 
         $admins->each(fn ($admin) => $admin->notify(new NewUserRegistered($user)));
 
@@ -133,13 +135,12 @@ class ManagerController extends Controller
      */
     public function edit(User $user)
     {
-        $this->authorize('update', $user);
-
+        $this->authorize('update', User::class);
 
         $user->load('roles', 'roles.permissions')->makeHidden(['password']);
 
         return Inertia::render('Manage/EditUser', [
-               'user' => $user->only(['id', 'name', 'email']),
+               'user' => $user->only(['id', 'name', 'email','user_type']),
                'roles' => Role::with('permissions')
                    ->select('id', 'name')
                    ->when(!auth()->user()?->hasRole('super admin'), function ($query) {
@@ -165,20 +166,20 @@ class ManagerController extends Controller
      */
     public function update(Request $request, User $user)
     {
-
-
-        $this->authorize('update', $user);
+        $this->authorize('update', User::class);
 
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'email'         => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password'      => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'password'      => ['nullable', 'confirmed', Password::min(8)->mixedCase()->letters()->numbers(),],
             'roles'         => ['array'],
             'roles.*'       => ['string', 'exists:roles,name'],
+            'user_type'     => ['required'],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        $user->user_type = $validated['user_type'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -186,8 +187,13 @@ class ManagerController extends Controller
 
         $user->save();
 
-        $roles = Role::whereIn('name', $validated['roles'] ?? [])->get();
-        $user->roles()->sync($roles->pluck('id'));
+        if (isset($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
+
+        if (isset($validated['permissions'])) {
+            $user->syncPermissions($validated['permissions']);
+        }
 
         return redirect()->route('admin.manage.user')->with('success', 'User roles and permissions updated.');
     }
@@ -196,17 +202,15 @@ class ManagerController extends Controller
     /**
      * Remove the resource from storage.
      */
-
     public function destroy(User $user)
     {
-        $this->authorize('delete', $user);
-
-        $user->roles()->detach();
-        $user->permissions()->detach();
+        $this->authorize('delete', User::class);
 
         $user->update(['is_active' => false]);
 
         $user->delete();
+
+        $user->forgetCachedPermissions();
 
         return back()->with('success', 'User has been disabled successfully.');
     }

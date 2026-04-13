@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Office;
-use App\Models\Category;
 use App\Models\HelpDesk;
 use App\Models\Location;
 use App\Models\Boardroom;
@@ -36,28 +35,27 @@ class CompanyDetailController extends Controller
             return redirect()->route('admin.clientinfor.index');
         }
 
-        if (empty($clients)) {
+        // dd($clients);
 
+        if (empty($clients)) {
             return redirect()->route('companydetail.create');
         } else {
 
-            // Transform paths into public URLs
+            // dd($clients->identity_path);
             $clients->identity_path = $clients->identity_path
-                ? Storage::url($clients->identity_path)
+                ? Storage::disk('google')->url($clients->identity_path)
                 : null;
 
             $clients->residency_path = $clients->residency_path
-                ? Storage::url($clients->residency_path)
+                ? Storage::disk('google')->url($clients->residency_path)
                 : null;
 
             $clients->company_reg_path = $clients->company_reg_path
-                ? Storage::url($clients->company_reg_path)
+                ? Storage::disk('google')->url($clients->company_reg_path)
                 : null;
-
 
             // dd($clients->location);
             $locations = Location::select('id', 'name')->get();
-
 
 
             $agreement = AgrementUpload::select('id', 'user_id', 'agreement', 'status')
@@ -66,7 +64,7 @@ class CompanyDetailController extends Controller
 
             if ($agreement) {
                 $agreement->agreement = $agreement->agreement
-                    ? Storage::url($agreement->agreement)
+                    ? Storage::disk('google')->url($agreement->agreement)
                     : null;
             }
 
@@ -89,11 +87,11 @@ class CompanyDetailController extends Controller
         $locations = Location::select('id', 'name', 'address', 'city')->get();
 
         $closed = Office::with('category')
-            ->whereHas('category', function ($query) {
-                $query->whereIn(DB::raw('LOWER(name)'), ['closed office', 'closed offices']);
-            })
-            ->select('id', 'office_name', 'category_id')
-            ->get();
+                ->whereHas('category', function ($query) {
+                    $query->whereIn(DB::raw('LOWER(name)'), ['closed office', 'closed offices']);
+                })
+                ->select('id', 'office_name', 'category_id')
+                ->get();
 
 
         $dedicated = Office::with('category')
@@ -110,40 +108,30 @@ class CompanyDetailController extends Controller
 
         $boardrooms = Boardroom::select('id', 'boardroom_name')->get();
 
+        $userType = auth()->user()->user_type;
+
         return Inertia::render('CompanyDetails/CreateCompany', [
             'locations'     => $locations,
             'closedoffices' => $closed,
             'dedicated'     => $dedicated,
             'hotdesks'      => $hotdesks,
             'virtuals'      => $virtuals,
+            'user_type'     => $userType,
 
         ]);
 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function rate()
-    {
-        $locations = Location::select('id', 'name', 'address', 'city')->get();
-
-        $categories = Category::select('id', 'name')->get();
-
-        return Inertia::render('CompanyDetails/CreateRates', [
-            'locations' => $locations,
-            'categories' => $categories,
-        ]);
-
-    }
+    
 
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
         // dd($request);
-
+        
         $validated = $request->validate([
             'location_id'                   => 'nullable|exists:locations,id',
             'name'                          => 'required|string|max:255',
@@ -152,9 +140,9 @@ class CompanyDetailController extends Controller
             'email_address'                 => 'required|email|max:255|unique:client_information,email_address',
             'company_name'                  => 'nullable|string|max:255',
             'company_registration_number'   => 'nullable|string|max:100',
-            'identity_path'                 => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'residency_path'                => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'company_reg_path'              => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'identity_path'                 => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
+            'residency_path'                => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
+            'company_reg_path'              => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
             'agreement'                     => 'required'
         ]);
 
@@ -176,13 +164,11 @@ class CompanyDetailController extends Controller
             ]);
         }
 
-
         if ($existing?->company_reg_path && $request->hasFile('company_reg_path')) {
             return back()->withErrors([
                 'company registration' => 'A company registration document already exists for this user.',
             ]);
         }
-
 
         DB::beginTransaction();
 
@@ -196,43 +182,27 @@ class CompanyDetailController extends Controller
             if ($request->hasFile('identity') && empty($existing?->identity_path)) {
                 $identityFile = $request->file('identity');
                 $identityName = 'identity_' . Str::slug($user->name) . '_' . Str::uuid() . '.' . $identityFile->getClientOriginalExtension();
-                $identityPath = $identityFile->storeAs('uploads/identity', $identityName, 'public');
-
-                if (!$identityPath) {
-                    throw new \Exception('Failed to store identity document.');
-                }
-
+                $identityPath = Storage::disk('google')->putFileAs('identity', $identityFile, $identityName);
                 $client->identity_path = $identityPath;
             }
 
             if ($request->hasFile('residency') && empty($existing?->residency_path)) {
                 $residencyFile = $request->file('residency');
                 $residencyName = 'residency_' . Str::slug($user->name) . '_' . Str::uuid() . '.' . $residencyFile->getClientOriginalExtension();
-                $residencyPath = $residencyFile->storeAs('uploads/residency', $residencyName, 'public');
-
-                if (!$residencyPath) {
-                    throw new \Exception('Failed to store residency document.');
-                }
-
+                $residencyPath = Storage::disk('google')->putFileAs('residency', $residencyFile, $residencyName);
                 $client->residency_path = $residencyPath;
             }
 
-
             if ($request->hasFile('company_reg_path') && empty($existing?->company_reg_path)) {
                 $companyRegFile = $request->file('company_reg_path');
-                $companyRegName = 'company_reg_path_' . Str::slug($user->name) . '_' . Str::uuid() . '.' . $companyRegFile->getClientOriginalExtension();
-                $companyRegPath = $companyRegFile->storeAs('uploads/companyreg', $companyRegName, 'public');
-
-                if (!$companyRegPath) {
-                    throw new \Exception('Failed to store companyReg document.');
-                }
-
+                $companyRegName = 'company_reg_' . Str::slug($user->name) . '_' . Str::uuid() . '.' . $companyRegFile->getClientOriginalExtension();
+                $companyRegPath = Storage::disk('google')->putFileAs('company_reg', $companyRegFile, $companyRegName);
                 $client->company_reg_path = $companyRegPath;
             }
 
 
-            $client->save();
 
+            $client->save();
 
             $rows = collect([
                 'closed'     => $request->closed_rows,
@@ -270,11 +240,15 @@ class CompanyDetailController extends Controller
             DB::rollBack();
 
             if (!empty($identityPath)) {
-                Storage::disk('public')->delete($identityPath);
+                Storage::disk('google')->delete($identityPath);
             }
             if (!empty($residencyPath)) {
-                Storage::disk('public')->delete($residencyPath);
+                Storage::disk('google')->delete($residencyPath);
             }
+            if (!empty($companyRegPath)) {
+                Storage::disk('google')->delete($companyRegPath);
+            }
+
 
             return back()->withErrors(['error' => 'Failed to save client information: ' . $e->getMessage()]);
         }
@@ -289,19 +263,19 @@ class CompanyDetailController extends Controller
         $locations = Location::select('id', 'name', 'address', 'city')->get();
 
 
-        // Transform paths into public URLs
+        // Transform paths into Google Drive URLs
         $client->identity_path = $client->identity_path
-            ? Storage::url($client->identity_path)
+            ? Storage::disk('google')->url($client->identity_path)
             : null;
 
         $client->residency_path = $client->residency_path
-            ? Storage::url($client->residency_path)
+            ? Storage::disk('google')->url($client->residency_path)
             : null;
 
-
         $client->company_reg_path = $client->company_reg_path
-                    ? Storage::url($client->company_reg_path)
-                    : null;
+            ? Storage::disk('google')->url($client->company_reg_path)
+            : null;
+
 
 
         return Inertia::render('CompanyDetails/EditCompany', [
@@ -335,44 +309,38 @@ class CompanyDetailController extends Controller
 
         $validated['user_id'] = auth()->id();
 
-
         if ($request->hasFile('identity')) {
-
-            if ($client->identity_path && Storage::disk('public')->exists($client->identity_path)) {
-                Storage::disk('public')->delete($client->identity_path);
+            if ($client->identity_path && Storage::disk('google')->exists($client->identity_path)) {
+                Storage::disk('google')->delete($client->identity_path);
             }
 
             $identityFile = $request->file('identity');
             $identityName = 'identity_' . Str::slug(auth()->user()->name) . '_' . Str::uuid() . '.' . $identityFile->getClientOriginalExtension();
-            $identityPath = $identityFile->storeAs('uploads/identity', $identityName, 'public');
+            $identityPath = Storage::disk('google')->putFileAs('identity', $identityFile, $identityName);
             $client->identity_path = $identityPath;
         }
 
         if ($request->hasFile('residency')) {
-
-            if ($client->residency_path && Storage::disk('public')->exists($client->residency_path)) {
-                Storage::disk('public')->delete($client->residency_path);
+            if ($client->residency_path && Storage::disk('google')->exists($client->residency_path)) {
+                Storage::disk('google')->delete($client->residency_path);
             }
 
             $residencyFile = $request->file('residency');
             $residencyName = 'residency_' . Str::slug(auth()->user()->name) . '_' . Str::uuid() . '.' . $residencyFile->getClientOriginalExtension();
-            $residencyPath = $residencyFile->storeAs('uploads/residency', $residencyName, 'public');
+            $residencyPath = Storage::disk('google')->putFileAs('residency', $residencyFile, $residencyName);
             $client->residency_path = $residencyPath;
         }
 
-
         if ($request->hasFile('company_reg_path')) {
-
-            if ($client->company_reg_path && Storage::disk('public')->exists($client->company_reg_path)) {
-                Storage::disk('public')->delete($client->company_reg_path);
+            if ($client->company_reg_path && Storage::disk('google')->exists($client->company_reg_path)) {
+                Storage::disk('google')->delete($client->company_reg_path);
             }
 
             $companyRegFile = $request->file('company_reg_path');
             $companyRegName = 'company_reg_path_' . Str::slug(auth()->user()->name) . '_' . Str::uuid() . '.' . $companyRegFile->getClientOriginalExtension();
-            $companyRegPath = $companyRegFile->storeAs('uploads/companyreg', $companyRegName, 'public');
+            $companyRegPath = Storage::disk('google')->putFileAs('company_reg', $companyRegFile, $companyRegName);
             $client->company_reg_path = $companyRegPath;
         }
-
 
 
         $clients = $client->update($validated);
