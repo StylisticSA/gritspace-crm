@@ -63,7 +63,7 @@ class NewUserRegistered extends Notification implements ShouldQueue
         return (new MailMessage())
             ->subject('New User Registration')
             ->greeting('Hello Admin,')
-            ->line('A new user has been registered:')
+            ->line('A new user has just registered. Please click here to process the request.')
             ->line('Name: ' . $this->newUser->name)
             ->line('Email: ' . $this->newUser->email)
             ->action('View User', url('/admin/manage/'));
