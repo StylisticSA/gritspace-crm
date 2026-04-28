@@ -111,11 +111,12 @@ const formatDate = dateStr => {
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
+                            v-if="can['create boardrooms']"
                             :href="route('admin.boardrooms.create')"
                             class="inline-block px-3 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Add Boardroom
                         </Link>
-
+                        <div></div>
                         <input
                             v-model="search"
                             type="text"
@@ -171,6 +172,7 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
+                                                v-if="can['create boardrooms']"
                                                 @click="
                                                     setOffice(boardroom.id);
                                                     showBoardroomModal = true;
@@ -179,11 +181,13 @@ const formatDate = dateStr => {
                                                 Action
                                             </button>
                                             <button
+                                                v-if="can['edit boardrooms']"
                                                 @click="$inertia.visit(route('admin.boardrooms.edit', boardroom.id))"
                                                 class="px-3 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
+                                                v-if="can['delete boardrooms']"
                                                 @click="confirmDelete(boardroom.id)"
                                                 class="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete

@@ -59,6 +59,7 @@ class DiscountController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
 
         $validated = $request->validate([
             'location_id' => ['required', 'exists:locations,id'],
@@ -79,6 +80,8 @@ class DiscountController extends Controller
 
 
         ]);
+
+        $validated['name'] = $validated['package'];
 
         Discount::create($validated);
 
@@ -134,6 +137,8 @@ class DiscountController extends Controller
                 ],
 
         ]);
+
+        $validated['name'] = $validated['package'];
 
         $discount->update($validated);
 

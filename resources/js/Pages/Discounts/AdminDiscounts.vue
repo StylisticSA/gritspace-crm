@@ -89,6 +89,7 @@ const formatDate = dateStr => {
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
+                            v-if="can['create discounts']"
                             :href="route('admin.discount.create')"
                             class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Add Boardroom Discounts
@@ -133,11 +134,13 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
+                                                v-if="can['edit discounts']"
                                                 @click="$inertia.visit(route('admin.discount.edit', discount.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
+                                                v-if="can['delete discounts']"
                                                 @click="confirmDelete(discount.id)"
                                                 class="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete

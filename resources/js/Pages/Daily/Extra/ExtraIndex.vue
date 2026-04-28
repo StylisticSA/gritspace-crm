@@ -93,6 +93,7 @@ const formatDate = dateStr => {
                     <!-- Search Filter -->
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <Link
+                            v-if="can['create extras']"
                             :href="route('admin.extra.create')"
                             class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                             + Add Extras Settings
@@ -130,13 +131,13 @@ const formatDate = dateStr => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
-                                                v-if="can['manage settings']"
+                                                v-if="can['edit extras']"
                                                 @click="$inertia.visit(route('admin.extra.edit', cofe.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
-                                                v-if="can['delete amenities']"
+                                                v-if="can['delete extras']"
                                                 @click="confirmDelete(cofe.id)"
                                                 class="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete

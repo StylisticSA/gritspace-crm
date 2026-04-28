@@ -19,6 +19,8 @@ const form = useForm({
     discount: '',
 });
 
+console.log('ct', props.categories);
+
 const packageOptionsMap = {
     'Closed Office': ['Monthly', 'Daily'],
     'Closed Offices': ['Monthly', 'Daily'],
@@ -34,9 +36,8 @@ const packageOptionsMap = {
 const availablePackages = computed(() => {
     const selectedCategory = props.categories.find(c => c.id === form.category_id);
 
-    console.log('s', selectedCategory);
-
     if (!selectedCategory) return [];
+
     return packageOptionsMap[selectedCategory.name] || [];
 });
 

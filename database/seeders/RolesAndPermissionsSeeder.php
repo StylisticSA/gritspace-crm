@@ -20,9 +20,9 @@ class RolesAndPermissionsSeeder extends Seeder
             Role::findOrCreate($roleName, 'web');
         }
 
-        // 2. Define and Create Permissions
         $models = ['closed offices','dedicated desks','amenities', 'boardrooms', 'categories', 'hot desks',
-                   'virtual offices', 'locations', 'roles', 'permissions','users', 'agreements','client details'];
+                   'virtual offices', 'locations', 'roles', 'permissions','users', 'agreements','client details', 
+                   'extras', 'parking', 'discounts', 'invoices'];
         
         $actions = ['create', 'edit', 'delete', 'view'];
         
@@ -41,11 +41,9 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::findOrCreate($permName, 'web');
         }
 
-        // 3. Assign Permissions to Roles
         $superAdmin = Role::findByName('Super Admin');
         $superAdmin->syncPermissions(Permission::all());
 
-        // 4. Assign Role to User
         $user = User::firstOrCreate(['email' => 'admin@admin.com'], [
             'name' => 'Super Admin',
             'password' => bcrypt('superadmin'),

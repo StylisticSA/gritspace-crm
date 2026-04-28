@@ -167,6 +167,7 @@ const availabilityText = office => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
+                                                v-if="can['create dedicated desks']"
                                                 @click="
                                                     setOffice(office.id);
                                                     showAvailModal = true;
@@ -175,13 +176,13 @@ const availabilityText = office => {
                                                 Action
                                             </button>
                                             <button
-                                                v-if="can['edit offices']"
+                                                v-if="can['edit dedicated desks']"
                                                 @click="$inertia.visit(route('admin.dedicateddesk.edit', office.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
-                                                v-if="can['delete offices']"
+                                                v-if="can['delete dedicated desks']"
                                                 @click="confirmDelete(office.id)"
                                                 class="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete
