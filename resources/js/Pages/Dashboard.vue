@@ -72,11 +72,11 @@ const formatDate = dateStr => {
         </template>
 
         <div class="px-4 py-6 lg:px-8">
-            <div class="mx-auto max-w-7xl">
+            <div class="mx-auto max-w-7xl lg:px-8">
                 <div class="flex items-center justify-between overflow-hidden bg-white rounded-md shadow">
                     <div class="p-2 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome at Grit Space Bookings</div>
                     <div
-                        class="p-4"
+                        class="p-2 text-right"
                         v-if="!clientAvail && !can['manage settings']">
                         <span>Please fill in your Company Details</span>
                         <Link
@@ -87,9 +87,9 @@ const formatDate = dateStr => {
                     </div>
 
                     <div
-                        class="p-2"
+                        class="p-2 text-right"
                         v-else-if="!agreementAvail && !can['manage settings']">
-                        <span>Now upload your signed Agreement Form</span>
+                        <span class="text-xs">Now upload your signed Agreement Form</span>
                         <Link
                             :href="route('companydetail.index')"
                             class="inline-block px-3 py-2 text-lg font-medium text-primary rounded">

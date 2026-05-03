@@ -75,8 +75,8 @@ function viewInvoices() {
             </div>
         </template>
 
-        <div class="px-4 py-6 lg:px-8">
-            <div class="mx-auto max-w-7xl">
+        <div class="px-4 py-6">
+            <div class="mx-auto max-w-7xl lg:px-8">
                 <div class="overflow-hidden bg-white rounded-md shadow">
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
                         Welcome to the Administration Portal
