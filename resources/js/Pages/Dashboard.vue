@@ -89,7 +89,7 @@ const formatDate = dateStr => {
                     <div
                         class="p-2 text-right"
                         v-else-if="!agreementAvail && !can['manage settings']">
-                        <span class="text-xs">Now upload your signed Agreement Form</span>
+                        <span class="">Now upload your signed Agreement Form</span>
                         <Link
                             :href="route('companydetail.index')"
                             class="inline-block px-3 py-2 text-lg font-medium text-primary rounded">
