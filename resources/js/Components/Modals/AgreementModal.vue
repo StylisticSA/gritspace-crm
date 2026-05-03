@@ -43,6 +43,12 @@ const submit = () => {
         },
     });
 };
+
+const agreementPath = '/files_grits/gritspace_agreement_file.pdf';
+
+function openPDF() {
+    window.open(agreementPath);
+}
 </script>
 
 <template>
@@ -66,10 +72,20 @@ const submit = () => {
                     {{ messageText }}
                 </div>
             </template>
+            <div>
+                <p class="text-center pt-5">
+                    If you didn't download the file, you can download it here:
+                    <a
+                        @click="openPDF"
+                        class="underline text-primary cursor-pointer">
+                        Agreement File
+                    </a>
+                </p>
+            </div>
 
             <form
                 @submit.prevent="submit"
-                class="my-10 space-y-6">
+                class="my-10 space-y-5">
                 <div>
                     <label class="block mb-2 text-lg font-medium">Location</label>
                     <select

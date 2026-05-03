@@ -112,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function agreement()
     {
-        return $this->hasMany(AgrementUpload::class);
+        return $this->hasOne(AgrementUpload::class);
     }
 
     public function freeHours()

@@ -580,6 +580,7 @@ const allBookings = computed(() => {
                         </div>
                     </div>
                 </template>
+
                 <GlobalNoteModal
                     :users="users"
                     :show="showNoteModal"

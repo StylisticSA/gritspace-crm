@@ -152,7 +152,9 @@ watchEffect(() => {
         <template #header>
             <div class="flex items-center justify-between space-x-5">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">Clients Information</h2>
+
                 <button
+                    v-if="can['create notes']"
                     @click="showNoteModal = true"
                     class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
                     Add Note
@@ -230,20 +232,20 @@ watchEffect(() => {
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <div class="flex space-x-1">
                                             <button
-                                                v-if="can['manage settings']"
+                                                v-if="can['create client details']"
                                                 @click="viewInfoModal(client)"
                                                 class="px-2 py-1 text-sm text-white rounded bg-primary hover:bg-bluemain/60">
                                                 Action
                                             </button>
                                             <button
-                                                v-if="can['manage settings']"
+                                                v-if="can['edit client details']"
                                                 @click="$inertia.visit(route('admin.clientinfor.edit', client.id))"
                                                 class="px-2 py-1 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Edit
                                             </button>
                                             <button
                                                 v-show="!client.approved"
-                                                v-if="can['manage settings']"
+                                                v-if="can['delete client details']"
                                                 @click="confirmDelete(client.id)"
                                                 class="px-2 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600">
                                                 Delete
@@ -434,6 +436,23 @@ watchEffect(() => {
                                                     : 'bg-bluemain font-semibold px-2 py-1 rounded text-white'
                                             ">
                                             {{ (companyInfo.agreement ?? 0) ? 'Accepted' : 'Declined' }}
+                                        </span>
+                                    </div>
+
+                                    <div class="font-semibold text-gray-700">Agreement File:</div>
+                                    <div>
+                                        <a
+                                            v-if="companyInfo.user?.agreement?.agreement"
+                                            :href="companyInfo.user?.agreement?.agreement"
+                                            target="_blank"
+                                            class="underline text-primary">
+                                            View Agreement
+                                        </a>
+
+                                        <span
+                                            v-else
+                                            class="text-gray-500">
+                                            Not uploaded
                                         </span>
                                     </div>
 

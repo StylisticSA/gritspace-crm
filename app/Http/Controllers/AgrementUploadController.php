@@ -268,39 +268,33 @@ class AgrementUploadController extends Controller
      */
     public function destroy(AgrementUpload $agreement)
     {
-        
-        // dd($agreement);
         if ($agreement->status === 'approved') {
-
             return back()->withErrors([
-                            'error' => 'You can not delete this file, change the status to Pending first.'
-                        ]);
-
+                'error' => 'You cannot delete this file. Change the status to Pending first.'
+            ]);
         }
 
         DB::beginTransaction();
 
         try {
+            $filePath = $agreement->getRawOriginal('agreement') ?? $agreement->agreement;
 
-            if ($agreement->agreement && Storage::disk('google')->exists($agreement->agreement)) {
-                Storage::disk('google')->delete($agreement->agreement);
+            if ($filePath && Storage::disk('google')->exists($filePath)) {
+                Storage::disk('google')->delete($filePath);
             }
-
-            $agreement->user()->detach(); 
 
             $agreement->delete();
 
             DB::commit();
 
-            return back()->with('success', 'Agreement file deleted Successfully');
+            return back()->with('success', 'Agreement file deleted successfully.');
+
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return back()->withErrors(['error' => 'Failed to delete the agreement file: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Failed to delete: ' . $e->getMessage()]);
         }
-
-
     }
+
 
     /**
     * Approve a closed office.

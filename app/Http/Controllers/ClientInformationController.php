@@ -27,12 +27,13 @@ class ClientInformationController extends Controller
 
         $search = $request->input('search');
 
-        $clients = ClientInformation::with('rates', 'location')->when($search, function ($query, $search) {
+        $clients = ClientInformation::with('user.agreement','location')->when($search, function ($query, $search) {
             $query->where('name', 'like', "%{$search}%");
         })
             ->orderByDesc('created_at')
             ->paginate(10)
             ->withQueryString();
+
 
 
         $users = User::with('roles')
@@ -55,8 +56,22 @@ class ClientInformationController extends Controller
                 ? Storage::disk('google')->url($client->company_reg_path)
                 : null;
 
+            if ($client->user && $client->user->agreement) {
+                $agreementRecord = $client->user->agreement instanceof \Illuminate\Support\Collection 
+                    ? $client->user->agreement->first() 
+                    : $client->user->agreement;
+
+                if ($agreementRecord && $agreementRecord->agreement) {
+                    $agreementRecord->agreement = Storage::disk('google')->exists($agreementRecord->agreement)
+                        ? Storage::disk('google')->url($agreementRecord->agreement)
+                        : null;
+                }
+            }
+
             return $client;
         });
+
+        // dd($clients);
 
         return Inertia::render('Clients/ClientInfo/IndexClient', [
             'clients' => $clients,

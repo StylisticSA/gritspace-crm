@@ -22,7 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $models = ['closed offices','dedicated desks','amenities', 'boardrooms', 'categories', 'hot desks',
                    'virtual offices', 'locations', 'roles', 'permissions','users', 'agreements','client details', 
-                   'extras', 'parking', 'discounts', 'invoices'];
+                   'extras', 'parking', 'discounts', 'invoices','notes'];
         
         $actions = ['create', 'edit', 'delete', 'view'];
         

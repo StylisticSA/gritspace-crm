@@ -4,6 +4,7 @@ import { Inertia } from '@inertiajs/inertia';
 import { ref, computed } from 'vue';
 import StatusFeedback from '@/Components/StatusFeedback.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AgrementModal from '@/Components/Modals/Agreement/AgreementModal.vue';
 
 const props = defineProps({
     locations: Array,
@@ -18,6 +19,7 @@ const props = defineProps({
 const step = ref(1);
 const successMessage = ref(null);
 const bookingConflict = ref(null);
+const showAgreementModal = ref(false);
 
 const form = useForm({
     location_id: null,
@@ -491,7 +493,12 @@ const rowFieldErrors = computed(() => {
                                         v-on:focus="form.clearErrors('agreement')"
                                         class="w-5 h-5 border-gray-300 rounded text-primary" />
                                     <span class="ml-2 text-lg text-gray-700">
-                                        I agree to the terms and conditions
+                                        I agree to the terms and conditions,
+                                        <a
+                                            class="text-primary cursor-pointer"
+                                            @click="showAgreementModal = true"
+                                            >download the agreement file</a
+                                        >
                                     </span>
                                 </label>
                                 <div
@@ -903,6 +910,10 @@ const rowFieldErrors = computed(() => {
                         </div>
                     </form>
                 </div>
+                <agrementModal
+                    :users="users"
+                    :show="showAgreementModal"
+                    :onClose="() => (showAgreementModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>

@@ -35,7 +35,7 @@ class CompanyDetailController extends Controller
             return redirect()->route('admin.clientinfor.index');
         }
 
-        // dd($clients);
+ 
 
         if (empty($clients)) {
             return redirect()->route('companydetail.create');
@@ -54,7 +54,7 @@ class CompanyDetailController extends Controller
                 ? Storage::disk('google')->url($clients->company_reg_path)
                 : null;
 
-            // dd($clients->location);
+          
             $locations = Location::select('id', 'name')->get();
 
 
@@ -62,10 +62,14 @@ class CompanyDetailController extends Controller
                 ->where('user_id', Auth()->id())
                 ->first();
 
-            if ($agreement) {
-                $agreement->agreement = $agreement->agreement
-                    ? Storage::disk('google')->url($agreement->agreement)
-                    : null;
+            if ($agreement && $agreement->agreement) {
+                $disk = Storage::disk('google');
+
+                if ($disk->exists($agreement->agreement)) {
+                    $agreement->agreement = $disk->url($agreement->agreement);
+                } else {
+                    $agreement->agreement = null;
+                }
             }
 
             return Inertia::render('CompanyDetails/IndexCompany', [
@@ -350,5 +354,7 @@ class CompanyDetailController extends Controller
             ->with('success', 'Company Details Updated successfully!');
 
     }
+
+    
 
 }
