@@ -44,7 +44,7 @@ const props = defineProps<{
     boardrooms: Boardroom[];
     locations: Location[];
     approvedBoardrooms: approvedBoardrooms[];
-    can: Object;
+    can: Record<string, any>;
 }>();
 
 const tabs = ['All', 'Boardrooms'];
@@ -59,7 +59,7 @@ function goToBoardroom(boardroomId: number) {
     router.visit(`/booking-boardrooms/${boardroomId}`);
 }
 
-const formatDate = dateStr => {
+const formatDate = (dateStr: Date) => {
     return dateStr ? format(new Date(dateStr), 'dd MMM yyyy') : '';
 };
 
@@ -70,12 +70,12 @@ const pendingCount = computed(() => props.approvedBoardrooms?.length ?? 0);
 const showOfficeModal = ref(false);
 const boardroomAvail = ref<Boardroom | null>(null);
 
-const showAvail = boardroom => {
+const showAvail = (boardroom: any) => {
     showOfficeModal.value = true;
     boardroomAvail.value = boardroom;
 };
 
-function canShowButton(entity) {
+function canShowButton(entity: any) {
     if (!entity) return false;
 
     const today = new Date();
@@ -125,111 +125,120 @@ const allBookings = computed(() => {
 
         <div class="px-5 py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
-                    <div class="col-span-1">
-                        <!-- <select
-                            v-model="activeTab"
-                            class="w-full px-3 py-1 mb-4 text-sm border border-gray-300 rounded md:hidden">
-                            <option
-                                v-for="tab in tabs"
-                                :key="tab"
-                                :value="tab">
-                                {{ tab }}
-                            </option>
-                        </select> -->
-
-                        <!-- <div class="hidden space-y-2 md:block">
-                            <button
-                                v-for="tab in tabs"
-                                :key="tab"
-                                @click="activeTab = tab"
-                                :class="[
-                                    'w-full text-left px-4 py-1 rounded-md transition',
-                                    activeTab === tab
-                                        ? 'bg-primary text-white'
-                                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200',
-                                ]">
-                                {{ tab }}
-                            </button>
-                        </div> -->
-
-                        <div class="mt-0">
-                            <label class="block mb-1 text-sm font-medium text-gray-700">Filter by Location</label>
-                            <select
-                                v-model="selectedLocation"
-                                class="w-full px-3 py-1 text-sm border border-gray-300 rounded">
-                                <option value="All">All Locations</option>
-                                <option
-                                    v-for="loc in props.locations"
-                                    :key="loc.name"
-                                    :value="loc.name">
-                                    {{ loc.name }}
-                                </option>
-                            </select>
-                        </div>
+                <div
+                    class="overflow-hidden bg-white rounded-md shadow mx-5"
+                    v-if="can['manage settings']">
+                    <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
+                        Welcome to the Administration Portal
                     </div>
-                    <!-- content -->
-                    <div class="col-span-1 space-y-12 md:col-span-3">
-                        <div
-                            v-if="activeTab === 'All'"
-                            class="space-y-12">
-                            <div v-if="filteredBoardrooms.length">
+                </div>
+                <div class="px-6 py-10 mx-auto max-w-7xl">
+                    <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
+                        <div class="col-span-1">
+                            <!-- <select
+                                v-model="activeTab"
+                                class="w-full px-3 py-1 mb-4 text-sm border border-gray-300 rounded md:hidden">
+                                <option
+                                    v-for="tab in tabs"
+                                    :key="tab"
+                                    :value="tab">
+                                    {{ tab }}
+                                </option>
+                            </select> -->
+
+                            <!-- <div class="hidden space-y-2 md:block">
+                                <button
+                                    v-for="tab in tabs"
+                                    :key="tab"
+                                    @click="activeTab = tab"
+                                    :class="[
+                                        'w-full text-left px-4 py-1 rounded-md transition',
+                                        activeTab === tab
+                                            ? 'bg-primary text-white'
+                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200',
+                                    ]">
+                                    {{ tab }}
+                                </button>
+                            </div> -->
+
+                            <div class="mt-0">
+                                <label class="block mb-1 text-sm font-medium text-gray-700">Filter by Location</label>
+                                <select
+                                    v-model="selectedLocation"
+                                    class="w-full px-3 py-1 text-sm border border-gray-300 rounded">
+                                    <option value="All">All Locations</option>
+                                    <option
+                                        v-for="loc in props.locations"
+                                        :key="loc.name"
+                                        :value="loc.name">
+                                        {{ loc.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- content -->
+                        <div class="col-span-1 space-y-12 md:col-span-3">
+                            <div
+                                v-if="activeTab === 'All'"
+                                class="space-y-12">
+                                <div v-if="filteredBoardrooms.length">
+                                    <h3 class="mb-3 text-xl font-semibold">Boardrooms</h3>
+                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        <div
+                                            v-for="room in filteredBoardrooms"
+                                            :key="room.id"
+                                            class="p-4 bg-white rounded shadow">
+                                            <h4 class="text-xl text-primary">{{ room.boardroom_name }}</h4>
+                                            <p class="text-sm text-gray-500">
+                                                <strong>Location:</strong> {{ room.location?.name }}
+                                            </p>
+
+                                            <hr class="my-2" />
+                                            <div class="flex items-center justify-between space-x-1">
+                                                <button
+                                                    v-if="canShowButton(room)"
+                                                    @click="goToBoardroom(room.id)"
+                                                    class="w-full px-4 py-2 mt-2 text-sm text-white transition rounded bg-bluemain hover:bg-bluemain/90">
+                                                    Select
+                                                </button>
+
+                                                <button
+                                                    v-else
+                                                    @click="showAvail(room)"
+                                                    class="w-full px-4 py-2 mt-2 text-sm text-white transition bg-gray-500 rounded hover:bg-gray-600">
+                                                    View Availability
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else-if="activeTab === 'Boardrooms'">
                                 <h3 class="mb-3 text-xl font-semibold">Boardrooms</h3>
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <div
                                         v-for="room in filteredBoardrooms"
                                         :key="room.id"
                                         class="p-4 bg-white rounded shadow">
-                                        <h4 class="text-xl text-primary">{{ room.boardroom_name }}</h4>
-                                        <p class="text-sm text-gray-500">
-                                            <strong>Location:</strong> {{ room.location?.name }}
-                                        </p>
-
-                                        <hr class="my-2" />
+                                        <h4 class="font-semibold">{{ room.boardroom_name }}</h4>
+                                        <p class="text-sm text-gray-500">Location: {{ room.location?.name }}</p>
+                                        <p class="mb-3 text-sm text-gray-500">Seats: {{ room.seats }}</p>
+                                        <hr />
                                         <div class="flex items-center justify-between space-x-1">
                                             <button
-                                                v-if="canShowButton(room)"
                                                 @click="goToBoardroom(room.id)"
-                                                class="w-full px-4 py-2 mt-2 text-sm text-white transition rounded bg-bluemain hover:bg-bluemain/90">
+                                                class="px-4 py-2 mt-2 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
                                                 Select
                                             </button>
-
                                             <button
-                                                v-else
-                                                @click="showAvail(room)"
-                                                class="w-full px-4 py-2 mt-2 text-sm text-white transition bg-gray-500 rounded hover:bg-gray-600">
-                                                View Availability
+                                                class="flex items-center justify-center px-4 py-2 mt-2 text-sm text-white rounded">
+                                                <img
+                                                    src="../../../../../public/files_grits/eye.svg"
+                                                    alt="Eye Badge"
+                                                    class="w-6 h-6" />
                                             </button>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-else-if="activeTab === 'Boardrooms'">
-                            <h3 class="mb-3 text-xl font-semibold">Boardrooms</h3>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                <div
-                                    v-for="room in filteredBoardrooms"
-                                    :key="room.id"
-                                    class="p-4 bg-white rounded shadow">
-                                    <h4 class="font-semibold">{{ room.boardroom_name }}</h4>
-                                    <p class="text-sm text-gray-500">Location: {{ room.location?.name }}</p>
-                                    <p class="mb-3 text-sm text-gray-500">Seats: {{ room.seats }}</p>
-                                    <hr />
-                                    <div class="flex items-center justify-between space-x-1">
-                                        <button
-                                            @click="goToBoardroom(room.id)"
-                                            class="px-4 py-2 mt-2 text-sm text-white rounded bg-bluemain hover:bg-bluemain/60">
-                                            Select
-                                        </button>
-                                        <button
-                                            class="flex items-center justify-center px-4 py-2 mt-2 text-sm text-white rounded">
-                                            <img
-                                                src="../../../../../public/files_grits/eye.svg"
-                                                alt="Eye Badge"
-                                                class="w-6 h-6" />
-                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -15,6 +15,7 @@ return new class () extends Migration {
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
             $table->string('virtualoffice_name');
             $table->decimal('price', 8, 2);
+            $table->unsignedInteger('free_boardroom_hours')->nullable();
             $table->timestamps();
 
         });

@@ -47,7 +47,7 @@ class BoardroomBookingController extends Controller
         $user = auth()->user();
 
 
-        if ($user->hasRole('Admin') || $user->hasRole('Super Admin')) {
+        if ($user->hasRole(['admin', 'super admin'])) {
             $boardrooms = $boardroom->load(['user','boardroom','boardroom.location']);
 
         } else {
@@ -74,7 +74,7 @@ class BoardroomBookingController extends Controller
 
         $user = auth()->user();
 
-        if (!$user->hasRole('admin') && !$user->hasRole('super admin')) {
+        if ($user->hasRole(['admin', 'super admin'])) {
             $closed = Booking::with([
                     'office:id,office_name,free_boardroom_hours',
                     'office.location:id,name',
@@ -219,11 +219,7 @@ class BoardroomBookingController extends Controller
 
         auth()->user()->notify(new BoardroomBookingNotification($bookingData, 'created', 'user'));
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
+        $admins = User::role(['admin', 'super admin'])->get();
 
         $admins->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'created', 'admin')));
 
@@ -247,7 +243,7 @@ class BoardroomBookingController extends Controller
                 ->get();
 
 
-        if ($user->hasRole('admin') || $user->hasRole('super admin')) {
+        if ($user->hasRole(['admin', 'super admin'])) {
 
             $bookings = BoardroomBooking::with(['user', 'boardroom.location'])
                         ->when($search, function ($query, $search) {
@@ -314,10 +310,7 @@ class BoardroomBookingController extends Controller
 
         $booking->user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'user'));
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
-
-        User::withRole('Admin')->get()
+        User::role(['super admin', 'admin'])->get()
             ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
 
         return back()->with('success', 'Boardroom Status Marked Paid.');
@@ -343,18 +336,12 @@ class BoardroomBookingController extends Controller
 
         $booking->user->notify(new BoardroomBookingNotification($bookingData, 'approved', 'user'));
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'approved', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'approved', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
 
         return back()->with('success', 'Booking approved successfully.');
 
-        return redirect()->back()->with([
-            'success' => 'Booking approved successfully.',
-            'type' => 'success',
-        ]);
+        
 
     }
 
@@ -375,11 +362,8 @@ class BoardroomBookingController extends Controller
 
         $booking->user->notify(new BoardroomBookingNotification($bookingData, 'rejected', 'user'));
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'rejected', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'rejected', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
 
         return redirect()->back()->with([
             'success' => 'Booking rejected successfully.',
@@ -405,11 +389,8 @@ class BoardroomBookingController extends Controller
 
         $booking->user->notify(new BoardroomBookingNotification($bookingData, 'cancelled', 'user'));
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'cancelled', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'cancelled', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($user) => $user->notify(new BoardroomBookingNotification($bookingData, 'paid', 'admin')));
 
         return redirect()->back()->with([
             'success' => 'Booking cancelled successfully.',

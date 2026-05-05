@@ -8,7 +8,7 @@ const props = defineProps<{
         name: string;
         type: string;
         price: number;
-        plan: string;
+        plan: any;
         months?: number;
         monthly_rate?: number;
         daily_rate?: number;

@@ -17,11 +17,8 @@ interface Virtual {
     id?: number;
     location?: Location;
     virtualoffice_name?: string;
-    address?: string;
-    discount: number;
-    price: number;
-    price_premium: number;
-    price_standard: number;
+    price?: number;
+    free_boardroom_hours: string;
     amenities?: Amenity[];
 }
 
@@ -31,15 +28,16 @@ interface BookedVirtual {
 }
 
 interface discount {
-    name: string;
+    id: number;
     discount: number;
+    package: string;
 }
 
 const props = defineProps<{
     virtual: Virtual;
     locations: Location;
     bookedRanges: BookedVirtual[];
-    discount: discount;
+    discount: discount[];
 }>();
 
 const { props: pageProps } = usePage();
@@ -54,7 +52,7 @@ const flash = (pageProps.flash ?? {}) as { success?: string };
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Booking Virtual Office</h2>
         </template>
 
-        <div class="py-12">
+        <div class="px-4 py-12">
             <div class="mx-auto max-w-7xl sm:px-4 lg:px-8">
                 <div class="flex justify-center">
                     <div class="w-full max-w-2xl p-6 space-y-6 bg-white border rounded-lg shadow-md">
@@ -78,6 +76,43 @@ const flash = (pageProps.flash ?? {}) as { success?: string };
                                     <p><strong>Location:</strong> {{ virtual.location?.name || 'N/A' }}</p>
                                 </div>
 
+                                <div class="md:col-span-1">
+                                    <ul class="space-y-1 text-sm text-gray-700">
+                                        <li><strong>Price:</strong> R{{ virtual.price ?? '0.00' }}</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-gray-200">
+                                <div
+                                    class="md:col-span-2"
+                                    v-if="discount && discount.length > 0">
+                                    <h4 class="font-semibold text-gray-800">Boardroom Discount(s)</h4>
+                                    <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
+                                        <li v-if="virtual.free_boardroom_hours">
+                                            Your booking includes
+                                            <strong>{{ virtual.free_boardroom_hours }}</strong> free boardroom hours per
+                                            Month.
+                                        </li>
+                                        <li
+                                            v-if="discount"
+                                            v-for="item in discount"
+                                            :key="item.id">
+                                            It has <strong>{{ item?.discount }}%</strong> discount, when you book Daily
+                                            Package
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div v-else>
+                                    <p class="py-3 text-sm text-primary">There is no discount for this office.</p>
+                                </div>
+                                <div v-if="discount && discount.length > 0">
+                                    <p class="py-3 text-sm text-silver">
+                                        NOTE: Any discount will be applied upon approval and availability.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-200">
                                 <div v-if="virtual.amenities?.length">
                                     <p><strong>Amenities:</strong></p>
                                     <div class="flex flex-wrap gap-2 mt-1">
@@ -101,28 +136,6 @@ const flash = (pageProps.flash ?? {}) as { success?: string };
                                 </div>
                                 <div v-else>
                                     <p class="text-primary">It has no amenities</p>
-                                </div>
-                            </div>
-                            <div class="pt-4 border-t border-gray-200">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                                    <div class="md:col-span-1">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
-                                        <ul class="space-y-1 text-sm text-gray-700">
-                                            <li>
-                                                Price: <strong>R{{ virtual.price ?? '0.00' }}</strong>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
-                                        <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
-                                            <li v-if="props.discount && props.discount?.discount">
-                                                It has <strong>{{ props.discount?.discount }}%</strong> discount on
-                                                boardrooms.
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>

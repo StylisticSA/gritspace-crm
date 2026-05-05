@@ -54,11 +54,12 @@ class VirtualOfficeController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request);
 
         $validated = $request->validate([
             'virtualoffice_name'        => 'required|string|max:255',
             'location_id'               => 'required|numeric',
-            'free_boardroom'            => 'nullable|numeric',
+            'free_boardroom_hours'            => 'nullable|numeric',
             'price'                     => 'required|numeric',
             'amenities'                 => ['array'],
             'amenities.*'               => ['exists:amenities,id'],
@@ -79,7 +80,7 @@ class VirtualOfficeController extends Controller
         $virtualoffice = VirtualOffice::create([
             'virtualoffice_name'        => $validated['virtualoffice_name'],
             'location_id'               => $validated['location_id'],
-           
+            'free_boardroom_hours'      => $validated['free_boardroom_hours'],
             'price'                     => $validated['price'],
 
         ]);

@@ -25,7 +25,7 @@ use Inertia\Inertia;
      */
     public function show(Office $Office, Request $request)
     {
-     
+        
         $user = auth()->user();
 
         $search = $request->input('search');
@@ -39,9 +39,8 @@ use Inertia\Inertia;
         
         $discounts = Discount::where('package','daily')->get(['id', 'package', 'discount']);
 
-        // dd($discounts->first()->discount);
 
-        if ($user->hasRole('admin') || $user->hasRole('super admin')) {
+        if ($user->hasRole(['admin', 'super admin'])) {
 
             $bookings = Booking::with(['user', 'office.location', 'category'])
                         ->whereHas('category', function ($query) {
@@ -176,11 +175,7 @@ use Inertia\Inertia;
         // Notify the user who booked
         auth()->user()->notify(new BookingNotification($bookingData, 'created', 'user'));
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
+        $admins = User::role(['Admin', 'Super Admin'])->get();
 
         $admins->each(fn ($user) => $user->notify(new BookingNotification($bookingData, 'created', 'admin')));
 

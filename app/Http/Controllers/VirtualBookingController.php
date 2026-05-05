@@ -29,11 +29,11 @@ class VirtualBookingController extends Controller
                              'virtualoffice_name',
                              'price'
                          )->get();
-
+      
 
         $locations = Location::select('name', 'address', 'city')->get();
 
-         $approvedVirtuals = VirtualBooking::with('virtualOffice.location')
+        $approvedVirtuals = VirtualBooking::with('virtualOffice.location')
                             ->where('user_id', auth()->id())
                             ->where('status', 'approved')
                             ->get(); 
@@ -65,8 +65,13 @@ class VirtualBookingController extends Controller
 
         $virtuals = $virtual->load(['location','amenities']);
 
-        $discount = Discount::where('virtual_office_id',$virtual->id)
-                   ->where('office_type', 'virtuals')->first(['name','discount']);
+        // dd($virtuals);
+
+         $discount = Discount::where('location_id', $virtual->location_id)
+                ->where('package', \ucfirst($virtual->virtualoffice_name))
+                ->get(['id', 'package', 'discount']);
+
+        // dd($discount);
 
         return Inertia::render('Bookings/Virtual/EditVirtual', [
             'virtual'       => $virtuals,

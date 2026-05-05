@@ -92,7 +92,7 @@ const props = defineProps<{
     approvedClosed: ApprovedClosed[];
     approvedDedicated: ApprovedDedicated[];
     approvedHotDesk: ApprovedHotDeks[];
-    can: Object;
+    can: Record<string, any>;
 }>();
 
 const pendingCount = computed(
@@ -150,7 +150,7 @@ function goToHotDesk(Id: number) {
     router.visit(`/booking-hotdesk/${Id}`);
 }
 
-const formatDate = dateStr => {
+const formatDate = (dateStr: Date) => {
     return dateStr ? format(new Date(dateStr), 'dd MMM yyyy') : '';
 };
 
@@ -159,12 +159,12 @@ const closedAvail = ref<Office | null>(null);
 
 const showAvailModal = ref(false);
 
-const showAvail = office => {
+const showAvail = (office: any) => {
     showOfficeModal.value = true;
     closedAvail.value = office;
 };
 
-function canShowButton(entity) {
+function canShowButton(entity: any) {
     if (!entity) return false;
 
     const today = new Date();
@@ -232,6 +232,13 @@ const allBookings = computed(() => {
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div
+                    class="overflow-hidden bg-white rounded-md shadow mx-5"
+                    v-if="can['manage settings']">
+                    <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
+                        Welcome to the Administration Portal
+                    </div>
+                </div>
                 <div class="px-6 py-10 mx-auto max-w-7xl">
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                         <!-- LEFT TABS -->
@@ -530,7 +537,7 @@ const allBookings = computed(() => {
                     </div>
                 </div>
             </template>
-            <!-- {{ allBookings }} -->
+
             <cartOfficeModal
                 :show="showAvailModal"
                 :can="can"
