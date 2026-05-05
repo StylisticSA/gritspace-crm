@@ -78,7 +78,7 @@ const formatLabel = label => {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl lg:px-8">
                 <template v-if="showMessage">
                     <div class="p-3 mb-4 text-green-800 bg-green-100 rounded">
                         {{ successMessage || flashMessage || '✔️ Success' }}

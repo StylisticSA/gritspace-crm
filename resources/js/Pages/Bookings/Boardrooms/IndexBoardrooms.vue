@@ -123,44 +123,18 @@ const allBookings = computed(() => {
             </div>
         </template>
 
-        <div class="px-5 py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl lg:px-8">
                 <div
-                    class="overflow-hidden bg-white rounded-md shadow mx-5"
+                    class="overflow-hidden bg-white rounded-md shadow"
                     v-if="can['manage settings']">
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
                         Welcome to the Administration Portal
                     </div>
                 </div>
-                <div class="px-6 py-10 mx-auto max-w-7xl">
+                <div class="py-10 mx-auto max-w-7xl">
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                         <div class="col-span-1">
-                            <!-- <select
-                                v-model="activeTab"
-                                class="w-full px-3 py-1 mb-4 text-sm border border-gray-300 rounded md:hidden">
-                                <option
-                                    v-for="tab in tabs"
-                                    :key="tab"
-                                    :value="tab">
-                                    {{ tab }}
-                                </option>
-                            </select> -->
-
-                            <!-- <div class="hidden space-y-2 md:block">
-                                <button
-                                    v-for="tab in tabs"
-                                    :key="tab"
-                                    @click="activeTab = tab"
-                                    :class="[
-                                        'w-full text-left px-4 py-1 rounded-md transition',
-                                        activeTab === tab
-                                            ? 'bg-primary text-white'
-                                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200',
-                                    ]">
-                                    {{ tab }}
-                                </button>
-                            </div> -->
-
                             <div class="mt-0">
                                 <label class="block mb-1 text-sm font-medium text-gray-700">Filter by Location</label>
                                 <select

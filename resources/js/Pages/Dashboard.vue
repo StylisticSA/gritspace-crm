@@ -71,10 +71,10 @@ const formatDate = dateStr => {
             </div>
         </template>
 
-        <div class="px-4 py-6 lg:px-8">
-            <div class="mx-auto max-w-7xl lg:px-8">
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl lg:px-8 px-4">
                 <div class="flex items-center justify-between overflow-hidden bg-white rounded-md shadow">
-                    <div class="p-2 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome at Grit Space Bookings</div>
+                    <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">Welcome at Grit Space Bookings</div>
                     <div
                         class="p-2 text-right"
                         v-if="!clientAvail && !can['manage settings']">

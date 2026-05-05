@@ -75,15 +75,14 @@ function viewInvoices() {
             </div>
         </template>
 
-        <div class="px-4 py-6">
-            <div class="mx-auto max-w-7xl lg:px-8">
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl lg:px-8 px-4">
                 <div class="overflow-hidden bg-white rounded-md shadow">
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
                         Welcome to the Administration Portal
                     </div>
                 </div>
 
-                <!-- 3-column grid src="../../../../public/files_grits/planning.png"-->
                 <div v-if="locationsWithStats && locationsWithStats.length > 0">
                     <div class="grid grid-cols-1 gap-4 py-5 lg:grid-cols-3">
                         <div
@@ -141,6 +140,7 @@ function viewInvoices() {
                         </div>
                     </div>
                 </div>
+
                 <div v-else>
                     <div class="bg-white">
                         <p class="flex items-center my-5 p-5 text-red-500">There is no locations, Please add..</p>
@@ -148,7 +148,6 @@ function viewInvoices() {
                 </div>
 
                 <!-- row 3 -->
-
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     <!-- Invoices -->
                     <div class="p-4 mb-3 text-lg font-semibold text-gray-800 bg-white md:max-h-[40vh]">

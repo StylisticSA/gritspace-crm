@@ -231,15 +231,15 @@ const allBookings = computed(() => {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl lg:px-8">
                 <div
-                    class="overflow-hidden bg-white rounded-md shadow mx-5"
+                    class="overflow-hidden bg-white rounded-md shadow mx-3 lg:mx-0"
                     v-if="can['manage settings']">
                     <div class="p-4 text-base text-gray-900 sm:p-6 sm:text-lg">
                         Welcome to the Administration Portal
                     </div>
                 </div>
-                <div class="px-6 py-10 mx-auto max-w-7xl">
+                <div class="px-4 py-10 mx-auto max-w-7xl">
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                         <!-- LEFT TABS -->
                         <div class="col-span-1">

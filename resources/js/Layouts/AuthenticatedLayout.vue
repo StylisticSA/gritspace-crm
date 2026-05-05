@@ -698,9 +698,16 @@ function isActive(group) {
                     <div class="flex flex-col h-screen">
                         <div class="px-4 py-2 border-b border-gray-200">
                             <div class="flex items-center justify-between">
-                                <!-- Logo Block -->
                                 <Link
+                                    v-if="!can['manage settings']"
                                     :href="route('dashboard')"
+                                    class="flex items-center">
+                                    <ApplicationLogo class="block w-auto h-12 text-gray-800 fill-current" />
+                                </Link>
+
+                                <Link
+                                    v-if="can['manage settings']"
+                                    :href="route('admin.dashboard')"
                                     class="flex items-center">
                                     <ApplicationLogo class="block w-auto h-12 text-gray-800 fill-current" />
                                 </Link>

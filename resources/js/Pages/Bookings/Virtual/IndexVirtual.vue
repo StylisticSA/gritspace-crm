@@ -108,101 +108,112 @@ const allBookings = computed(() => {
             </div>
         </template>
 
-        <div class="px-4 py-10 mx-auto max-w-7xl">
-            <div
-                class="overflow-hidden bg-white rounded-md shadow mx-5"
-                v-if="can['manage settings']">
-                <div class="p-4 text-base text-gray-900 sm:text-lg">Welcome to the Administration Portal</div>
-            </div>
-            <div class="flex flex-col gap-6 px-4 py-10 mx-auto max-w-7xl lg:flex-row lg:gap-8 lg:px-8">
-                <!-- Sidebar -->
-                <div class="w-full space-y-2 lg:w-1/4 sm:px-2">
-                    <h3 class="text-sm font-medium text-gray-600 uppercase">Locations</h3>
-                    <ul class="space-y-1">
-                        <li
-                            v-for="loc in locations"
-                            :key="loc"
-                            @click="selectedLocation = loc"
-                            :class="[
-                                'cursor-pointer px-2 py-1 text-sm rounded',
-                                selectedLocation === loc
-                                    ? 'bg-primary text-white font-semibold'
-                                    : 'hover:bg-gray-100 text-gray-800',
-                            ]">
-                            {{ loc }}
-                        </li>
-                    </ul>
+        <div class="py-12">
+            <div class="mx-auto max-w-7xl lg:px-8">
+                <div
+                    class="overflow-hidden bg-white rounded-md shadow lg:mx-0 mx-3"
+                    v-if="can['manage settings']">
+                    <div class="p-4 sm:p-6 text-base text-gray-900 sm:text-lg">
+                        Welcome to the Administration Portal
+                    </div>
                 </div>
+                <div class="px-3 lg:px-0 mx-auto max-w-7xl">
+                    <div class="flex flex-col gap-4 py-10 mx-auto max-w-7xl lg:flex-row lg:gap-8">
+                        <!-- Sidebar -->
+                        <div class="w-full space-y-2 lg:w-1/4 sm:px-2">
+                            <h3 class="text-sm font-medium text-gray-600 uppercase">Locations</h3>
+                            <ul class="space-y-1">
+                                <li
+                                    v-for="loc in locations"
+                                    :key="loc"
+                                    @click="selectedLocation = loc"
+                                    :class="[
+                                        'cursor-pointer px-2 py-1 text-sm rounded',
+                                        selectedLocation === loc
+                                            ? 'bg-primary text-white font-semibold'
+                                            : 'hover:bg-gray-100 text-gray-800',
+                                    ]">
+                                    {{ loc }}
+                                </li>
+                            </ul>
+                        </div>
 
-                <!-- Main Content -->
-                <div class="flex-1 space-y-6">
-                    <div
-                        v-if="filtered.length > 0"
-                        class="space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-800">{{ selectedLocation }}</h3>
-
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Main Content -->
+                        <div class="flex-1 space-y-6">
                             <div
-                                v-for="vo in filtered"
-                                :key="vo.id"
-                                class="bg-white border border-gray-300 divide-y divide-gray-200 rounded-lg shadow-sm">
-                                <div class="p-6">
-                                    <h2 class="text-lg font-semibold text-gray-900">{{ vo.virtualoffice_name }}</h2>
+                                v-if="filtered.length > 0"
+                                class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-800">{{ selectedLocation }}</h3>
 
-                                    <p
-                                        v-if="vo.virtualoffice_name?.toLowerCase().includes('standard')"
-                                        class="mt-6">
-                                        <span class="text-3xl font-bold text-gray-800">R {{ vo.price }}</span>
-                                    </p>
-                                    <p
-                                        v-if="vo.virtualoffice_name?.toLowerCase().includes('premium')"
-                                        class="mt-6">
-                                        <span class="text-3xl font-bold text-gray-800">R {{ vo.price }}</span>
-                                    </p>
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div
+                                        v-for="vo in filtered"
+                                        :key="vo.id"
+                                        class="bg-white border border-gray-300 divide-y divide-gray-200 rounded-lg shadow-sm">
+                                        <div class="p-6">
+                                            <h2 class="text-lg font-semibold text-gray-900">
+                                                {{ vo.virtualoffice_name }}
+                                            </h2>
 
-                                    <button
-                                        @click="goToVirtual(vo.id)"
-                                        class="w-full py-2 mt-6 text-sm font-semibold text-white rounded-md bg-bluemain hover:bg-bluemain/90 sm:text-base">
-                                        Enquire Now
-                                    </button>
-                                </div>
+                                            <p
+                                                v-if="vo.virtualoffice_name?.toLowerCase().includes('standard')"
+                                                class="mt-6">
+                                                <span class="text-3xl font-bold text-gray-800">R {{ vo.price }}</span>
+                                            </p>
+                                            <p
+                                                v-if="vo.virtualoffice_name?.toLowerCase().includes('premium')"
+                                                class="mt-6">
+                                                <span class="text-3xl font-bold text-gray-800">R {{ vo.price }}</span>
+                                            </p>
 
-                                <div class="p-4">
-                                    <h4 class="text-xs font-semibold text-gray-600 uppercase">What’s Included</h4>
-                                    <ul class="mt-4 space-y-2 text-xs text-gray-700">
-                                        <li
-                                            v-for="amenity in vo.amenities"
-                                            :key="amenity.id"
-                                            class="flex items-start space-x-2">
-                                            <svg
-                                                class="w-5 h-5 text-green-500"
-                                                fill="currentColor"
-                                                viewBox="0 0 20 20">
-                                                <path
-                                                    fill-rule="evenodd"
-                                                    d="M16.707 5.293a1 1 0 01 0 1.414L8.414 15 4 10.586a1 1 0 011.414-1.414L8.414 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            <span>{{ amenity?.amenity_name }}</span>
-                                        </li>
-                                    </ul>
+                                            <button
+                                                @click="goToVirtual(vo.id)"
+                                                class="w-full py-2 mt-6 text-sm font-semibold text-white rounded-md bg-bluemain hover:bg-bluemain/90 sm:text-base">
+                                                Enquire Now
+                                            </button>
+                                        </div>
+
+                                        <div class="p-4">
+                                            <h4 class="text-xs font-semibold text-gray-600 uppercase">
+                                                What’s Included
+                                            </h4>
+                                            <ul class="mt-4 space-y-2 text-xs text-gray-700">
+                                                <li
+                                                    v-for="amenity in vo.amenities"
+                                                    :key="amenity.id"
+                                                    class="flex items-start space-x-2">
+                                                    <svg
+                                                        class="w-5 h-5 text-green-500"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20">
+                                                        <path
+                                                            fill-rule="evenodd"
+                                                            d="M16.707 5.293a1 1 0 01 0 1.414L8.414 15 4 10.586a1 1 0 011.414-1.414L8.414 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ amenity?.amenity_name }}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div
-                        v-else
-                        class="italic text-gray-500">
-                        No plans available for this location.
+                            <div
+                                v-else
+                                class="italic text-gray-500">
+                                No plans available for this location.
+                            </div>
+                        </div>
+
+                        <cartOfficeModal
+                            :show="showAvailModal"
+                            :can="can"
+                            :cart="allBookings"
+                            route-name="/receive/cart"
+                            :onClose="() => (showAvailModal = false)" />
                     </div>
                 </div>
-                <cartOfficeModal
-                    :show="showAvailModal"
-                    :can="can"
-                    :cart="allBookings"
-                    route-name="/receive/cart"
-                    :onClose="() => (showAvailModal = false)" />
             </div>
         </div>
     </AuthenticatedLayout>
