@@ -11,40 +11,6 @@ const showingNavigationDropdown = ref(false);
 
 const page = usePage();
 const can = page.props.can || {};
-
-const bookingRoutes = [
-    'bookingclosed.show',
-    'bookingdedicated.show',
-    'bookinghotdesk.show',
-    'bookingvirtual.show',
-    'bookingboardroom.show',
-];
-
-const activeGroups = {
-    settings: ['booking.offices', 'booking.boardrooms', 'virtual.home'],
-    products: [
-        'admin.closedoffices',
-        'admin.dedicateddesk',
-        'admin.help-desks',
-        'admin.virtual-offices',
-        'admin.boardrooms',
-    ],
-    system: [
-        'admin.locations',
-        'admin.categories',
-        'admin.amenities',
-        'admin.extra.index',
-        'admin.parking.index',
-        'admin.discounts.index',
-    ],
-    clients: ['admin.clientinfor.index', 'admin.clientrates.index', 'admin.agreement.index'],
-    extras: ['admin.coffee.index', 'admin.printing.index'],
-    hours: ['admin.hours.index', 'admin.boardroom_hours.index'],
-};
-
-function isActive(group) {
-    return activeGroups[group].some(r => route().current(r));
-}
 </script>
 
 <template>
@@ -342,9 +308,32 @@ function isActive(group) {
                                         <div class="flex items-center space-x-1">
                                             <button
                                                 :class="
-                                                    route().current('booking.offices') ||
-                                                    route().current('booking.boardrooms') ||
-                                                    route().current('virtual.home')
+                                                    route().current('admin.notes.index') ||
+                                                    route().current('admin.invoices.index') ||
+                                                    route().current('admin.manage.user') ||
+                                                    // products
+                                                    route().current('admin.closedoffices') ||
+                                                    route().current('admin.dedicateddesk') ||
+                                                    route().current('admin.help-desks') ||
+                                                    route().current('admin.virtual-offices') ||
+                                                    route().current('admin.boardrooms') ||
+                                                    // system
+                                                    route().current('admin.locations') ||
+                                                    route().current('admin.categories') ||
+                                                    route().current('admin.amenities') ||
+                                                    route().current('admin.extra.index') ||
+                                                    route().current('admin.parking.index') ||
+                                                    route().current('admin.discounts.index') ||
+                                                    // clients
+                                                    route().current('admin.clientinfor.index') ||
+                                                    route().current('admin.clientrates.index') ||
+                                                    route().current('admin.agreement.index') ||
+                                                    // extras
+                                                    route().current('admin.coffee.index') ||
+                                                    route().current('admin.printing.index') ||
+                                                    // hours
+                                                    route().current('admin.hours.index') ||
+                                                    route().current('admin.boardroom_hours.index')
                                                         ? 'bg-primary rounded text-white font-semibold'
                                                         : 'text-gray-500 font-medium hover:text-gray-700 hover:bg-gray-100 rounded-md'
                                                 "
@@ -625,7 +614,7 @@ function isActive(group) {
                                                 v-if="can['manage settings']"
                                                 :href="route('admin.notes.index')"
                                                 :active="route().current('admin.notes.index')"
-                                                class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-300 transition cursor-pointer hover:bg-gray-700"
+                                                class="flex items-center justify-between w-full px-4 py-2 text-base font-medium text-gray-700 transition cursor-pointer hover:bg-gray-50"
                                                 :class="
                                                     route().current('admin.notes.index')
                                                         ? 'bg-primary rounded text-white font-semibold'
@@ -638,7 +627,7 @@ function isActive(group) {
                                                 v-if="can['manage settings']"
                                                 :href="route('admin.invoices.index')"
                                                 :active="route().current('admin.invoices.index')"
-                                                class="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-300 transition cursor-pointer hover:bg-gray-700"
+                                                class="flex items-center justify-between w-full px-4 py-2 text-base font-medium text-gray-700 transition cursor-pointer hover:bg-gray-50"
                                                 :class="
                                                     route().current('admin.invoices.index')
                                                         ? 'bg-primary rounded text-white font-semibold'
@@ -651,7 +640,7 @@ function isActive(group) {
                                                 v-if="can['manage settings']"
                                                 :href="route('admin.manage.user')"
                                                 :active="route().current('admin.manage.user')"
-                                                class="flex items-center justify-between w-full px-4 py-2 text-sm transition cursor-pointer hover:bg-gray-700"
+                                                class="flex items-center justify-between w-full px-4 py-2 text-base font-medium text-gray-700 transition cursor-pointer hover:bg-gray-50"
                                                 :class="
                                                     route().current('admin.manage.user')
                                                         ? 'bg-primary rounded text-white font-semibold'
