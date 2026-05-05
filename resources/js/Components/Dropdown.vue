@@ -23,19 +23,42 @@ const handleClickOutside = e => {
     }
 };
 
+const toggle = () => {
+    if (!open.value) {
+        if (props.nested) {
+            window.dispatchEvent(new CustomEvent('close-nested-dropdowns'));
+        }
+        open.value = true;
+    } else {
+        open.value = false;
+    }
+};
+
+const handleCloseNested = () => {
+    if (props.nested) {
+        open.value = false;
+    }
+};
+
 onMounted(() => {
     document.addEventListener('keydown', closeOnEscape);
     document.addEventListener('click', handleClickOutside);
+    window.addEventListener('close-nested-dropdowns', handleCloseNested);
 });
 
 onUnmounted(() => {
     document.removeEventListener('keydown', closeOnEscape);
     document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('close-nested-dropdowns', handleCloseNested);
 });
 
 const widthClass = computed(() => ({ 48: 'w-48' })[props.width.toString()]);
 
 const alignmentClasses = computed(() => {
+    if (props.nested) {
+        return 'sm:absolute sm:top-0 sm:right-full sm:mr-1 sm:mt-0';
+    }
+
     switch (props.align) {
         case 'left':
             return 'start-0';
@@ -53,7 +76,7 @@ const alignmentClasses = computed(() => {
     <div
         class="relative"
         ref="dropdownRef">
-        <div @click.stop="open = !open">
+        <div @click.stop="toggle">
             <slot name="trigger" />
         </div>
 
@@ -72,8 +95,8 @@ const alignmentClasses = computed(() => {
             leave-to-class="scale-95 opacity-0">
             <div
                 v-show="open"
-                class="absolute z-50 mt-2 rounded-md shadow-lg"
-                :class="[widthClass, alignmentClasses]"
+                class="absolute z-50 rounded-md shadow-lg"
+                :class="[widthClass, alignmentClasses, nested ? '' : 'mt-1']"
                 @click.stop>
                 <div
                     class="rounded-md ring-1 ring-black ring-opacity-5"
