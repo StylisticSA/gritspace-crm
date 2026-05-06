@@ -38,6 +38,7 @@ const props = defineProps<{
     locations: Location;
     bookedRanges: BookedVirtual[];
     discount: discount[];
+    can: Object;
 }>();
 
 const { props: pageProps } = usePage();
@@ -148,7 +149,8 @@ const flash = (pageProps.flash ?? {}) as { success?: string };
                                 :price="virtual.price"
                                 :available-plans="[virtual.virtualoffice_name]"
                                 :selected-plan="virtual.virtualoffice_name"
-                                :booked-ranges="bookedRanges" />
+                                :booked-ranges="bookedRanges"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

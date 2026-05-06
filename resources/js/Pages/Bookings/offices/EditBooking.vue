@@ -35,6 +35,7 @@ const props = defineProps<{
     office: Office;
     categories: Category[];
     bookedDates: string[];
+    can: Object;
 }>();
 
 const { props: pageProps } = usePage();
@@ -172,7 +173,8 @@ if (flashMessage) {
                                 :location="office.location?.name"
                                 :category-name="category.name"
                                 :booked-dates="props.bookedDates"
-                                :selected-plan="availablePlans[0]" />
+                                :selected-plan="availablePlans[0]"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

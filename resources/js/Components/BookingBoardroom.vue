@@ -12,6 +12,7 @@ const props = defineProps({
     buttonName: String,
     selectedPlan: String,
     closedFirst: Number,
+    can: Object,
 });
 
 const dailyPlans = ['daily'];
@@ -275,6 +276,7 @@ const currencyFormatter = new Intl.NumberFormat('en-ZA', {
             <button
                 :disabled="form.processing"
                 type="submit"
+                v-if="can['view enquire']"
                 class="px-4 py-2 text-sm text-white rounded bg-primary hover:bg-bluemain">
                 Enquire {{ buttonName }}
             </button>

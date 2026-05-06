@@ -39,6 +39,7 @@ const props = defineProps<{
     discounts: Discounts[];
     closed: Object;
     closedFirst: number;
+    can: Object;
 }>();
 
 const pricingOptions = {
@@ -164,7 +165,8 @@ const selectedPlan = ref<string | null>(null);
                                 :closed-first="closedFirst"
                                 :pricing-options="pricingOptions"
                                 :available-plans="availablePlans"
-                                :selected-plan="selectedPlan" />
+                                :selected-plan="selectedPlan"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

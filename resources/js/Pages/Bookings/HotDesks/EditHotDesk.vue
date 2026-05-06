@@ -20,11 +20,13 @@ interface HelpDesk {
     price?: number;
     duration?: number | string;
     discount?: number;
+    free_boardroom_hours?: number;
     desks?: number;
     amenities?: Amenity[];
 }
 
 interface Discount {
+    id: number;
     package: string;
     discount: number;
 }
@@ -33,13 +35,10 @@ const props = defineProps<{
     helpDesks: HelpDesk;
     locations: Location;
     discount: Discount;
+    can: Object;
 }>();
 
 const viewMode = ref<'form' | 'calendar' | null>(null);
-
-const pricingOptions = {
-    price: props.helpDesks.price,
-};
 </script>
 
 <template>
@@ -81,49 +80,67 @@ const pricingOptions = {
                                     </p>
                                 </div>
 
-                                <div v-if="helpDesks.amenities?.length">
-                                    <p><strong>Amenities:</strong></p>
-                                    <div class="flex flex-wrap gap-2 mt-1">
-                                        <span
-                                            v-for="(a, index) in helpDesks.amenities"
-                                            :key="a.id"
-                                            :style="{
-                                                backgroundColor: [
-                                                    '#b99456',
-                                                    '#8a920e',
-                                                    '#8895a6',
-                                                    '#5c732b',
-                                                    '#323c44',
-                                                    '#c56641',
-                                                ][index % 6],
-                                            }"
-                                            class="px-2 py-1 text-xs text-white rounded">
-                                            {{ a.amenity_name }}
-                                        </span>
-                                    </div>
+                                <div class="md:col-span-1">
+                                    <ul class="space-y-1 text-sm text-gray-700">
+                                        <li v-if="helpDesks.price">
+                                            Price: <strong>R{{ helpDesks.price ?? '0.00' }}</strong>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                             <div class="pt-4 border-t border-gray-200">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                                    <!-- First column: Pricing Options -->
-                                    <div class="md:col-span-1">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Pricing Options</h4>
-                                        <ul class="space-y-1 text-sm text-gray-700">
-                                            <li v-if="helpDesks.price">
-                                                Price: <strong>R{{ helpDesks.price ?? '0.00' }}</strong>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <!-- Second column: Discounts -->
-                                    <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Discounts</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-2">
+                                    <div
+                                        class="md:col-span-2"
+                                        v-if="props.discount">
+                                        <h4 class="font-semibold text-gray-800">Boardroom Discount(s)</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
-                                            <li v-if="props.discount && props.discount?.discount">
-                                                It has <strong>{{ props.discount?.discount }}%</strong> discount on
-                                                boardrooms.
+                                            <li v-if="helpDesks.free_boardroom_hours">
+                                                Your booking includes
+                                                <strong>{{ helpDesks.free_boardroom_hours }}</strong> free boardroom
+                                                hours per Month.
+                                            </li>
+                                            <li v-if="props.discount">
+                                                It has <strong>{{ props.discount.discount }}%</strong> discount, when
+                                                you book {{ props.discount.package }} Package
                                             </li>
                                         </ul>
+
+                                        <p class="py-3 text-sm text-primary">
+                                            NOTE: Any discount will be applied upon approval and availability.
+                                        </p>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-primary">No Discounts.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="grid grid-cols-1 gap-6 text-sm text-gray-700 md:grid-cols-2">
+                                    <div v-if="helpDesks.amenities?.length">
+                                        <p><strong>Amenities:</strong></p>
+                                        <div class="flex flex-wrap gap-2 mt-1">
+                                            <span
+                                                v-for="(a, index) in helpDesks.amenities"
+                                                :key="a.id"
+                                                :style="{
+                                                    backgroundColor: [
+                                                        '#b99456',
+                                                        '#8a920e',
+                                                        '#8895a6',
+                                                        '#5c732b',
+                                                        '#323c44',
+                                                        '#c56641',
+                                                    ][index % 6],
+                                                }"
+                                                class="px-2 py-1 text-xs text-white rounded">
+                                                {{ a.amenity_name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <p class="text-primary">No Amnenities.</p>
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +153,8 @@ const pricingOptions = {
                                 :hotdesk-id="helpDesks.id"
                                 :pricing-options="helpDesks.price"
                                 :available-plans="helpDesks.help_desk_name"
-                                :selected-duration="Number(helpDesks.duration)" />
+                                :selected-duration="Number(helpDesks.duration)"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

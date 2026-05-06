@@ -42,6 +42,7 @@ const props = defineProps<{
     categories: Category[];
     bookedDates: string[];
     discounts: Discounts[];
+    can: Object;
 }>();
 
 const { props: pageProps } = usePage();
@@ -139,11 +140,11 @@ if (flashMessage) {
                                             </li>
                                         </ul>
                                         <p class="py-3 text-sm text-primary">
-                                            NOTE: The discount will be applied upon approval.
+                                            NOTE: The discount will be applied upon approval and availability.
                                         </p>
                                     </div>
                                     <div v-else>
-                                        <p class="text-primary">No discounts.</p>
+                                        <p class="text-primary">No Discounts.</p>
                                     </div>
                                 </div>
                             </div>
@@ -187,7 +188,6 @@ if (flashMessage) {
                                 {{ flashMessage }}
                             </div>
 
-                            <!-- Booking Conflict Error (Optional fallback if still present in this page) -->
                             <div
                                 v-if="pageProps.errors?.booking_conflict"
                                 class="px-4 py-3 mb-4 text-sm text-red-700 bg-red-100 border border-red-300 rounded">
@@ -202,7 +202,8 @@ if (flashMessage) {
                                 :category-id="category.id"
                                 :category-name="category.name"
                                 :booked-dates="props.bookedDates"
-                                :selected-plan="availablePlans[0]" />
+                                :selected-plan="availablePlans[0]"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

@@ -20,6 +20,7 @@ const props = defineProps({
     },
     parking: Object,
     location: String,
+    can: Object,
 });
 
 const dailyPlans = ['daily'];
@@ -264,6 +265,7 @@ const submit = () => {
             <button
                 :disabled="form.processing"
                 type="submit"
+                v-if="can['view enquire']"
                 class="px-4 py-2 text-sm text-white rounded bg-primary hover:bg-bluemain">
                 Enquire {{ buttonName }}
             </button>

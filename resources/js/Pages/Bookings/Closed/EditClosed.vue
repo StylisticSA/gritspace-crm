@@ -51,6 +51,7 @@ const props = defineProps<{
     bookedDates: string[];
     parking: Parking;
     discounts: Discounts[];
+    can: Object;
 }>();
 
 const { props: pageProps } = usePage();
@@ -144,7 +145,7 @@ if (flashMessage) {
                                             <li v-if="office.free_boardroom_hours">
                                                 Your booking includes
                                                 <strong>{{ office.free_boardroom_hours }}</strong> free boardroom hours
-                                                per Month. Subject to availability
+                                                per Month.
                                             </li>
                                             <li
                                                 v-if="discounts"
@@ -155,11 +156,11 @@ if (flashMessage) {
                                             </li>
                                         </ul>
                                         <p class="py-3 text-sm text-primary">
-                                            NOTE: Any discount will be applied upon approval.
+                                            NOTE: Any discount will be applied upon approval and availability.
                                         </p>
                                     </div>
                                     <div v-else>
-                                        <p class="text-primary">No amnenities.</p>
+                                        <p class="text-primary">No Discounts.</p>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +221,8 @@ if (flashMessage) {
                                 :parking="parking"
                                 :location="office.location?.name"
                                 :booked-dates="props.bookedDates"
-                                :selected-plan="availablePlans[0]" />
+                                :selected-plan="availablePlans[0]"
+                                :can="can" />
                         </div>
                     </div>
                 </div>

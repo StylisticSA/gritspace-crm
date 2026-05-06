@@ -11,6 +11,7 @@ const props = defineProps({
     availablePlans: String,
     selectedDuration: Number,
     buttonName: String,
+    can: Object,
 });
 
 const today = new Date();
@@ -20,7 +21,7 @@ const bookingConflict = ref(null);
 const form = useForm({
     hotdesk_id: props.hotdeskId,
     plan: props.availablePlans,
-    is_half_day: props.availablePlans.toLowerCase() === 'halfday',
+    is_half_day: props.availablePlans?.toLowerCase() === 'halfday',
     selected_dates: [],
     time_slots: {},
     days_count: 0,
@@ -28,7 +29,7 @@ const form = useForm({
 });
 
 // Helpers
-const getDateKey = date => {
+const getDateKey = (date: Date) => {
     const d = new Date(date);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -36,7 +37,7 @@ const getDateKey = date => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
-const normalizedPlan = computed(() => props.availablePlans.toLowerCase().replace(/\s+/g, '_'));
+const normalizedPlan = computed(() => props.availablePlans?.toLowerCase().replace(/\s+/g, '_'));
 
 const isHalfDay = computed(() => normalizedPlan.value === 'half_day');
 
@@ -230,6 +231,7 @@ const submit = () => {
         <button
             :disabled="form.processing"
             type="submit"
+            v-if="can['view enquire']"
             class="px-4 py-2 text-sm text-white rounded bg-primary hover:bg-bluemain">
             Enquire {{ props.buttonName }}
         </button>

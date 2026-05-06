@@ -34,7 +34,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $customPermissions = [
             'manage settings', 'view book offices', 'view book boardrooms', 
-            'view book extras', 'view dashboard', 'menu offices', 'view book virtuals'
+            'view book extras', 'view dashboard', 'menu offices', 'view book virtuals','view enquire'
         ];
 
         foreach ($customPermissions as $permName) {
