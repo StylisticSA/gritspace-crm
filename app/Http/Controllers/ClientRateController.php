@@ -26,7 +26,7 @@ class ClientRateController extends Controller
 
         $search = $request->input('search');
 
-        $clientsRates = ClientRate::when($search, function ($query, $search) {
+        $clientsRates = ClientRate::with('user')->when($search, function ($query, $search) {
             $query->where('name', 'like', "%{$search}%");
         })
             ->orderByDesc('created_at')
@@ -72,7 +72,7 @@ class ClientRateController extends Controller
 
         $users = User::with('roles')
                           ->whereHas('roles', function ($query) {
-                              $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users']);
+                              $query->whereIn(DB::raw('LOWER(name)'), ['user', 'users','pending user','pending users']);
                           })->select('id', 'name')
                           ->get();
 

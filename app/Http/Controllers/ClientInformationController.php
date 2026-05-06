@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgrementUpload;
+use App\Models\ClientInformation;
+use App\Models\ClientRate;
+use App\Models\Location;
 use App\Models\Role;
 use App\Models\User;
-use Inertia\Inertia;
-use App\Models\Location;
-use App\Models\ClientRate;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Models\AgrementUpload;
-use Illuminate\Validation\Rule;
-use App\Models\ClientInformation;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Notification;
 use App\Notifications\ClientStatusNotification;
+use App\Notifications\CompanyInfoNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class ClientInformationController extends Controller
 {
@@ -92,7 +93,7 @@ class ClientInformationController extends Controller
 
         $users = User::with('roles')
             ->whereHas('roles', function ($query) {
-                $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users']);
+                $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users','user','users']);
             })->select('id', 'name')
             ->get();
 
@@ -123,7 +124,7 @@ class ClientInformationController extends Controller
                     'company_registration_number'   => 'nullable|string|max:100',
                     'identity_path'                 => 'required|file|mimes:jpg,jpeg,png,pdf|max:5000',
                     'residency_path'                => 'required|file|mimes:jpg,jpeg,png,pdf|max:5000',
-                    'company_reg_path'              => 'required|file|mimes:jpg,jpeg,png,pdf|max:5000',
+                    'company_reg_path'              => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
                     'agreement'                     => 'required'
                 ]);
 
@@ -193,6 +194,15 @@ class ClientInformationController extends Controller
 
             $client->save();
 
+            auth()->user()->notify(
+                new CompanyInfoNotification($client->name, $client->email_address, 'user')
+            );
+
+            User::role(['super admin', 'admin'])->get()
+                ->each(fn ($admin) =>
+                    $admin->notify(new CompanyInfoNotification($client->name, $client->email_address, 'admin'))
+                );
+
             DB::commit();
 
             return back()->with('success', 'Client information saved successfully.');
@@ -224,7 +234,7 @@ class ClientInformationController extends Controller
 
         $users = User::with('roles')
                 ->whereHas('roles', function ($query) {
-                    $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users']);
+                    $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users','user','users']);
                 })->select('id', 'name')
                 ->get();
 
@@ -365,6 +375,8 @@ class ClientInformationController extends Controller
 
         $userData = ClientInformation::with('user')->where('user_id', $userId)->first();
 
+        // dd($userData);
+
         if ($client->approved === 1) {
 
             return back()->withErrors([
@@ -390,9 +402,9 @@ class ClientInformationController extends Controller
                 Storage::disk('google')->delete($client->company_reg_path);
             }
 
-            ClientRate::where('client_information_id', $client->id)->delete();
+            ClientRate::where('user_id', $userData->user_id)->delete();
 
-            $agreementUpload = AgrementUpload::where('user_id', $client->user_id)->first();
+            $agreementUpload = AgrementUpload::where('user_id', $userData->user_id)->first();
             if ($agreementUpload) {
                 if ($agreementUpload->agreement) {
                     Storage::disk('google')->delete($agreementUpload->agreement);
@@ -506,15 +518,19 @@ class ClientInformationController extends Controller
             'user_email' => $client->user->email
         ];
 
-        $clientData->user->notify(new ClientStatusNotification($bookingData, 'approved', 'user'));
+        $clientData->user->notify(
+            new ClientStatusNotification($bookingData, 'approved', 'user')
+        );
 
         $admins = User::select('id', 'email')
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['Super Admin', 'Admin']))
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['super admin', 'admin']))
             ->distinct()
             ->get();
 
-        Notification::send($admins, new ClientStatusNotification($bookingData, 'approved', 'admin'));
-
+        Notification::send(
+            $admins,
+            new ClientStatusNotification($bookingData, 'approved', 'admin')
+        );
 
         return redirect()->back()->with(
             'success',
@@ -560,12 +576,11 @@ class ClientInformationController extends Controller
 
 
         $admins = User::select('id', 'email')
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['Super Admin', 'Admin']))
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['super Admin', 'admin']))
             ->distinct()
             ->get();
 
         Notification::send($admins, new ClientStatusNotification($bookingData, 'deactivated', 'admin'));
-
 
 
         return redirect()->back()->with(

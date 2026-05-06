@@ -191,9 +191,10 @@ const showAgreementModal = ref(false);
                     </div>
 
                     <!-- Right column: Existing content / form or other info -->
+
                     <div
                         class="p-4 bg-white shadow sm:rounded-lg sm:p-8"
-                        v-if="!props.clients?.rates">
+                        v-if="props.clients?.rates && Object.keys(props.clients.rates).length > 0">
                         <h3 class="mb-10 text-2xl text-bold">Client Rates</h3>
 
                         <div

@@ -13,7 +13,7 @@ use App\Models\BankingDetail;
 use App\Models\VirtualOffice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\Storage;
 use App\Notifications\InvoiceNotification;
 
@@ -138,7 +138,6 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request);
 
         $validated = $request->validate([
             'user_id'           => 'required',
@@ -170,7 +169,6 @@ class InvoiceController extends Controller
 
         ]);
 
-        // Find the last invoice
         $lastInvoice = Invoice::orderBy('id', 'desc')->first();
 
         $nextNumber = $lastInvoice
@@ -384,13 +382,14 @@ class InvoiceController extends Controller
             'user_name' => $invoice->user_name,
         ];
 
-        $invoice->user->notify(new InvoiceNotification($invoiceData, 'paid', 'user'));
+        $invoice->user->notify(
+            new InvoiceNotification($invoiceData, 'paid', 'user')
+        );
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'paid', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'paid', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new InvoiceNotification($invoiceData, 'paid', 'admin'))
+            );
 
         return back()->with('success', 'Invoice status changed to Paid.');
 
@@ -415,13 +414,14 @@ class InvoiceController extends Controller
             'user_name' => $invoice->user_name,
         ];
 
-        $invoice->user->notify(new InvoiceNotification($invoiceData, 'cancelled', 'user'));
+        $invoice->user->notify(
+            new InvoiceNotification($invoiceData, 'cancelled', 'user')
+        );
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'cancelled', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'cancelled', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new InvoiceNotification($invoiceData, 'cancelled', 'admin'))
+            );
 
         return back()->with('success', 'Invoice status changed to Cancelled.');
 
@@ -446,13 +446,14 @@ class InvoiceController extends Controller
             'user_name' => $invoice->user_name,
         ];
 
-        $invoice->user->notify(new InvoiceNotification($invoiceData, 'pending', 'user'));
+        $invoice->user->notify(
+            new InvoiceNotification($invoiceData, 'pending', 'user')
+        );
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'pending', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'pending', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new InvoiceNotification($invoiceData, 'pending', 'admin'))
+            );
 
         return back()->with('success', 'Invoice status changed to pending.');
 
@@ -498,13 +499,14 @@ class InvoiceController extends Controller
 
         Log::info('pathme', $invoiceData);
 
-        $invoice->user->notify(new InvoiceNotification($invoiceData, 'monthly', 'user'));
+        $invoice->user->notify(
+            new InvoiceNotification($invoiceData, 'monthly', 'user')
+        );
 
-        User::withRole('Super Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'monthly', 'admin')));
-
-        User::withRole('Admin')->get()
-            ->each(fn ($user) => $user->notify(new InvoiceNotification($invoiceData, 'monthly', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new InvoiceNotification($invoiceData, 'monthly', 'admin'))
+            );
 
         return back()->with('success', 'Invoice Sent Successfully.');
 
@@ -552,7 +554,7 @@ class InvoiceController extends Controller
 
     public function download(Invoice $invoice)
     {
-        // Example: using dompdf
+
         $pdf = \PDF::loadView('invoices.pdf', compact('invoice'));
 
         return $pdf->download("invoice-{$invoice->id}.pdf");

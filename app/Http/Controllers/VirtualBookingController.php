@@ -171,16 +171,14 @@ class VirtualBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        auth()->user()->notify(new VirtualBookingNotification($bookingData, 'created', 'user'));
+        auth()->user()->notify(
+            new VirtualBookingNotification($bookingData, 'created', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'created', 'admin')));
-
+        User::role(['admin', 'super admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new VirtualBookingNotification($bookingData, 'created', 'admin'))
+            );
 
         return redirect()->route('booking.virtual', ['virtual' => $validated['virtual_office_id']])
             ->with('success', 'Virtual office booked successfully!');
@@ -279,16 +277,15 @@ class VirtualBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $virtual->user->notify(new VirtualBookingNotification($bookingData, 'paid', 'user'));
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
+        $virtual->user->notify(
+            new VirtualBookingNotification($bookingData, 'paid', 'user')
+        );
 
-
-        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'paid', 'admin')));
-
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new VirtualBookingNotification($bookingData, 'paid', 'admin'))
+            );
 
         return back()->with('success', 'Virtual Office Marked Paid Successfully.');
     }
@@ -315,15 +312,14 @@ class VirtualBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $virtual->user->notify(new VirtualBookingNotification($bookingData, 'approved', 'user'));
+        $virtual->user->notify(
+            new VirtualBookingNotification($bookingData, 'approved', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'approved', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new VirtualBookingNotification($bookingData, 'approved', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking approved successfully.');
@@ -351,15 +347,14 @@ class VirtualBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $virtual->user->notify(new VirtualBookingNotification($bookingData, 'rejected', 'user'));
+        $virtual->user->notify(
+            new VirtualBookingNotification($bookingData, 'rejected', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'rejected', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new VirtualBookingNotification($bookingData, 'rejected', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking rejected.');
@@ -387,14 +382,14 @@ class VirtualBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $virtual->user->notify(new VirtualBookingNotification($bookingData, 'cancelled', 'user'));
+        $virtual->user->notify(
+            new VirtualBookingNotification($bookingData, 'cancelled', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-        $admins->each(fn ($user) => $user->notify(new VirtualBookingNotification($bookingData, 'cancelled', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new VirtualBookingNotification($bookingData, 'cancelled', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking cancelled.');

@@ -138,15 +138,15 @@ class HotDeskBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        auth()->user()->notify(new HotDeskBookingNotification($bookingData, 'created', 'user'));
+        auth()->user()->notify(
+            new HotDeskBookingNotification($bookingData, 'created', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
+        User::role(['admin', 'super admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new HotDeskBookingNotification($bookingData, 'created', 'admin'))
+            );
 
-
-        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'created', 'admin')));
 
         return back()->with('success', 'Booking created successfully!');
     }
@@ -296,16 +296,14 @@ class HotDeskBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $hotdesk->user->notify(new HotDeskBookingNotification($bookingData, 'paid', 'user'));
+        $hotdesk->user->notify(
+            new HotDeskBookingNotification($bookingData, 'paid', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'paid', 'admin')));
-
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new HotDeskBookingNotification($bookingData, 'paid', 'admin'))
+            );
 
         return back()->with('success', 'Booking status changed to Paid successfully.');
     }
@@ -332,15 +330,15 @@ class HotDeskBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $hotdesk->user->notify(new HotDeskBookingNotification($bookingData, 'approved', 'user'));
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
+        $hotdesk->user->notify(
+            new HotDeskBookingNotification($bookingData, 'approved', 'user')
+        );
 
-
-        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'approved', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new HotDeskBookingNotification($bookingData, 'approved', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking approved successfully.');
@@ -364,15 +362,14 @@ class HotDeskBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $hotdesk->user->notify(new HotDeskBookingNotification($bookingData, 'rejected', 'user'));
+        $hotdesk->user->notify(
+            new HotDeskBookingNotification($bookingData, 'rejected', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'rejected', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new HotDeskBookingNotification($bookingData, 'rejected', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking rejected.');
@@ -395,15 +392,14 @@ class HotDeskBookingController extends Controller
             'user_name' => auth()->user()->name,
         ];
 
-        $hotdesk->user->notify(new HotDeskBookingNotification($bookingData, 'cancelled', 'user'));
+        $hotdesk->user->notify(
+            new HotDeskBookingNotification($bookingData, 'cancelled', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
-
-
-        $admins->each(fn ($user) => $user->notify(new HotDeskBookingNotification($bookingData, 'cancelled', 'admin')));
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new HotDeskBookingNotification($bookingData, 'cancelled', 'admin'))
+            );
 
         return back()->with('success', 'Booking cancelled.');
     }

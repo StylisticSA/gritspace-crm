@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use App\Models\Office;
+use App\Models\AgrementUpload;
+use App\Models\Boardroom;
+use App\Models\ClientInformation;
+use App\Models\ClientRate;
 use App\Models\HelpDesk;
 use App\Models\Location;
-use App\Models\Boardroom;
-use App\Models\ClientRate;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
+use App\Models\Office;
+use App\Models\User;
 use App\Models\VirtualOffice;
-use App\Models\AgrementUpload;
-use Illuminate\Validation\Rule;
-use App\Models\ClientInformation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use App\Notifications\CompanyInfoNotification;
 
 class CompanyDetailController extends Controller
 {
@@ -30,6 +32,8 @@ class CompanyDetailController extends Controller
         $clients = ClientInformation::with('location', 'rates')
                     ->where('user_id', auth()->id())
                     ->first();
+
+                   
 
         if (auth()->user()->hasRole(['super admin','admin'])) {
             return redirect()->route('admin.clientinfor.index');
@@ -234,6 +238,15 @@ class CompanyDetailController extends Controller
 
             if ($rows->isNotEmpty()) {
                 ClientRate::insert($rows->toArray());
+
+                auth()->user()->notify(
+                    new CompanyInfoNotification($client->name, $client->email, 'user')
+                );
+
+                User::role(['super admin', 'admin'])->get()
+                    ->each(fn ($admin) =>
+                        $admin->notify(new CompanyInfoNotification($client->name, $client->email, 'admin'))
+                    );
             }
 
 

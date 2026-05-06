@@ -315,8 +315,8 @@ const submit = () => {
 
                                 <div class="my-3">
                                     <a
-                                        v-if="clients.identity_path"
-                                        :href="clients.identity_path"
+                                        v-if="clients.company_reg_path"
+                                        :href="clients.company_reg_path"
                                         target="_blank"
                                         class="underline text-primary">
                                         View Company Registration
@@ -352,6 +352,7 @@ const submit = () => {
 
                             <div class="w-full pt-4 md:col-span-2">
                                 <button
+                                    v-if="can['edit client details']"
                                     type="submit"
                                     class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                                     :disabled="form.processing">

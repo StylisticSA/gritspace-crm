@@ -269,6 +269,9 @@ watch(
                                 <input
                                     type="text"
                                     v-model="form.company_registration_number"
+                                    v-on:focus="form.clearErrors('company_registration_number')"
+                                    v-mask="'####/######/##'"
+                                    placeholder="YYYY / NNNNNN / NN"
                                     class="w-full px-3 py-2 border rounded" />
                                 <div
                                     v-if="form.errors.company_registration_number"
@@ -290,6 +293,19 @@ watch(
                                     {{ form.errors.identity_path }}
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-lg text-gray-700">Proof of Residency</label>
+                                <input
+                                    type="file"
+                                    @change="handleFileUpload($event, 'residency_path')"
+                                    v-on:focus="form.clearErrors('residency_path')"
+                                    class="w-full px-3 py-2 border rounded" />
+                                <div
+                                    v-if="form.errors.residency_path"
+                                    class="text-sm text-red-600">
+                                    {{ form.errors.residency_path }}
+                                </div>
+                            </div>
 
                             <div>
                                 <label class="block text-lg text-gray-700">Upload Company Registration</label>
@@ -302,20 +318,6 @@ watch(
                                     v-if="form.errors.company_reg_path"
                                     class="text-sm text-red-600">
                                     {{ form.errors.company_reg_path }}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-lg text-gray-700">Proof of Residency</label>
-                                <input
-                                    type="file"
-                                    @change="handleFileUpload($event, 'residency_path')"
-                                    v-on:focus="form.clearErrors('residency_path')"
-                                    class="w-full px-3 py-2 border rounded" />
-                                <div
-                                    v-if="form.errors.residency_path"
-                                    class="text-sm text-red-600">
-                                    {{ form.errors.residency_path }}
                                 </div>
                             </div>
 

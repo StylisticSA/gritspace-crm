@@ -156,7 +156,7 @@ watchEffect(() => {
                 <button
                     v-if="can['create notes']"
                     @click="showNoteModal = true"
-                    class="px-2 py-2 text-lg text-white rounded bg-bluemain hover:bluemain/60">
+                    class="px-2 py-2 text-lg text-white rounded bg-primary hover:bluemain/60">
                     Add Note
                 </button>
             </div>
@@ -179,6 +179,12 @@ watchEffect(() => {
                                 :href="route('admin.agreement.index')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Agreements
+                            </Link>
+                            <Link
+                                v-if="can['create discounts']"
+                                :href="route('admin.clientrates.index')"
+                                class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain/60 hover:bg-bluemain">
+                                Discounted Rates
                             </Link>
                         </div>
 
@@ -348,6 +354,14 @@ watchEffect(() => {
 
                                 <!-- Client Info Grid -->
                                 <div class="grid grid-cols-2 mt-10 gap-x-4 gap-y-2">
+                                    <div class="font-semibold text-gray-700">System User:</div>
+                                    <div>
+                                        {{
+                                            companyInfo.user?.name.charAt(0).toUpperCase() +
+                                                companyInfo.user?.name.slice(1) ?? 'N/A'
+                                        }}
+                                    </div>
+
                                     <div class="font-semibold text-gray-700">Location:</div>
                                     <div>{{ companyInfo.location?.name ?? 'N/A' }}</div>
 

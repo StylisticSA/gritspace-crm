@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\AgrementUpload;
 use App\Models\BoardroomBooking;
 use App\Models\ClientInformation;
+use App\Models\ClientRate;
 use App\Models\ClosedOfficeRate;
 use App\Models\FreeHours;
 use App\Models\HotDeskBooking;
@@ -118,5 +119,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function freeHours()
     {
         return $this->hasMany(FreeHours::class);
+    }
+
+    public function clientRates()
+    {
+        return $this->hasMany(ClientRate::class);
     }
 }

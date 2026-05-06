@@ -172,12 +172,15 @@ use Inertia\Inertia;
             'category'  => $categorySlug,
         ];
 
-        // Notify the user who booked
-        auth()->user()->notify(new BookingNotification($bookingData, 'created', 'user'));
+        auth()->user()->notify(
+            new BookingNotification($bookingData, 'created', 'user')
+        );
 
-        $admins = User::role(['Admin', 'Super Admin'])->get();
+        User::role(['admin', 'super admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'created', 'admin'))
+            );
 
-        $admins->each(fn ($user) => $user->notify(new BookingNotification($bookingData, 'created', 'admin')));
 
         return back()->with('success', 'Thank you for your enquiry. We will get back to you shortly');
     }
@@ -289,17 +292,14 @@ use Inertia\Inertia;
             'category' => $categorySlug,
         ];
 
+    
         $closed->user->notify(new BookingNotification($bookingData, 'paid', 'user'));
 
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'paid', 'admin'))
+            );
 
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'paid', 'admin'))
-        );
 
         return back()->with('success', 'Office Marked Paid Successfully.');
     }
@@ -331,17 +331,14 @@ use Inertia\Inertia;
             'category' => $categorySlug,
         ];
 
-        $closed->user->notify(new BookingNotification($bookingData, 'approved', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'approved', 'admin'))
+        $closed->user->notify(
+            new BookingNotification($bookingData, 'approved', 'user')
         );
+
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'approved', 'admin'))
+            );
 
         return back()->with('success', 'Booking approved successfully.');
     }
@@ -366,17 +363,14 @@ use Inertia\Inertia;
             'category' => $categorySlug,
         ];
 
-        $closed->user->notify(new BookingNotification($bookingData, 'rejected', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'rejected', 'admin'))
+        $closed->user->notify(
+            new BookingNotification($bookingData, 'rejected', 'user')
         );
+
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'rejected', 'admin'))
+            );
 
 
         return back()->with('success', 'Booking rejected.');
@@ -402,18 +396,14 @@ use Inertia\Inertia;
             'category' => $categorySlug,
         ];
 
-        $closed->user->notify(new BookingNotification($bookingData, 'cancelled', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'cancelled', 'admin'))
+        $closed->user->notify(
+            new BookingNotification($bookingData, 'cancelled', 'user')
         );
 
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'cancelled', 'admin'))
+            );
 
         return back()->with('success', 'Booking cancelled.');
     }

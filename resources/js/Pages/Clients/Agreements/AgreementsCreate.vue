@@ -146,6 +146,7 @@ const submit = () => {
                     <!-- Submit Button -->
                     <div class="pt-4">
                         <button
+                            v-if="can['create agreements']"
                             type="submit"
                             class="block w-full px-3 py-2 text-lg text-white rounded bg-bluemain hover:bg-bluemain/60"
                             :disabled="form.processing">

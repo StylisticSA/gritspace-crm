@@ -148,6 +148,7 @@ const pending = () => {
                                 + Add Agreements Uploads
                             </Link>
                             <Link
+                                v-if="can['create client details']"
                                 :href="route('admin.clientinfor.index')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
                                 Clients Information

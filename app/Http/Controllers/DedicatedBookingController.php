@@ -196,16 +196,15 @@ class DedicatedBookingController extends Controller
             'category' => $categorySlug,
         ];
 
-        // Notify the user who booked
-        auth()->user()->notify(new BookingNotification($bookingData, 'created', 'user'));
+        auth()->user()->notify(
+            new BookingNotification($bookingData, 'created', 'user')
+        );
 
-        $admins = User::withRole('Admin')
-            ->get()
-            ->merge(User::withRole('Super Admin')->get())
-            ->unique('id');
+        User::role(['admin', 'super admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'created', 'admin'))
+            );
 
-
-        $admins->each(fn ($user) => $user->notify(new BookingNotification($bookingData, 'created', 'admin')));
 
         return back()->with('success', 'Booking created successfully!');
     }
@@ -307,18 +306,16 @@ class DedicatedBookingController extends Controller
             'category' => $categorySlug,
         ];
 
-        // Notify the booking owner
-        $booking->user->notify(new BookingNotification($bookingData, 'paid', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'paid', 'admin'))
+        $booking->user->notify(
+            new BookingNotification($bookingData, 'paid', 'user')
         );
+
+        
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'paid', 'admin'))
+            );
+
 
         return back()->with('success', 'Booking paid successfully.');
     }
@@ -344,18 +341,14 @@ class DedicatedBookingController extends Controller
             'category' => $categorySlug,
         ];
 
-        // Notify the booking owner
-        $booking->user->notify(new BookingNotification($bookingData, 'approved', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'approved', 'admin'))
+        $booking->user->notify(
+            new BookingNotification($bookingData, 'approved', 'user')
         );
+
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'approved', 'admin'))
+            );
 
         return back()->with('success', 'Booking approved successfully.');
     }
@@ -380,17 +373,15 @@ class DedicatedBookingController extends Controller
             'category' => $categorySlug,
         ];
 
-        $booking->user->notify(new BookingNotification($bookingData, 'rejected', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'rejected', 'admin'))
+        $booking->user->notify(
+            new BookingNotification($bookingData, 'rejected', 'user')
         );
+
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'rejected', 'admin'))
+            );
+
 
 
         return back()->with('success', 'Booking rejected.');
@@ -416,18 +407,14 @@ class DedicatedBookingController extends Controller
             'category' => $categorySlug,
         ];
 
-        $booking->user->notify(new BookingNotification($bookingData, 'cancelled', 'user'));
-
-        $admins = User::withRole('Super Admin')
-            ->get()
-            ->merge(User::withRole('Admin')->get())
-            ->unique('id');
-
-        $admins->each(
-            fn ($user) =>
-            $user->notify(new BookingNotification($bookingData, 'cancelled', 'admin'))
+        $booking->user->notify(
+            new BookingNotification($bookingData, 'cancelled', 'user')
         );
 
+        User::role(['super admin', 'admin'])->get()
+            ->each(fn ($admin) =>
+                $admin->notify(new BookingNotification($bookingData, 'cancelled', 'admin'))
+            );
 
         return back()->with('success', 'Booking cancelled.');
     }

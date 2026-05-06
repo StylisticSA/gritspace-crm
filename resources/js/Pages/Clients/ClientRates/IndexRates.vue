@@ -83,10 +83,16 @@ const deleteClient = () => {
                     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex space-x-2">
                             <Link
-                                v-if="can['add users']"
+                                v-if="can['create discounts']"
                                 :href="route('admin.clientrates.create')"
                                 class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
                                 + Add Discounted Rates
+                            </Link>
+                            <Link
+                                v-if="can['create client details']"
+                                :href="route('admin.clientinfor.index')"
+                                class="inline-block px-2 py-2 text-lg font-medium text-white rounded bg-bluemain hover:bg-bluemain/60">
+                                Clients Information
                             </Link>
                         </div>
 
@@ -102,11 +108,11 @@ const deleteClient = () => {
                         <table class="min-w-full border border-gray-300 divide-y divide-gray-200">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">ID</th>
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">User Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Name</th>
+                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Office Type</th>
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Price</th>
-                                    <!-- <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Discount</th> -->
-                                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Start Date</th>
+
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">End Date</th>
 
                                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-700">Actions</th>
@@ -116,19 +122,15 @@ const deleteClient = () => {
                                 <tr
                                     v-for="client in clients.data"
                                     :key="client.id">
-                                    <td class="px-6 py-4 text-sm text-gray-800">{{ client.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        {{ client.user?.name.charAt(0).toUpperCase() + client.user.name.slice(1) }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">{{ client.office_name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-800">
+                                        {{ client.type.charAt(0).toUpperCase() + client.type.slice(1) }}
+                                    </td>
                                     <td class="px-6 py-4 text-sm text-gray-800">R {{ client.price }}</td>
-                                    <!-- <td class="px-6 py-4 text-sm text-gray-800">
-                                        <span
-                                            :class="
-                                                (client.discount_active ?? 0)
-                                                    ? 'bg-green-600 font-semibold px-2 py-1 rounded text-white'
-                                                    : 'bg-yellow-600 font-semibold px-2 py-1 rounded text-white'
-                                            ">
-                                            {{ (client.discount_active ?? 0) ? 'Yes' : 'No' }}
-                                        </span>
-                                    </td> -->
+
                                     <td class="px-6 py-4 text-sm text-gray-800">
                                         <FormattedDate :date="client.start_date" />
                                     </td>

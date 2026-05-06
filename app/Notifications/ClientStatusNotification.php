@@ -45,8 +45,8 @@ class ClientStatusNotification extends Notification implements ShouldQueue
                 return (new MailMessage())
                     ->subject('Client Approval')
                     ->greeting('Hi Admin\'s')
-                     ->line("Client Name: {$user} ")
-                    ->line("Client Email: {$userEmail} ")
+                     ->line("**Client Name:** {$user} ")
+                    ->line("**Client Email:** {$userEmail} ")
                     ->line("This client been Approved.")
                     ->action('View Client', $adminURL);
             }
@@ -67,8 +67,8 @@ class ClientStatusNotification extends Notification implements ShouldQueue
                 return (new MailMessage())
                     ->subject('Client Deactivated')
                     ->greeting('Hi Admin\'s')
-                    ->line("Client Name: {$user} ")
-                    ->line("Client Email: {$userEmail} ")
+                    ->line("**Client Name:** {$user} ")
+                    ->line("**Client Email:** {$userEmail} ")
                     ->line("This client been deactivated.")
                     ->action('View Client', $adminURL);
             }
