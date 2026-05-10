@@ -28,7 +28,6 @@ class HotDeskBookingController extends Controller
         $discount = Discount::where('location_id', $hotDesk->location_id)
                    ->where('package','daily')
                    ->first(['id','package','discount']);
-        // dd($discount);
 
         return Inertia::render('Bookings/HotDesks/EditHotDesk', [
             'helpDesks' => $hotdesks,

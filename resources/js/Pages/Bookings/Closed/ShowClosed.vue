@@ -15,7 +15,7 @@ const props = defineProps({
     approvedClosed: Object,
 });
 
-const { message, status, showMessage, messageText, messageClass } = useStatusMessage();
+const { message, status, showMessage, messageText, messageClass } = useStatusMessage(3000);
 
 const search = ref(props.filters?.search ?? '');
 const isLoading = ref(false);
@@ -66,19 +66,6 @@ const generateMonthDuration = (start, monthsCount) => {
     monthDuration.value = months;
     showMonths.value = true;
 };
-
-const groupedMonths = computed(() => {
-    const raw = monthDuration.value;
-    if (!Array.isArray(raw)) return {};
-
-    return raw.reduce((acc, label) => {
-        const year = label.split(' ')[1];
-        if (!year) return acc;
-
-        (acc[year] ||= []).push(label);
-        return acc;
-    }, {});
-});
 
 watch(search, value => {
     router.get(
@@ -143,13 +130,15 @@ function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+console.log('d', props.discounts);
+
 const discountedPrice = computed(() => {
-    if (!selectedBooking.value || !bookingDiscount.value) {
+    if (!selectedBooking.value || !props.discounts === 0) {
         return selectedBooking.value?.total_price ?? 0;
     }
 
     const total = Number(selectedBooking.value.total_price);
-    const discountPercent = Number(bookingDiscount.value.discount);
+    const discountPercent = Number(props.discounts);
 
     const discountAmount = total * (discountPercent / 100);
     const finalTotal = total - discountAmount;
@@ -178,6 +167,7 @@ const approveBooking = id => {
 
                     setTimeout(() => {
                         router.reload({ preserveScroll: true });
+                        closeViewModal();
                     }, 2000);
                 },
                 onError: () => {
@@ -486,7 +476,11 @@ const allBookings = computed(() => {
                                     &times;
                                 </button>
                             </div>
-
+                            <template v-if="showMessage">
+                                <div :class="messageClass">
+                                    {{ messageText }}
+                                </div>
+                            </template>
                             <!-- Modal Content -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 m-5 text-sm text-gray-700">
                                 <!-- General Info -->

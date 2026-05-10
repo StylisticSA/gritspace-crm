@@ -36,7 +36,7 @@ const confirmDelete = id => {
 
 const deletehelpdesk = () => {
     if (helpdeskToDelete.value) {
-        router.delete(route('admin.help-desk.destroy', helpdeskToDelete.value), {
+        router.delete(route('admin.hot-desk.destroy', helpdeskToDelete.value), {
             preserveScroll: true,
             onSuccess: () => {
                 message.value = 'A Help Desk has been deleted successfully.';

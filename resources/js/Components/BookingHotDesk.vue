@@ -14,10 +14,6 @@ const props = defineProps({
     can: Object,
 });
 
-const today = new Date();
-const successMessage = ref(null);
-const bookingConflict = ref(null);
-
 const form = useForm({
     hotdesk_id: props.hotdeskId,
     plan: props.availablePlans,
@@ -28,6 +24,10 @@ const form = useForm({
     selected_price: 0,
 });
 
+const today = new Date();
+const successMessage = ref<string | null>(null);
+const bookingConflict = ref<string | null>(null);
+
 // Helpers
 const getDateKey = (date: Date) => {
     const d = new Date(date);
@@ -37,18 +37,9 @@ const getDateKey = (date: Date) => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
-const normalizedPlan = computed(() => props.availablePlans?.toLowerCase().replace(/\s+/g, '_'));
+const isHalfDay = computed(() => props.selectedDuration === 0.5);
 
-const isHalfDay = computed(() => normalizedPlan.value === 'half_day');
-
-const isFixedPackage = computed(() => [5, 10, 20].includes(props.selectedDuration));
-
-const weekdaysOnly = computed(() =>
-    form.selected_dates.filter(date => {
-        const d = new Date(date);
-        return d.getDay() !== 0 && d.getDay() !== 6;
-    })
-);
+const isFixedPackage = computed(() => [1, 5, 10, 20].includes(props.selectedDuration));
 
 // Trim to selectedDuration for package plans
 watch(
@@ -69,11 +60,20 @@ watch(
 );
 
 // Time slot selection for Half Day
-const getTimeBlock = date => form.time_slots[getDateKey(date)]?.block || '';
-const setTimeBlock = (date, e) => {
+const getTimeBlock = (date: Date): string => form.time_slots[getDateKey(date)]?.block || '';
+
+const setTimeBlock = (date: Date, e: Event): void => {
     const key = getDateKey(date);
-    form.time_slots[key] = { block: e.target.value };
+    const target = e.target as HTMLSelectElement;
+    form.time_slots[key] = { block: target.value };
 };
+
+const weekdaysOnly = computed(() =>
+    form.selected_dates.filter(date => {
+        const d = new Date(date);
+        return d.getDay() !== 0 && d.getDay() !== 6;
+    })
+);
 
 const halfDayCount = computed(() => {
     if (!isHalfDay.value) return 0;

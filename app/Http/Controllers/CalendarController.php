@@ -131,7 +131,7 @@ class CalendarController extends Controller
                 return [
                     'start'   => $booking->start_date,
                     'end'     => $booking->end_date,
-                    'title'   => $isAdmin ? $booking->user->name : ($isOwner ? $booking->user->name : 'Booked'),
+                    'title'   => $isAdmin ? optional($booking->user)->name ?? 'Admin' : ($isOwner ? $booking->user->name : 'Booked'),
                     'content' => $booking->office->office_name,
                     'class'   => 'plan-' . $booking->plan,
                     'backgroundColor' => $color['bg'],
@@ -170,8 +170,8 @@ class CalendarController extends Controller
             ->get()
             ->map(function ($booking) use ($user, $palette, $paletteCount) {
                 $isOwner = $user->id === $booking->user_id;
-                $isAdmin = $user->hasRole('admin') || $user->hasRole('super admin');
-
+                $isAdmin = $user->hasAnyRole(['admin', 'super admin']);
+       
                 $key   = $booking->office->office_name . '-' . $booking->plan;
                 $index = crc32($key) % $paletteCount;
                 $color = $palette[$index];
@@ -179,7 +179,7 @@ class CalendarController extends Controller
                 return [
                     'start'   => $booking->start_date,
                     'end'     => $booking->end_date,
-                    'title'   => $isAdmin ? $booking->user->name : ($isOwner ? $booking->user->name : 'Booked'),
+                    'title'   => $isAdmin ? optional($booking->user)->name ?? 'Admin' : ($isOwner ? $booking->user->name : 'Booked'),
                     'class'   => 'plan-' . $booking->plan,
                     'backgroundColor' => $color['bg'],
                     'borderColor'     => $color['border'],
@@ -225,7 +225,7 @@ class CalendarController extends Controller
 
 
                 return collect($dates)->map(function ($date) use ($hd, $isOwner, $isAdmin, $palette, $paletteCount) {
-                    // Deterministic color based on helpdesk + plan + location
+                   
                     $key   = ($hd->helpdesk->help_desk_name ?? 'helpdesk') . '-' . $hd->plan . '-' . $hd->helpdesk->location_id;
                     $index = crc32($key) % $paletteCount;
                     $color = $palette[$index];
@@ -233,7 +233,7 @@ class CalendarController extends Controller
                     return [
                         'start'   => Carbon::parse($date)->format('Y-m-d'),
                         'end'     => Carbon::parse($date)->format('Y-m-d'),
-                        'title'   => $isAdmin ? $hd->user->name : ($isOwner ? $hd->user->name : 'Booked'),
+                        'title'   => $isAdmin ? optional($hd->user)->name ?? 'Admin' : ($isOwner ? $hd->user->name : 'Booked'),
                         'content' => $hd->helpdesk->help_desk_name ?? 'Hotdesk Booking',
                         'class'   => 'plan-' . $hd->plan,
                         'backgroundColor' => $color['bg'],
@@ -286,7 +286,7 @@ class CalendarController extends Controller
                         return [
                             'start'   => Carbon::parse($start)->format('Y-m-d H:i:s'),
                             'end'     => Carbon::parse($end)->format('Y-m-d H:i:s'),
-                            'title'   => $isAdmin ? $hd->user->name : ($isOwner ? $hd->user->name : 'Booked'),
+                            'title'   => $isAdmin ? optional($hd->user)->name ?? "Admin" : ($isOwner ? $hd->user->name : 'Booked'),
                             'content' => $hd->helpdesk->help_desk_name ?? 'Hotdesk Booking',
                             'class'   => 'plan-half-day',
                             'backgroundColor' => $color['bg'],
