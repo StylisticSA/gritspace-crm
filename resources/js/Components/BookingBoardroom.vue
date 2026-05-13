@@ -243,7 +243,7 @@ const currencyFormatter = new Intl.NumberFormat('en-ZA', {
         <!-- Discount (%) -->
 
         <div v-if="closedFirst > 0">
-            <label class="block font-semibold">Discount (%)</label>
+            <label class="block font-semibold">Boardroom Discount (%)</label>
             <input
                 type="text"
                 :value="form.discount_percentage"

@@ -26,19 +26,19 @@ interface Boardroom {
     amenities?: Amenity[];
 }
 
-interface Discounts {
-    id: number;
-    package: string;
-    discount: number;
+interface freeBoardroomHours {
+    free_boardroom_hours: number;
 }
 
 const props = defineProps<{
     boardroom: Boardroom;
     locations: Location[];
     amenities: Amenity[];
-    discounts: Discounts[];
-    closed: Object;
+    discounts: number;
+    officeName: string;
+    closed: number;
     closedFirst: number;
+    freeBoardroomHours: freeBoardroomHours;
     can: Object;
 }>();
 
@@ -79,6 +79,10 @@ const selectedPlan = ref<string | null>(null);
                                 <div class="space-y-2">
                                     <p><strong>Location:</strong> {{ boardroom.location?.name || 'N/A' }}</p>
                                     <p><strong>Seats:</strong> {{ boardroom.seats ?? 'N/A' }}</p>
+                                    <p>
+                                        <strong>Free Boardroom Hours:</strong>
+                                        {{ freeBoardroomHours.free_boardroom_hours ?? 'N/A' }} Hour's
+                                    </p>
                                 </div>
 
                                 <div class="md:col-span-1">
@@ -97,23 +101,16 @@ const selectedPlan = ref<string | null>(null);
                             <div class="pt-4 border-t border-gray-200">
                                 <div
                                     class="grid grid-cols-1 gap-4 mt-2"
-                                    v-if="discounts.length > 0">
+                                    v-if="discounts > 0">
                                     <div class="md:col-span-2">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount(s)</h4>
+                                        <h4 class="font-semibold text-gray-800 mb-2">Boardroom Discount</h4>
                                         <ul class="space-y-1 sm:pl-4 text-sm text-gray-700 lg:list-disc">
-                                            <li
-                                                class="space-y-1 text-md"
-                                                v-for="close in closed">
-                                                This discounts apply because you have
-                                                <strong>{{ close.office?.office_name }}</strong>
-                                                which comes with
-                                                <strong>{{ close.office?.free_boardroom_hours }}</strong> hours free
+                                            <li class="space-y-1 text-md">
+                                                This discount applies because you have active services for:
+                                                <strong>{{ officeName }}</strong>
                                             </li>
-                                            <li
-                                                v-if="discounts"
-                                                v-for="item in discounts"
-                                                :key="item.id">
-                                                It has <strong>{{ item.discount }}%</strong> discount
+                                            <li>
+                                                It has a <strong>{{ discounts }}%</strong> discount
                                             </li>
                                         </ul>
                                         <p class="py-3 text-sm text-primary">
