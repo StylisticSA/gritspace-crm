@@ -43,6 +43,7 @@ const can = page.props.can || {};
                                     :active="route().current('dashboard')"
                                     >Dashboard</NavLink
                                 >
+
                                 <NavLink
                                     :href="route('admin.dashboard')"
                                     v-if="can['manage settings']"
@@ -65,7 +66,7 @@ const can = page.props.can || {};
                                                     ? 'bg-primary rounded text-white font-semibold'
                                                     : 'text-gray-500 font-medium hover:text-gray-700 hover:bg-gray-100 rounded-md'
                                             ">
-                                            Bookings
+                                            Offices
                                             <svg
                                                 class="w-4 h-4 ml-1"
                                                 fill="currentColor"

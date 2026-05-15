@@ -26,6 +26,9 @@ class BoardroomBookingController extends Controller
      */
     public function index()
     {
+        $user = User::with('companyDetails:id,user_id,location_id,name')->select('id','name')
+                ->where('id', auth()->id())->first();
+
 
         $boardrooms = Boardroom::with('location', 'amenities')->get();
 
@@ -35,7 +38,7 @@ class BoardroomBookingController extends Controller
                         ->where('user_id', auth()->id())
                         ->where('status', 'approved')
                         ->get();
-
+  
         return Inertia::render('Bookings/Boardrooms/IndexBoardrooms', [
             'boardrooms'        => $boardrooms,
             'locations'         => $locations,
@@ -78,135 +81,157 @@ class BoardroomBookingController extends Controller
       
 
         $allowedStatuses = ['approved', 'paid'];
-        $user = User::select('id', 'name', 'email')->find(auth()->id());
-
-        $closed = Booking::with(['office.location', 'category'])
-                        ->where('user_id', $user->id)
-                        ->whereIn('status', $allowedStatuses)
-                        ->whereHas('category', function ($query) {
-                            $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
-                        })->first(['id', 'user_id', 'office_id', 'category_id', 'plan']);
-        
-        $dedicated = Booking::with(['office.location', 'category'])
-                        ->where('user_id', $user->id)
-                        ->whereIn('status', $allowedStatuses)
-                        ->whereHas('category', function ($query) {
-                            $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
-                        })->first(['id', 'user_id', 'office_id', 'category_id', 'plan']);
-
-
-        $hotdesk = HotDeskBooking::with(['helpdesk'])->where('user_id', $user->id)
-                        ->whereIn('status', $allowedStatuses)
-                        ->first(['id', 'user_id', 'helpdesk_id', 'plan']);
-
-                      
-                        
-        $virtuals = VirtualBooking::with('virtualOffice.location')
-                            ->where('user_id', auth()->id())
-                            ->whereIn('status', $allowedStatuses)
-                            ->first(['id', 'user_id', 'virtual_office_id', 'plan']);
-    
+        $user = User::with('companyDetails')->select('id', 'name', 'email')->find(auth()->id());
 
         $discountAmount = 0;
         $officeName = 'None';
         $freeBoardroomHours = 0;
         $discountOptions = [];
 
-        if ($closed) {
-            $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('category_id', $closed->category_id)
-                ->where('package', $closed->plan)
-                ->first(['id', 'package', 'discount']);
+        $isAdmin = $user->hasRole(['admin', 'super admin']); 
 
-            $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('category_id', $closed->category_id)
-                ->get(['id', 'package', 'discount']);
+        if (!$isAdmin) {
 
-            $closedHours = Office::with('category')
-                        ->where('id', $closed->office_id)
-                        ->where('location_id',$bookedboardroom->location_id)
-                        ->whereHas('category', function ($query) {
-                            $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
-                        })->first('free_boardroom_hours');
-            
-                        
-
-            if ($discountRecord) {
-                $discountAmount = $discountRecord->discount;
-                $officeName = $closed->category?->name ?? 'Closed Office';
-                $freeBoardroomHours = $closedHours;
-                $discountOptions    = $discountRecords;
-            }
-        }
-
-        if ($discountAmount === 0 && $dedicated) {
-            $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('category_id', $dedicated->category_id)
-                ->where('package', $dedicated->plan)
-                ->first(['id', 'package', 'discount']);
-
-            $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('category_id', $dedicated->category_id)
-                ->where('package', $dedicated->plan)
-                ->get(['id', 'package', 'discount']);
-
-            $dedicatedHours = Office::with('category')
-                        ->where('id', $closed->office_id)
-                        ->where('location_id',$bookedboardroom->location_id)
-                        ->whereHas('category', function ($query) {
-                            $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
-                        })->first('free_boardroom_hours');
-
-           
-
-            if ($discountRecord) {
-                $discountAmount = $discountRecord->discount;
-                $officeName = $dedicated->category?->name ?? 'Dedicated Desk';
-                $freeBoardroomHours = $dedicatedHours;
-                $discountOptions    = $discountRecords;
-            }
-        }
-
-        if ($discountAmount === 0 && $hotdesk && $hotdesk->plan) {
-            $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('package', 'Daily')
-                ->first(['id', 'package', 'discount']);
-
-            $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('package', 'Daily')
-                ->get(['id', 'package', 'discount']);
-
-            $hotdeskHours = HelpDesk::where('location_id', $hotdesk->helpdesk->location_id)
-                            ->first('free_boardroom_hours');
-            
-            if ($discountRecord) {
-                $discountAmount = $discountRecord->discount;
-                $officeName = $hotdesk->helpdesk?->name ?? 'Hot Desk';
-                $freeBoardroomHours = $hotdeskHours;
-                $discountOptions    = $discountRecords;
-            }
-        }
-
-        if ($discountAmount === 0 && $virtuals && $virtuals->plan) {
-            $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('package', $virtuals->plan)
-                ->first(['id', 'package', 'discount']);
-
-            $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
-                ->where('package', $virtuals->plan)
-                ->get(['id', 'package', 'discount']);
-
-            $virtualHours = VirtualOffice::where('id', $virtuals->id)
-                            ->where('location_id', $virtuals?->virtualOffice?->location_id)
-                            ->first('free_boardroom_hours');
+            $companyLocationId = $user->companyDetails?->location_id;
+    
+            $closed = Booking::with(['office.location', 'category'])
+                            ->where('user_id', $user->id)
+                            ->whereIn('status', $allowedStatuses)
+                            ->whereHas('category', function ($query) {
+                                $query->whereIn('name', ['Closed Office', 'Closed Offices', 'closed office', 'closed offices']);
+                            })
+                            ->whereHas('office', function ($query) use ($companyLocationId) {
+                                $query->where('location_id', $companyLocationId);
+                            })
+                            ->first(['id', 'user_id', 'office_id', 'category_id', 'plan']);
+       
+            $dedicated = Booking::with(['office.location', 'category'])
+                            ->where('user_id', $user->id)
+                            ->whereIn('status', $allowedStatuses)
+                            ->whereHas('category', function ($query) {
+                                $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
+                            })
+                            ->whereHas('office', function ($query) use ($companyLocationId) {
+                                $query->where('location_id', $companyLocationId);
+                            })->first(['id', 'user_id', 'office_id', 'category_id', 'plan']);
+    
+    
+            $hotdesk = HotDeskBooking::with(['helpdesk.location'])
+                            ->where('user_id', $user->id)
+                            ->whereIn('status', $allowedStatuses)
+                            ->whereHas('helpdesk', function ($query) use ($companyLocationId) {
+                                $query->where('location_id', $companyLocationId);
+                            })
+                            ->first(['id', 'user_id', 'helpdesk_id', 'plan']);
+    
+            $virtuals = VirtualBooking::with('virtualOffice.location')
+                                    ->where('user_id', $user->id)
+                                    ->whereIn('status', $allowedStatuses)
+                                    ->whereHas('virtualOffice', function ($query) use ($companyLocationId) {
+                                        $query->where('location_id', $companyLocationId);
+                                    })
+                                    ->first(['id', 'user_id', 'virtual_office_id', 'plan']);
         
-            if ($discountRecord) {
-                $discountAmount = $discountRecord->discount;
-                $officeName = $virtuals->virtualOffice?->name ?? 'Virtual Office';
-                $freeBoardroomHours = $virtualHours;
-                $discountOptions    = $discountRecords;
+    
+            
+    
+            if ($closed) {
+                $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
+                ->where('category_id', $closed->category_id)
+                ->whereIn('package', [$closed->plan,ucfirst($closed->plan)])
+                ->first(['id', 'package', 'discount']);
+                
+                $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->where('category_id', $closed->category_id)
+                    ->whereIn('package', [$closed->plan,ucfirst($closed->plan)])
+                    ->get(['id', 'package', 'discount']);
+    
+                $closedHours = Office::with('category')
+                            ->where('id', $closed->office_id)
+                            ->where('location_id',$bookedboardroom->location_id)
+                            ->whereHas('category', function ($query) {
+                                $query->whereRaw("LOWER(name) IN ('closed office', 'closed offices')");
+                            })->first('free_boardroom_hours');
+                
+    
+                if ($discountRecord) {
+                    $discountAmount = $discountRecord->discount;
+                    $officeName = $closed->category?->name ?? 'Closed Office';
+                    $freeBoardroomHours = $closedHours->free_boardroom_hours;
+                    $discountOptions    = $discountRecords;
+                }
+            }
+    
+            if ($discountAmount === 0 && $dedicated) {
+                $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->where('category_id', $dedicated->category_id)
+                    ->whereIn('package', [$dedicated->plan,ucfirst($dedicated->plan)])
+                    ->first(['id', 'package', 'discount']);
+    
+                $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->where('category_id', $dedicated->category_id)
+                    ->whereIn('package', [$dedicated->plan,ucfirst($dedicated->plan)])
+                    ->get(['id', 'package', 'discount']);
+    
+                $dedicatedHours = Office::with('category')
+                            ->where('id', $closed->office_id)
+                            ->where('location_id',$bookedboardroom->location_id)
+                            ->whereHas('category', function ($query) {
+                                $query->whereRaw("LOWER(name) IN ('dedicated desk', 'dedicated desks')");
+                            })->first('free_boardroom_hours');
+    
+               
+    
+                if ($discountRecord) {
+                    $discountAmount = $discountRecord->discount;
+                    $officeName = $dedicated->category?->name ?? 'Dedicated Desk';
+                    $freeBoardroomHours = $dedicatedHours;
+                    $discountOptions    = $discountRecords;
+                }
+            }
+    
+            if ($discountAmount === 0 && $hotdesk && $hotdesk->plan) {
+                $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->whereIn('package', ['daily','Daily'])
+                    ->first(['id', 'package', 'discount']);
+    
+                $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->whereIn('package', ['daily','Daily'])
+                    ->get(['id', 'package', 'discount']);
+    
+                $hotdeskHours = HelpDesk::where('location_id', $hotdesk->helpdesk->location_id)
+                                ->first('free_boardroom_hours');
+                
+                if ($discountRecord) {
+                    $discountAmount = $discountRecord->discount;
+                    $officeName = $hotdesk->helpdesk?->name ?? 'Hot Desk';
+                    $freeBoardroomHours = $hotdeskHours;
+                    $discountOptions    = $discountRecords;
+                }
+            }
+    
+            if ($discountAmount === 0 && $virtuals && $virtuals->plan) {
+                $discountRecord = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->whereIn('package', [$virtuals->plan,ucfirst($virtuals->plan)])
+                    ->first(['id', 'package', 'discount']);
+    
+                $discountRecords = Discount::where('location_id', $bookedboardroom->location_id)
+                    ->whereIn('package', [$virtuals->plan,ucfirst($virtuals->plan)])
+                    ->get(['id', 'package', 'discount']);
+    
+                $virtualHours = VirtualOffice::where('id', $virtuals->id)
+                                ->where('location_id', $virtuals?->virtualOffice?->location_id)
+                                ->first('free_boardroom_hours');
+            
+                if ($discountRecord) {
+                    $discountAmount = $discountRecord->discount;
+                    $officeName = $virtuals->virtualOffice?->name ?? 'Virtual Office';
+                    $freeBoardroomHours = $virtualHours;
+                    $discountOptions    = $discountRecords;
+                }
             }
         }
+
 
         return Inertia::render('Bookings/Boardrooms/EditBoardroom', [
             'boardroom'             => $boardroom,
@@ -228,9 +253,6 @@ class BoardroomBookingController extends Controller
     public function store(Request $request)
     {
        
-        // dd($request);
-        
-
         $validated = $request->validate([
            'boardroom_id'          => 'required|exists:boardrooms,id',
            'plan'                  => 'required|string|in:hourly,daily,monthly',
@@ -251,8 +273,6 @@ class BoardroomBookingController extends Controller
 
 
         ]);
-
-        // dd($validated);
 
         $office = Boardroom::findOrFail($validated['boardroom_id']);
 
@@ -291,8 +311,6 @@ class BoardroomBookingController extends Controller
             ])->withInput();
         }
 
-
-
         $booking = BoardroomBooking::create([
             'user_id'         => auth()->id(),
             'boardroom_id'    => $office->id,
@@ -306,7 +324,6 @@ class BoardroomBookingController extends Controller
             'status'          => 'pending',
         ]);
 
-        // nortifications
         $bookingData = [
             'id' => $booking->id,
             'room_type' => $office->boardroom_name,

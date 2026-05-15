@@ -136,7 +136,7 @@ const allBookings = computed(() => {
                     <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                         <div class="col-span-1">
                             <div class="mt-0">
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Filter by Location</label>
+                                <label class="block mb-1 text-sm font-medium text-gray-700"> Location</label>
                                 <select
                                     v-model="selectedLocation"
                                     class="w-full px-3 py-1 text-sm border border-gray-300 rounded">

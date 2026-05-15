@@ -71,7 +71,7 @@ class AgrementUploadController extends Controller
     {
         $users = User::with('roles')
                 ->whereHas('roles', function ($query) {
-                    $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users']);
+                    $query->whereIn(DB::raw('LOWER(name)'), ['pending user', 'pending users','user','users']);
                 })->select('id', 'name')
                 ->get();
 
@@ -220,20 +220,15 @@ class AgrementUploadController extends Controller
      */
     public function update(Request $request, AgrementUpload $agreement)
     {
+       
         $validated = $request->validate([
-            'user_id' => 'required',
+            'user_id' => 'required|exists:users,id',
             'location_id' => 'required|exists:locations,id',
             'agreement'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5000',
         ]);
 
-        if($request->user_id){
-
-            $user = User::select('id', 'name')->where('id', $request->user_id)->first();
-        } else {
-            $user = User::select('id', 'name')->where('id', $validated['user_id'])->first();
-        }
-
-        $location = Location::select('id', 'name')->where('id', $validated['location_id'])->first();
+        $user = User::select('id', 'name')->findOrFail($validated['user_id']);
+        $location = Location::select('id', 'name')->findOrFail($validated['location_id']);
 
         if ($request->hasFile('agreement')) {
 
@@ -257,6 +252,7 @@ class AgrementUploadController extends Controller
             $agreement->agreement = $agreementPath;
         }
 
+        $agreement->user_id = $validated['user_id'];
         $agreement->location_id = $validated['location_id'];
         $agreement->save();
 
@@ -268,6 +264,8 @@ class AgrementUploadController extends Controller
      */
     public function destroy(AgrementUpload $agreement)
     {
+        
+
         if ($agreement->status === 'approved') {
             return back()->withErrors([
                 'error' => 'You cannot delete this file. Change the status to Pending first.'

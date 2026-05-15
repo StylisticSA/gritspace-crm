@@ -81,7 +81,7 @@ const selectedPlan = ref<string | null>(null);
                                     <p><strong>Seats:</strong> {{ boardroom.seats ?? 'N/A' }}</p>
                                     <p>
                                         <strong>Free Boardroom Hours:</strong>
-                                        {{ freeBoardroomHours.free_boardroom_hours ?? 'N/A' }} Hour's
+                                        {{ freeBoardroomHours ?? 'N/A' }} Hour's
                                     </p>
                                 </div>
 
