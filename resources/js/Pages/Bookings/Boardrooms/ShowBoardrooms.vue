@@ -239,7 +239,7 @@ const allBookings = computed(() => {
             <div class="max-w-full px-4 mx-auto sm:max-w-xl sm:px-6 lg:max-w-7xl lg:px-8">
                 <!-- Search -->
                 <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                    <div class="space-x-2">
                         <Link
                             :href="route('booking.boardrooms')"
                             class="inline-block w-full px-4 py-2 text-sm font-medium text-center text-white rounded md:w-auto bg-primary hover:bg-bluemain">

@@ -141,9 +141,9 @@ Route::middleware(['auth', RoleMiddleware::using('user|admin|super admin')])->gr
     Route::get('/hotdesk-calendar', [CalendarController::class, 'hotdesk'])->name('calendar.hotdesk');
     Route::get('/closed-calendar', [CalendarController::class, 'closed'])->name('calendar.closed');
     Route::get('/dedicated-calendar', [CalendarController::class, 'dedicated'])->name('calendar.dedicated');
-    Route::get('/boardroom-calendar', [CalendarController::class, 'boardroom'])->name('calendar.boardroom');
     Route::get('/virtual-calendar', [CalendarController::class, 'virtual'])->name('calendar.virtual');
-
+    Route::get('/boardroom-calendar', [CalendarController::class, 'boardroom'])->name('calendar.boardroom');
+    Route::get('/occupied-boardrooms', [CalendarController::class, 'occupiedBoardrooms'])->name('calendar.occupied');
 
 });
 

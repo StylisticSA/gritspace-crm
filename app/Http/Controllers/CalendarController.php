@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use Inertia\Inertia;
+use App\Models\BoardroomBooking;
 use App\Models\Booking;
-use Illuminate\Http\Request;
 use App\Models\HotDeskBooking;
 use App\Models\VirtualBooking;
-use App\Models\BoardroomBooking;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CalendarController extends Controller
 {
@@ -54,7 +54,7 @@ class CalendarController extends Controller
                                 'plan'         => 'daily',
                                 'price'        => $vb->selected_price,
                                 'times'        => [],
-                                'isOwner'      => $user->id === $vb->user_id, // ✅ flag for frontend
+                                'isOwner'      => $user->id === $vb->user_id, 
                             ],
                         ];
                     });
@@ -92,7 +92,7 @@ class CalendarController extends Controller
                                         'plan'         => 'hourly',
                                         'price'        => $vb->selected_price,
                                         'timeslot'     => $time,
-                                        'isOwner'      => $user->id === $vb->user_id, // ✅ flag for frontend
+                                        'isOwner'      => $user->id === $vb->user_id, 
                                     ],
                                 ];
                             });
@@ -102,7 +102,98 @@ class CalendarController extends Controller
                 return collect();
             });
 
-        return Inertia::render('Calendars/BoardroomsFullCalendar', [
+        return Inertia::render('Calendars/Boardrooms/BoardroomsFullCalendar', [
+            'events' => $boardrooms->sortBy('start')->values(),
+        ]);
+    }
+
+    public function occupiedBoardrooms(Request $request)
+    {
+        $user         = auth()->user();
+        $palette      = array_values(config('colors.across'));
+        $paletteCount = count($palette);
+
+        $boardrooms = BoardroomBooking::with(
+                'user:id,name',
+                'boardroom:id,boardroom_name,location_id',
+                'boardroom.location:id,name'
+            )
+            ->whereIn('status', ['approved', 'paid'])
+            ->get()
+            ->flatMap(function ($vb) use ($user, $palette, $paletteCount) {
+                $key   = $vb->boardroom->boardroom_name . '-' . $vb->plan . '-' . $vb->boardroom->location_id;
+                $index = crc32($key) % $paletteCount;
+                $color = $palette[$index];
+                
+                if ($vb->plan === 'daily') {
+                    $dates = is_array($vb->selected_dates)
+                        ? $vb->selected_dates
+                        : json_decode($vb->selected_dates, true);
+
+                    return collect($dates)->map(function ($date) use ($vb, $color, $user) {
+                        return [
+                            'id'    => "{$vb->id}-{$date}",
+                            'title' => $vb->user->name,
+                            'start' => Carbon::parse($date)->format('Y-m-d'),
+                            'backgroundColor' => $color['bg'],
+                            'borderColor'     => $color['border'],
+                            'textColor'       => $color['text'],
+                            'extendedProps'   => [
+                                'boardroom'    => $vb->boardroom->boardroom_name,
+                                'boardroom_id' => $vb->boardroom_id,
+                                'location_id'  => $vb->boardroom->location_id,
+                                'location'     => $vb->boardroom->location->name,
+                                'user'         => $vb->user->name,
+                                'plan'         => 'daily',
+                                'price'        => $vb->selected_price,
+                                'timeLabel'    => 'All Day',
+                                'isOwner'      => $user->id === $vb->user_id,
+                            ],
+                        ];
+                    });
+                }
+
+                if ($vb->plan === 'hourly') {
+                    $times = is_array($vb->selected_times)
+                        ? $vb->selected_times
+                        : json_decode($vb->selected_times, true);
+
+                    return collect($times)->flatMap(function ($timeSlots, $date) use ($vb, $color, $user) {
+                        $parsedDate = Carbon::parse($date)->format('Y-m-d');
+
+                        return collect($timeSlots)->sort()->map(function ($time) use ($vb, $color, $parsedDate, $user) {
+                            $start = Carbon::parse("{$parsedDate} {$time}");
+                            $end   = (clone $start)->addHour();
+
+                            return [
+                                'id'    => "{$vb->id}-{$parsedDate}-{$time}",
+                                'title' => $vb->user->name,
+                                'start' => $start->format('Y-m-d\TH:i:s'),
+                                'end'   => $end->format('Y-m-d\TH:i:s'),
+                                'backgroundColor' => $color['bg'],
+                                'borderColor'     => $color['border'],
+                                'textColor'       => $color['text'],
+                                'extendedProps'   => [
+                                    'boardroom'    => $vb->boardroom->boardroom_name,
+                                    'boardroom_id' => $vb->boardroom_id,
+                                    'location_id'  => $vb->boardroom->location_id,
+                                    'location'     => $vb->boardroom->location->name,
+                                    'user'         => $vb->user->name,
+                                    'plan'         => 'hourly',
+                                    'price'        => $vb->selected_price,
+                                    'timeslot'     => $time,
+                                    'timeLabel'    => $start->format('H:i') . ' – ' . $end->format('H:i'), // ✅ emphasize timeline
+                                    'isOwner'      => $user->id === $vb->user_id,
+                                ],
+                            ];
+                        });
+                    });
+                }
+
+                return collect();
+            });
+
+        return Inertia::render('Calendars/Boardrooms/BoardroomsOccupied', [
             'events' => $boardrooms->sortBy('start')->values(),
         ]);
     }

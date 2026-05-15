@@ -1,13 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
 import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import listPlugin from '@fullcalendar/list';
 
 const props = defineProps({
     events: {
@@ -20,17 +18,6 @@ const props = defineProps({
 const openLocations = ref({});
 const selectedEvent = ref(null);
 const showModal = ref(false);
-
-onMounted(() => {
-    const isMobile = window.innerWidth < 768;
-    calendarOptions.value.headerToolbar = isMobile
-        ? { left: 'prev,next', center: 'title', right: '' }
-        : {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
-          };
-});
 
 const canManageSettings = props.can?.['manage settings'] ?? false;
 
@@ -60,7 +47,7 @@ const uniqueLocations = computed(() => {
     return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 });
 
-// Initialize filters once with full set
+// Filters
 const activeFilters = ref(uniqueBoardrooms.value.map(b => b.id));
 const activeLocationFilters = ref(uniqueLocations.value.map(l => l.id));
 
@@ -72,39 +59,32 @@ const filteredEvents = computed(() =>
     )
 );
 
+// Calendar Options — only daily timeline
 const calendarOptions = ref({
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
-    initialView: 'dayGridMonth',
+    plugins: [timeGridPlugin, interactionPlugin],
+    initialView: 'timeGridDay',
     weekends: false,
     height: 800,
     events: filteredEvents,
-    eventBackgroundColor: 'transparent',
-    eventBorderColor: 'transparent',
-    eventDisplay: 'block',
-    dayMaxEvents: 4,
-    editable: true,
+    editable: false,
     selectable: true,
-    headerToolbar: {},
+    headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridDay,timeGridWeek',
+    },
+    slotMinTime: '04:00:00',
+    slotMaxTime: '23:00:00',
 
-    eventContent: function (arg) {
+    eventContent(arg) {
         const isOwner = arg.event.extendedProps?.isOwner;
         const boardroomName = arg.event.extendedProps?.boardroom;
 
         const wrapper = document.createElement('div');
         wrapper.classList.add('fc-custom-event');
-        wrapper.style.padding = '2px';
-        wrapper.style.borderRadius = '2px';
-        wrapper.style.overflow = 'hidden';
-        wrapper.style.whiteSpace = 'nowrap';
-        wrapper.style.textOverflow = 'ellipsis';
-        wrapper.style.maxWidth = '100%';
 
         const titleEl = document.createElement('div');
-        if (canManageSettings || isOwner) {
-            titleEl.textContent = arg.event.title;
-        } else {
-            titleEl.textContent = 'Booked';
-        }
+        titleEl.textContent = canManageSettings || isOwner ? arg.event.extendedProps?.user : 'Booked';
         titleEl.className = 'text-xs font-semibold text-gray-800';
         wrapper.appendChild(titleEl);
 
@@ -117,31 +97,20 @@ const calendarOptions = ref({
 
         return { domNodes: [wrapper] };
     },
-    eventDidMount: function (info) {
-        const el = info.el;
-        const bg = info.event.backgroundColor;
-        const border = info.event.borderColor;
-        const text = info.event.textColor;
 
-        if (bg) el.style.backgroundColor = bg;
-        if (border) el.style.borderColor = border;
-        if (text) el.style.color = text;
-    },
-    eventClick: info => {
-        const rawStart = info.event.start;
-
+    eventClick(info) {
         selectedEvent.value = {
-            title: info.event.title,
             boardroom: info.event.extendedProps?.boardroom,
-            start: rawStart.toISOString().split('T')[0],
+            user: info.event.extendedProps?.user,
+            timeLabel: info.event.extendedProps?.timeLabel,
+            start: info.event.startStr,
             end: info.event.endStr,
-            color: info.event.backgroundColor,
         };
         showModal.value = true;
     },
 });
 
-// Grouped boardrooms by location (always from props.events)
+// Grouped boardrooms
 const groupedBoardrooms = computed(() => {
     const groups = {};
     props.events.forEach(event => {
@@ -151,10 +120,7 @@ const groupedBoardrooms = computed(() => {
 
         if (!locName || !boardroomId || !boardroomName) return;
 
-        if (!groups[locName]) {
-            groups[locName] = [];
-        }
-
+        if (!groups[locName]) groups[locName] = [];
         if (!groups[locName].some(b => b.id === boardroomId)) {
             groups[locName].push({ id: boardroomId, name: boardroomName });
         }
@@ -164,14 +130,25 @@ const groupedBoardrooms = computed(() => {
 </script>
 
 <template>
-    <Head title="Boardrooms Calendar" />
+    <Head title="Boardrooms Occupied" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardrooms Calendar</h2>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">Boardrooms Occupied</h2>
         </template>
 
         <div class="py-12">
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+                        <Link
+                            :href="route('calendar.boardroom')"
+                            class="inline-block px-3 py-2 text-base sm:text-lg font-medium text-white rounded bg-primary hover:bg-bluemain/60">
+                            Boardrooms Calendar
+                        </Link>
+                    </div>
+                </div>
+            </div>
             <div class="flex flex-col gap-6 px-4 mx-auto lg:flex-row max-w-7xl lg:px-8">
                 <!-- Sidebar Filters -->
                 <aside
